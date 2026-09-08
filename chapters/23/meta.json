@@ -1,0 +1,82 @@
+{
+  "outcomes": [
+    "Unroll a recurrent state over time",
+    "Derive and check BPTT gradients through shared recurrent weights",
+    "Trace LSTM input, forget, output, and candidate paths",
+    "Evaluate one-step forecasts on a later contiguous segment"
+  ],
+  "lessons": [
+    "Order changes the prediction problem",
+    "RNNs and BPTT",
+    "LSTM memory",
+    "Temporal evaluation",
+    "Practice and debug",
+    "Review and transfer"
+  ],
+  "terms": {
+    "recurrent-neural-network": {
+      "name": "recurrent neural network",
+      "definition": "A network that reuses parameters while carrying state from one time step to the next.",
+      "explanation": "A basic RNN combines the current input with its previous hidden state, applies a nonlinearity, and produces a new state. The same weights operate at every time step, allowing variable-length sequences and a compact form of memory. The state is a summary, not a literal storage of every observation. Saturating nonlinearities and repeated multiplication can make long-range gradients shrink or grow, limiting what a simple RNN can learn."
+    },
+    "bptt": {
+      "name": "backpropagation through time",
+      "definition": "Reverse-mode differentiation through an unrolled recurrent computation.",
+      "explanation": "BPTT treats each time step as another use of the same recurrent cell. The forward pass stores states; the reverse pass starts at later losses and carries a gradient backward through each recurrent edge. Contributions from every use accumulate into the shared parameter gradients. Truncated BPTT stops after a fixed window to bound memory and computation, changing how far credit can travel. The project uses the full short training prefix so the derivation stays visible."
+    },
+    "lstm": {
+      "name": "long short-term memory",
+      "definition": "A gated recurrent cell with a separate memory state and controlled update paths.",
+      "explanation": "An LSTM computes input, forget, and output gates with sigmoids plus a candidate value with tanh. The forget gate scales old cell memory, the input gate scales the candidate update, and the output gate controls exposed hidden state. Its additive cell-state path can preserve gradients better than repeatedly applying one saturating recurrent transformation. LSTMs still need careful optimization and do not automatically solve arbitrary long-horizon forecasting."
+    },
+    "teacher-forcing": {
+      "name": "teacher forcing",
+      "definition": "Using the observed previous value as the next recurrent input during sequence training or evaluation.",
+      "explanation": "In one-step forecasting, teacher forcing feeds the actual value at time t to predict time t+1. It isolates conditional next-step quality and keeps errors from feeding back into future inputs. A free-running forecast instead feeds each prediction back into the model, so errors can accumulate. Results from the two settings answer different questions and should be labeled. This chapter reports teacher-forced one-step MSE; it does not claim multi-step rollout quality."
+    }
+  },
+  "sources": [
+    {
+      "title": "Finding Structure in Time",
+      "url": "https://doi.org/10.1207/S15516709COG1402_1",
+      "note": "Primary simple recurrent-network study."
+    },
+    {
+      "title": "Backpropagation through time: what it does and how to do it",
+      "url": "https://doi.org/10.1109/5.58337",
+      "note": "Primary practical BPTT account."
+    },
+    {
+      "title": "Long Short-Term Memory",
+      "url": "https://doi.org/10.1162/neco.1997.9.8.1735",
+      "note": "Original LSTM paper."
+    },
+    {
+      "title": "Out-of-sample tests of forecasting accuracy: an analysis and review",
+      "url": "https://doi.org/10.1016/S0169-2070(00)00065-0",
+      "note": "Primary review of fixed and rolling forecasting evaluations."
+    },
+    {
+      "title": "A Note on the Validity of Cross-Validation for Evaluating Autoregressive Time Series Prediction",
+      "url": "https://doi.org/10.1016/j.csda.2017.11.003",
+      "note": "Study of conditions under which ordinary CV is or is not appropriate for autoregression."
+    },
+    {
+      "title": "Learning to Forget: Continual Prediction with LSTM",
+      "url": "https://doi.org/10.1162/089976600300015015",
+      "note": "Primary source for the adaptive forget gate in the modern LSTM variant."
+    }
+  ],
+  "checks": [
+    "Analytic RNN recurrent-weight and LSTM candidate-weight BPTT match central differences",
+    "Both RNN and LSTM reduce later one-step validation MSE",
+    "Training targets all precede validation targets",
+    "Stable sigmoid avoids overflow for large negative inputs"
+  ],
+  "limitations": [
+    "The signal is deterministic and course-authored",
+    "Models have one hidden scalar and use full-sequence gradient descent",
+    "Evaluation is teacher-forced one-step forecasting",
+    "One temporal split does not quantify variability across origins"
+  ]
+}

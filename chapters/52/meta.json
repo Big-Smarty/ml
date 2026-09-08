@@ -1,0 +1,55 @@
+{
+  "outcomes": [
+    "Convert tiny pixels and caption words into modality-specific vectors",
+    "Normalize embeddings and build an image-by-text similarity matrix",
+    "Train both encoders with symmetric in-batch contrastive cross-entropy",
+    "Measure image-to-text recall at one on perturbed paired examples"
+  ],
+  "lessons": [
+    "Two modalities, one comparison space",
+    "Contrastive alignment by hand",
+    "Train the Rust dual encoder",
+    "Retrieval evaluation and failure modes",
+    "Practice and transfer"
+  ],
+  "terms": {
+    "multimodal-encoder": {
+      "name": "Multimodal encoder",
+      "definition": "A model that maps more than one data modality into representations.",
+      "explanation": "The project uses separate linear towers because a four-pixel image and a caption vocabulary have different input structures. Each tower produces a two-number vector, and both vectors enter the same similarity calculation. Sharing an output space does not mean the encoders share parameters. Large systems use convolutional, transformer, or other pretrained towers, but the essential contract remains: compatible examples should be comparable after their modality-specific encoding."
+    },
+    "embedding-normalization": {
+      "name": "Embedding normalization",
+      "definition": "Rescaling a representation to have unit Euclidean length.",
+      "explanation": "For a vector u, divide each component by the square root of the sum of squared components. The dot product of two unit vectors equals cosine similarity, so direction determines the score while raw magnitude cannot dominate it. Normalization needs a nonzero finite norm; the Rust project rejects zero and nonfinite embeddings. Unit length stabilizes the score convention but does not make the direction semantically correct without a useful learning objective and data."
+    },
+    "contrastive-alignment": {
+      "name": "Contrastive alignment",
+      "definition": "Learning to score paired representations above mismatched ones.",
+      "explanation": "A batch of N image-caption pairs produces an N by N score matrix. Diagonal cells are known pairs; off-diagonal cells act as negatives. Image-to-text cross-entropy asks each row to select its diagonal caption, while text-to-image cross-entropy asks each column to select its diagonal image. Averaging both directions trains both retrieval views. In-batch negatives are convenient, but a tiny or biased batch can make the task misleadingly easy."
+    },
+    "recall-at-k": {
+      "name": "Recall at k",
+      "definition": "The fraction of queries whose relevant item appears among the top k results.",
+      "explanation": "For recall at one, rank every candidate caption by its similarity to an image and count success only when the paired caption ranks first. With multiple valid captions, the relevance set must include all accepted matches. This chapter has one caption per image and reports three perturbed versions of the same base patterns. Perfect recall therefore confirms the closed fixture and ranking code; it is not an independent estimate of broad image-language generalization."
+    }
+  },
+  "sources": [
+    {"title": "Learning Transferable Visual Models From Natural Language Supervision", "url": "https://arxiv.org/abs/2103.00020", "note": "CLIP dual encoders and symmetric contrastive loss"},
+    {"title": "ALIGN", "url": "https://arxiv.org/abs/2102.05918", "note": "Normalized dual-encoder contrastive learning"},
+    {"title": "LiT", "url": "https://arxiv.org/abs/2111.07991", "note": "Locked-image text tuning and retrieval evaluation"},
+    {"title": "OpenAI CLIP model card", "url": "https://github.com/openai/CLIP/blob/main/model-card.md", "note": "Documented evaluation and deployment limitations"}
+  ],
+  "checks": [
+    "Symmetric contrastive loss falls below one quarter of its initial value",
+    "Training updates both the image and text parameter matrices",
+    "Training-pair recall at one reaches 100 percent",
+    "Perturbed variants of the three same base patterns reach 100 percent recall at one",
+    "Zero, nonfinite, and out-of-vocabulary inputs are rejected"
+  ],
+  "limitations": [
+    "The vocabulary contains three shape words and does not demonstrate open-vocabulary language understanding",
+    "Perturbed evaluation examples share the three training concepts and are not an independent generalization benchmark",
+    "Finite-difference optimization is practical only because the model has fourteen parameters"
+  ]
+}

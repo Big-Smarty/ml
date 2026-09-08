@@ -1,0 +1,71 @@
+{
+  "outcomes": [
+    "Derive the online-softmax recurrence",
+    "Implement exact causal attention over key tiles",
+    "Verify tiled output against a full oracle",
+    "Map grouped query heads to shared key/value heads",
+    "Account for long-context arithmetic and intermediate storage"
+  ],
+  "lessons": [
+    "Keep a simple full-attention oracle",
+    "Update softmax without seeing all scores first",
+    "Tile exact attention",
+    "Share keys and values across query heads",
+    "Run, diagnose, and transfer",
+    "Before you move on"
+  ],
+  "terms": {
+    "online-softmax": {
+      "name": "online softmax",
+      "definition": "A recurrence for updating a stable softmax maximum and denominator incrementally.",
+      "explanation": "Online softmax keeps a running maximum and a sum of exponentials shifted by that maximum. When a larger score appears, it rescales the old sum to the new reference before adding the new term. The same state can merge score tiles. Attention also carries a value-weighted numerator on that scale, allowing exact normalized output without storing every individual score value."
+    },
+    "tiled-attention": {
+      "name": "tiled attention",
+      "definition": "Attention evaluated over bounded query, key, or value blocks.",
+      "explanation": "Tiled attention computes small score blocks and combines them while retaining only compact running normalization state. In an exact algorithm every permitted query-key pair is still evaluated, so arithmetic remains quadratic for dense attention. The benefit is avoiding a full quadratic score or probability tensor and improving memory locality. Hardware speed depends on block shapes, fusion, and the memory hierarchy."
+    },
+    "grouped-query-attention": {
+      "name": "grouped-query attention",
+      "definition": "Several query heads sharing each key and value head.",
+      "explanation": "Grouped-query attention uses Hq query heads but fewer Hkv key/value heads. Equal groups of Hq/Hkv queries read one shared K/V head. It interpolates between ordinary multi-head attention, where counts match, and multi-query attention, where one K/V head serves all queries. This reduces K/V projections and decoder-cache traffic, though dense pairwise attention work still grows quadratically with the complete sequence length."
+    }
+  },
+  "sources": [
+    {
+      "title": "Online normalizer calculation for softmax",
+      "url": "https://arxiv.org/abs/1805.02867",
+      "note": "Online maximum and denominator recurrence."
+    },
+    {
+      "title": "FlashAttention",
+      "url": "https://arxiv.org/abs/2205.14135",
+      "note": "IO-aware exact tiled attention and memory analysis."
+    },
+    {
+      "title": "Attention Is All You Need",
+      "url": "https://arxiv.org/abs/1706.03762",
+      "note": "Scaled dot-product attention and complexity."
+    },
+    {
+      "title": "GQA: Training Generalized Multi-Query Transformer Models",
+      "url": "https://aclanthology.org/2023.emnlp-main.298.pdf",
+      "note": "Grouped-query mapping and cache motivation."
+    }
+  ],
+  "checks": [
+    "Tiled attention matches the full oracle within 2e-6 + 2e-6 times absolute reference across tile sizes",
+    "First causal output equals its only visible value",
+    "Increasing maxima preserve a hand-computed weighted numerator",
+    "Invalid or overflowing shapes and nonfinite scores are rejected",
+    "GQA requires a divisible head mapping",
+    "A maximum-sized tile does not overflow index arithmetic"
+  ],
+  "limitations": [
+    "Scalar CPU code demonstrates the recurrence, not FlashAttention hardware performance",
+    "Full oracle stores one score row rather than an entire quadratic tensor",
+    "Random tensors do not measure trained-model quality",
+    "No backward pass or block-sparse approximation is implemented",
+    "Benchmark measures allocating end-to-end CPU functions, not allocation-free kernels"
+  ]
+}

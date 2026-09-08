@@ -1,0 +1,63 @@
+{
+  "outcomes": [
+    "Trace a tree reduction through workgroup memory and barriers",
+    "Derive a tiled row-major matrix multiplication for rectangular matrices",
+    "Guard partial tiles without allowing any lane to skip a barrier",
+    "Validate dimensions, checked products, device limits, and input lengths",
+    "Use the reusable Gpu matmul API and compare it with a scalar oracle"
+  ],
+  "lessons": [
+    "Why neighboring invocations must cooperate",
+    "Reduce values inside one workgroup",
+    "Tile matrix multiplication",
+    "Handle edge dimensions and device limits",
+    "Run, debug, and extend the GPU library",
+    "Review and transfer"
+  ],
+  "terms": {
+    "reduction": {
+      "name": "reduction",
+      "definition": "An operation that combines many values into fewer values using an associative rule.",
+      "explanation": "A sum reduction repeatedly combines pairs until one subtotal remains. GPUs perform the early levels in parallel: each invocation contributes one value, then progressively fewer lanes add neighboring subtotals. Addition is mathematically associative over real numbers but not exactly associative in floating-point arithmetic, so parallel and scalar accumulation may differ in low-order bits. A multi-workgroup input also needs another reduction stage because workgroup memory is local."
+    },
+    "workgroup-memory": {
+      "name": "workgroup memory",
+      "definition": "Temporary storage shared by invocations in one workgroup for the lifetime of that workgroup.",
+      "explanation": "WGSL declares workgroup memory separately from storage buffers. It is suited to reused tiles and partial sums because neighboring lanes can read values loaded by one another. Its visibility is strictly local: another workgroup cannot see it, and it disappears when the workgroup finishes. Hardware limits its capacity, so tile dimensions are a tuned constant rather than an unlimited cache. Correct use requires barriers at ownership handoffs."
+    },
+    "workgroup-barrier": {
+      "name": "workgroup barrier",
+      "definition": "A synchronization point that all active invocations in a workgroup must reach in uniform control flow.",
+      "explanation": "A workgroup barrier makes earlier workgroup-memory writes visible before later reads proceed. In tiled multiplication, one barrier follows tile loading and another prevents fast lanes overwriting a tile while slow lanes still consume it. Returning early before a barrier is unsafe because remaining lanes may wait forever. Edge lanes instead write the additive identity zero, participate in every barrier, and skip only the final global output store."
+    },
+    "tile": {
+      "name": "tile",
+      "definition": "A small rectangular block of a larger array processed cooperatively.",
+      "explanation": "The matrix kernel uses 16×16 tiles. A 16×16 workgroup loads one tile from A and one from B, then reuses each loaded element across multiple multiply-adds. The K dimension may require several tile rounds. When dimensions are not multiples of 16, the last round contains invalid positions; those lanes load zero. Tiling changes data movement and order of accumulation while preserving the matrix product within floating-point tolerance."
+    },
+    "gemm": {
+      "name": "GEMM",
+      "definition": "General matrix multiplication, usually the operation C = A × B with rectangular dimensions.",
+      "explanation": "For A shaped [m,k] and B shaped [k,n], GEMM returns C shaped [m,n]. Each C[row,col] is the dot product of A's row and B's column. Dense neural-network layers depend on this operation, which is why chapter 30 exposes a stable library API for later decoder chapters. The teaching kernel is real but intentionally simple; production libraries add architecture-specific vectorization, packing, and scheduling selected from measurements."
+    }
+  },
+  "sources": [
+    {"title": "WGSL specification", "url": "https://www.w3.org/TR/WGSL/", "note": "Normative workgroup memory, barrier, and uniformity rules."},
+    {"title": "WebGPU specification", "url": "https://www.w3.org/TR/webgpu/", "note": "Normative compute dispatch and resource validation model."},
+    {"title": "wgpu workgroups example", "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/features/src/hello_workgroups/README.md", "note": "First-party workgroup explanation for v29."},
+    {"title": "wgpu synchronization example", "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/features/src/hello_synchronization/README.md", "note": "First-party synchronization guidance."}
+  ],
+  "checks": [
+    "The scalar oracle handles a nonsquare 3×17 by 17×5 product",
+    "The ignored hardware test matches that odd-tile product within absolute-plus-relative tolerance",
+    "A 777-value staged reduction matches the scalar sum",
+    "Zero, overflowing, malformed, nonfinite, or device-exceeding shapes return errors",
+    "Gpu stores a persistent device, queue, matmul pipeline, and reduction pipeline"
+  ],
+  "limitations": [
+    "Each reduction workgroup handles up to 512 inputs; larger arrays require multiple dispatch stages",
+    "The fixed 16×16 matmul tile is educational and is not tuned per adapter",
+    "Each matmul call uploads inputs and reads output, so later integration includes transfer overhead",
+    "Floating-point accumulation order prevents bitwise CPU/GPU reproducibility"
+  ]
+}

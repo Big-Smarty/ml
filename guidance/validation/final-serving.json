@@ -1,0 +1,128 @@
+[
+  {
+    "command": [
+      "cargo",
+      "build",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "projects/ch53/Cargo.toml"
+    ],
+    "returncode": 0,
+    "output": "   Compiling ch53 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch53)\n    Finished `release` profile [optimized] target(s) in 0.23s\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "build",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "projects/ch56/Cargo.toml"
+    ],
+    "returncode": 0,
+    "output": "   Compiling ch56 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch56)\n    Finished `release` profile [optimized] target(s) in 0.82s\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--offline",
+      "--manifest-path",
+      "projects/ch53/Cargo.toml",
+      "--",
+      "--ignored",
+      "--nocapture"
+    ],
+    "returncode": 0,
+    "output": "\nrunning 1 test\ntest tests::serving_monitor_and_rollback_are_real ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s\n\n   Compiling ch53 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch53)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s\n     Running unittests src/main.rs (projects/ch53/target/debug/deps/ch53-c31cce84b08f1620)\naccepted requests=1 input_mean=12.0000 mean_drift=true\n"
+  },
+  {
+    "command": [
+      "/home/bigsmarty/Projects/ml/projects/ch53/target/release/ch53",
+      "train",
+      "/tmp/ml-final-sz797vgz/model53"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "/home/bigsmarty/Projects/ml/projects/ch53/target/release/ch53",
+      "serve",
+      "127.0.0.1:60945",
+      "/tmp/ml-final-sz797vgz/model53"
+    ],
+    "output": "serving model v1 on http://127.0.0.1:60945/predict\naccepted requests=1 input_mean=12.0000 mean_drift=true\n"
+  },
+  {
+    "response": "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 30\r\nConnection: close\r\n\r\nversion=1 prediction=3.000000\n"
+  },
+  {
+    "command": [
+      "/home/bigsmarty/Projects/ml/projects/ch53/target/release/ch53",
+      "serve",
+      "127.0.0.1:46033",
+      "/tmp/ml-final-sz797vgz/model53"
+    ],
+    "output": "serving model v1 on http://127.0.0.1:46033/predict\n"
+  },
+  {
+    "response": "HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain\r\nContent-Length: 47\r\nConnection: close\r\n\r\nerror=x must be finite and within [-1000,1000]\n"
+  },
+  {
+    "command": [
+      "/home/bigsmarty/Projects/ml/projects/ch56/target/release/ch56",
+      "train",
+      "/tmp/ml-final-sz797vgz/model56",
+      "2"
+    ],
+    "returncode": 0,
+    "output": "saved step 2 checkpoint to /tmp/ml-final-sz797vgz/model56; train task CE 4.7718; held-out task CE 4.7635\n"
+  },
+  {
+    "command": [
+      "/home/bigsmarty/Projects/ml/projects/ch56/target/release/ch56",
+      "resume",
+      "/tmp/ml-final-sz797vgz/model56",
+      "1"
+    ],
+    "returncode": 0,
+    "output": "saved step 3 checkpoint to /tmp/ml-final-sz797vgz/model56; train task CE 4.7293; held-out task CE 4.7277\n"
+  },
+  {
+    "command": [
+      "/home/bigsmarty/Projects/ml/projects/ch56/target/release/ch56",
+      "generate",
+      "/tmp/ml-final-sz797vgz/model56",
+      "rust",
+      "2"
+    ],
+    "returncode": 0,
+    "output": "rust\u00008\n"
+  },
+  {
+    "command": [
+      "/home/bigsmarty/Projects/ml/projects/ch56/target/release/ch56",
+      "serve",
+      "/tmp/ml-final-sz797vgz/model56",
+      "127.0.0.1:43613"
+    ],
+    "output": "serving one request on http://127.0.0.1:43613/generate?prompt=rust&tokens=24\n"
+  },
+  {
+    "response": "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 17\r\nConnection: close\r\n\r\n{\"text\":\"rust??\"}"
+  },
+  {
+    "command": [
+      "/home/bigsmarty/Projects/ml/projects/ch56/target/release/ch56",
+      "serve",
+      "/tmp/ml-final-sz797vgz/model56",
+      "127.0.0.1:49851"
+    ],
+    "output": "serving one request on http://127.0.0.1:49851/generate?prompt=rust&tokens=24\n"
+  },
+  {
+    "response": "HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\nContent-Length: 41\r\nConnection: close\r\n\r\n{\"error\":\"invalid or incomplete request\"}"
+  }
+]

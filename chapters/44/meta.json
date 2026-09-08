@@ -1,0 +1,86 @@
+{
+  "outcomes": [
+    "Implement and diagnose a BM25 lexical baseline",
+    "Train query and document embeddings",
+    "Search a dense index exactly",
+    "Assemble source-labeled context and extract an answer",
+    "Measure hit@1, attribution, coverage, and abstention"
+  ],
+  "lessons": [
+    "Begin with a lexical baseline",
+    "Learn embeddings and search them exactly",
+    "Assemble evidence before answering",
+    "Evaluate support and abstain",
+    "Run, debug, and extend",
+    "Before you move on"
+  ],
+  "terms": {
+    "lexical-retrieval": {
+      "name": "lexical retrieval",
+      "definition": "Ranking documents from overlap between query and document terms.",
+      "explanation": "Lexical retrievers operate on token identity and collection statistics. BM25 combines rare-term weighting, saturating term frequency, and document-length normalization. It is transparent and strong for names, codes, and quoted phrases, but misses paraphrases with no shared terms. Tokenization, stemming, stopword handling, corpus statistics, and parameter choices are part of the retrieval definition and must remain consistent between indexing and queries."
+    },
+    "dense-retrieval": {
+      "name": "dense retrieval",
+      "definition": "Ranking learned query and document vectors by similarity.",
+      "explanation": "A dense retriever encodes text into fixed-width vectors and scores pairs with a dot product, cosine similarity, or distance. Training on positive and negative query-document pairs can bring paraphrases together even without exact term overlap. The learned geometry depends on data and may blur rare identifiers. Search can be exact or approximate; embeddings alone do not determine the index algorithm."
+    },
+    "context-assembly": {
+      "name": "context assembly",
+      "definition": "Selecting and formatting retrieved evidence for an answerer.",
+      "explanation": "Context assembly chooses chunks from retrieval results, orders them, enforces a context budget, and preserves stable source labels. The resulting evidence becomes input to an extractive reader or a generative language model. Poor chunk boundaries can omit qualifiers or mix sources. Source labels enable attribution checks, but a printed citation still needs a separate test that the passage supports the claim."
+    },
+    "abstention": {
+      "name": "abstention",
+      "definition": "Choosing not to answer when evidence or confidence is insufficient.",
+      "explanation": "An abstention policy trades coverage for reliability. A retrieval system can reject questions when no known content appears, the best score is low, or the margin is ambiguous. Thresholds should be chosen on held-out answerable and unanswerable data, especially under domain shift. Reporting accuracy without coverage rewards systems that reject too much, while answering everything hides unsupported behavior and can turn weak retrieval into confident fabrication."
+    }
+  },
+  "sources": [
+    {
+      "title": "The Probabilistic Relevance Framework: BM25 and Beyond",
+      "url": "https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf",
+      "note": "BM25 derivation and parameter interpretation."
+    },
+    {
+      "title": "Dense Passage Retrieval for Open-Domain Question Answering",
+      "url": "https://www.cs.princeton.edu/~danqic/papers/emnlp2020a.pdf",
+      "note": "Two encoders, dot-product retrieval, positives and negatives."
+    },
+    {
+      "title": "Faiss indexes",
+      "url": "https://github.com/facebookresearch/faiss/wiki/Faiss-indexes",
+      "note": "Official exact flat inner-product and L2 index definitions."
+    },
+    {
+      "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+      "url": "https://proceedings.nips.cc/paper/2020/file/6b493230205f780e1bc26945df7481e5-Paper.pdf",
+      "note": "Retriever-generator composition and extractive distinction."
+    },
+    {
+      "title": "Enabling Large Language Models to Generate Text with Citations",
+      "url": "https://aclanthology.org/2023.emnlp-main.398/",
+      "note": "Citation correctness and completeness evaluation."
+    },
+    {
+      "title": "Selective Question Answering under Domain Shift",
+      "url": "https://aclanthology.org/2020.acl-main.503/",
+      "note": "Coverage-accuracy tradeoffs and confidence limits."
+    }
+  ],
+  "checks": [
+    "BM25 ranks an exact-term fact first",
+    "Both query and document table gradients match direct-loss central differences",
+    "Dense exact search retrieves trained semantic pairs and held-out feature combinations",
+    "Changing retrieved fact text changes the extracted answer without retraining",
+    "Every answered fixture includes a matching source label",
+    "Unknown-content unsupported query abstains"
+  ],
+  "limitations": [
+    "Three-document corpus and training pairs are too small for general retrieval claims",
+    "Dense vocabulary is fixed at construction and uses simple averaged word embeddings",
+    "Answerer is extractive and cannot synthesize across passages",
+    "Abstention thresholds are fixture-specific and uncalibrated",
+    "Known-term and score gates can accept unsupported questions containing familiar terms; extraction guarantees provenance, not relevance"
+  ]
+}

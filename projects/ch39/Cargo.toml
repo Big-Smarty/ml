@@ -1,0 +1,11 @@
+[package]
+name="ch39"
+version="0.1.0"
+edition="2021"
+[features]
+gpu=["ch36/gpu","ch38/gpu","dep:ch30"]
+[dependencies]
+ch36={path="../ch36"}
+ch38={path="../ch38"}
+ch30={path="../ch30",optional=true}
+[workspace]

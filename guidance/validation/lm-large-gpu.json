@@ -1,0 +1,23 @@
+{
+  "command": [
+    "cargo",
+    "run",
+    "--release",
+    "--offline",
+    "--manifest-path",
+    "projects/ch39/Cargo.toml",
+    "--features",
+    "gpu",
+    "--",
+    "--large",
+    "--gpu",
+    "--steps",
+    "1",
+    "--generate",
+    "0"
+  ],
+  "returncode": 0,
+  "seconds": 0.3859441810000135,
+  "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `projects/ch30/target/release/ch39 --large --gpu --steps 1 --generate 0`\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\ntrainable parameters: 14442496\nvalidation cross-entropy: 5.577 -> 5.593\nlarge smoke evaluation used the first 16 held-out target bytes\nprocessed 16 tokens in 0.282s (56.7 tokens/s)\nmodel+Adam moments: 173309952 bytes; activations depend on sequence and layers\nsample: The \n",
+  "scope": "Actual bounded14.4M-parameter update via GPU projection GEMMs with CPU remaining operations. Tiny 16-token workload, no steady-state throughput or quality claim."
+}

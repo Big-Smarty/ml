@@ -1,0 +1,82 @@
+{
+  "outcomes": [
+    "Estimate action values with epsilon-greedy bandit interaction",
+    "Derive and implement the tabular Q-learning control update",
+    "Train a categorical policy with an actual REINFORCE gradient",
+    "Distinguish sampled evidence from convergence guarantees"
+  ],
+  "lessons": [
+    "Learning from consequences",
+    "Bandits and exploration",
+    "Tabular control",
+    "Policy gradients",
+    "Rust experiment",
+    "Practice and transfer"
+  ],
+  "terms": {
+    "reinforcement-learning": {
+      "name": "Reinforcement learning",
+      "definition": "Learning a behavior from rewards produced by interaction.",
+      "explanation": "An agent observes a situation, chooses an action, and receives a reward and possibly a new situation. Unlike supervised learning, the data depends on the current behavior: an action never tried produces no direct evidence. The objective is expected cumulative reward, not agreement with a supplied target for every decision. This chapter uses simulated finite environments so the interaction loop and update equations can be checked exactly."
+    },
+    "bandit": {
+      "name": "Multi-armed bandit",
+      "definition": "A repeated decision problem with actions that yield uncertain rewards but no changing state.",
+      "explanation": "A bandit isolates exploration from long-term credit assignment. Each arm has an unknown reward distribution. The learner selects one arm, observes only its reward, and updates that arm's estimate. Because exploiting the current best estimate can miss a better arm, a useful policy deliberately explores. Bandits model limited feedback, but they omit state transitions and delayed consequences found in a full reinforcement-learning environment."
+    },
+    "epsilon-greedy": {
+      "name": "Epsilon-greedy policy",
+      "definition": "A policy that chooses a random action with probability epsilon and a greedy action otherwise.",
+      "explanation": "Epsilon-greedy makes the exploration decision explicit. With probability ε, it samples uniformly from every action, including the current greedy action; otherwise it selects an action with the largest estimate. A fixed positive ε keeps gathering evidence but also keeps making exploratory choices at evaluation time. Annealing ε reduces exploration, though a finite run then carries no automatic guarantee that every action was sampled enough."
+    },
+    "q-value": {
+      "name": "Action value",
+      "definition": "The expected future return after taking an action in a state and following a policy afterward.",
+      "explanation": "Written Q(s,a), an action value combines an immediate consequence with later rewards. In a bandit there is no later state, so Q is simply an arm's expected reward. In tabular control, a two-dimensional table stores one number for every state-action pair. These values are estimates learned from experience, not rewards supplied directly by the environment, and their meaning depends on the discount and continuation policy."
+    },
+    "temporal-difference-error": {
+      "name": "Temporal-difference error",
+      "definition": "The gap between a current value estimate and a one-step bootstrapped target.",
+      "explanation": "For Q-learning, the target is the observed reward plus discounted maximum action value at the next state. Subtracting the old estimate gives the temporal-difference error. A positive error raises the visited state-action value; a negative error lowers it. Terminal transitions omit the bootstrap because no future reward remains. Bootstrapping lets information travel backward before a complete return estimate has been averaged."
+    },
+    "policy-gradient": {
+      "name": "Policy gradient",
+      "definition": "A gradient of expected return with respect to parameters that directly define an action policy.",
+      "explanation": "REINFORCE estimates this gradient with sampled returns multiplied by the gradient of the chosen action's log probability. The log-probability derivative raises probability for actions with positive advantage and lowers it for negative advantage. A baseline can reduce variance without changing the expected gradient when it does not depend on the sampled action. Finite stochastic training remains noisy, so a deterministic seed is a reproducibility aid rather than a proof."
+    }
+  },
+  "sources": [
+    {
+      "title": "Reinforcement Learning: An Introduction, second edition",
+      "url": "https://incompleteideas.net/book/bookdraft2018mar21.pdf",
+      "note": "Bandits, tabular control, and policy-gradient foundations"
+    },
+    {
+      "title": "Q-learning",
+      "url": "https://doi.org/10.1007/BF00992698",
+      "note": "Original Q-learning result and conditions"
+    },
+    {
+      "title": "Simple Statistical Gradient-Following Algorithms for Connectionist Reinforcement Learning",
+      "url": "https://doi.org/10.1007/BF00992696",
+      "note": "Original REINFORCE algorithm"
+    },
+    {
+      "title": "Policy Gradient Methods for Reinforcement Learning with Function Approximation",
+      "url": "https://papers.nips.cc/paper/1713-policy-gradient-methods-for-reinforcement-learning-with-function-approximation",
+      "note": "Policy-gradient theorem"
+    }
+  ],
+  "checks": [
+    "Eight thousand seeded bandit steps identify arm 2 as best",
+    "Q-learning makes right the greedy action in all four nonterminal states and matches exact path returns",
+    "Terminal transitions ignore sentinel continuation values and cannot restart the episode",
+    "Five thousand seeded REINFORCE episodes assign action 1 probability above 0.9",
+    "Invalid epsilon and empty bandit runs are rejected"
+  ],
+  "limitations": [
+    "Tiny stationary simulations do not establish performance in a real environment",
+    "Constant learning rates and finite visits do not satisfy the published tabular convergence conditions",
+    "The policy-gradient experiment has one decision and does not test delayed credit assignment"
+  ]
+}

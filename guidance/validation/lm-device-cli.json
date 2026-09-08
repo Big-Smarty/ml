@@ -1,0 +1,75 @@
+[
+  {
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "projects/ch39/Cargo.toml",
+      "--features",
+      "gpu",
+      "--",
+      "--gpu",
+      "--steps",
+      "2",
+      "--generate",
+      "0",
+      "--checkpoint",
+      "/tmp/ml-gpu-tiny.bin"
+    ],
+    "returncode": 0,
+    "seconds": 0.7652557639994484,
+    "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch38 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38)\n   Compiling ch39 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch39)\n    Finished `release` profile [optimized] target(s) in 0.71s\n     Running `projects/ch30/target/release/ch39 --gpu --steps 2 --generate 0 --checkpoint /tmp/ml-gpu-tiny.bin`\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\ntrainable parameters: 10896\nvalidation cross-entropy: 5.545 -> 5.511\nprocessed 48 tokens in 0.010s (4625.1 tokens/s)\nmodel+Adam moments: 130752 bytes; activations depend on sequence and layers\nsample: The \nsaved resumable checkpoint to /tmp/ml-gpu-tiny.bin\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "projects/ch39/Cargo.toml",
+      "--features",
+      "gpu",
+      "--",
+      "--gpu",
+      "--resume",
+      "/tmp/ml-gpu-tiny.bin",
+      "--steps",
+      "1",
+      "--generate",
+      "0",
+      "--checkpoint",
+      "/tmp/ml-gpu-resumed.bin"
+    ],
+    "returncode": 0,
+    "seconds": 0.06266962900008366,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `projects/ch30/target/release/ch39 --gpu --resume /tmp/ml-gpu-tiny.bin --steps 1 --generate 0 --checkpoint /tmp/ml-gpu-resumed.bin`\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\ntrainable parameters: 10896\nvalidation cross-entropy: 5.511 -> 5.479\nprocessed 24 tokens in 0.007s (3335.8 tokens/s)\nmodel+Adam moments: 130752 bytes; activations depend on sequence and layers\nsample: The \nsaved resumable checkpoint to /tmp/ml-gpu-resumed.bin\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "projects/ch39/Cargo.toml",
+      "--features",
+      "gpu",
+      "--",
+      "--large",
+      "--resume",
+      "/tmp/ml-large-smoke.bin",
+      "--steps",
+      "1",
+      "--generate",
+      "0",
+      "--checkpoint",
+      "/tmp/ml-large-resumed.bin"
+    ],
+    "returncode": 0,
+    "seconds": 0.44153826300134824,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `projects/ch30/target/release/ch39 --large --resume /tmp/ml-large-smoke.bin --steps 1 --generate 0 --checkpoint /tmp/ml-large-resumed.bin`\ntrainable parameters: 14442496\nvalidation cross-entropy: 5.593 -> 4.792\nlarge smoke evaluation used the first 16 held-out target bytes\nprocessed 16 tokens in 0.212s (75.6 tokens/s)\nmodel+Adam moments: 173309952 bytes; activations depend on sequence and layers\nsample: The \nsaved resumable checkpoint to /tmp/ml-large-resumed.bin\n"
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "chapters": 56,
+  "passed": 56,
+  "failed": [],
+  "review_ranges": [
+    "01-14",
+    "15-28",
+    "29-41",
+    "42-46",
+    "47-51",
+    "52-56"
+  ],
+  "hardware_record": "final-gpu-decoder.json",
+  "framework_record": "final-framework.json",
+  "serving_record": "final-serving.json",
+  "extended_training_run": false,
+  "authored_words": 103145,
+  "glossary_terms": 244,
+  "internal_link_findings": 0,
+  "browser_pages_checked": 56,
+  "browser_page_failures": [],
+  "official_rustlings_dev_check": "passed"
+}

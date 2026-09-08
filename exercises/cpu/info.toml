@@ -1,0 +1,283 @@
+format_version = 1
+welcome_message = "First Principles: read the HTML lesson, then make the idea run."
+final_message = "Keep building: complete the chapter projects and transfer exercises."
+
+[[exercises]]
+name = "ch01_01"
+test = true
+hint = "Review Chapter 01 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch02_01"
+test = true
+hint = "Review Chapter 02 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch03_01"
+test = true
+hint = "Review Chapter 03 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch04_01"
+test = true
+hint = "Review Chapter 04 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch05_01"
+test = true
+hint = "Review Chapter 05 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch06_01"
+test = true
+hint = "Review Chapter 06 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch07_01"
+test = true
+hint = "Review Chapter 07 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch08_01"
+test = true
+hint = "Review Chapter 08 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch09_01"
+test = true
+hint = "Review Chapter 09 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch10_01"
+test = true
+hint = "Review Chapter 10 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch11_01"
+test = true
+hint = "Review Chapter 11 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch12_01"
+test = true
+hint = "Review Chapter 12 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch13_01"
+test = true
+hint = "Review Chapter 13 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch14_01"
+test = true
+hint = "Review Chapter 14 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch15_01"
+test = true
+hint = "Review Chapter 15 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch16_01"
+test = true
+hint = "Review Chapter 16 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch17_01"
+test = true
+hint = "Review Chapter 17 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch18_01"
+test = true
+hint = "Review Chapter 18 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch19_01"
+test = true
+hint = "Review Chapter 19 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch20_01"
+test = true
+hint = "Review Chapter 20 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch21_01"
+test = true
+hint = "Review Chapter 21 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch22_01"
+test = true
+hint = "Review Chapter 22 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch23_01"
+test = true
+hint = "Review Chapter 23 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch24_01"
+test = true
+hint = "Review Chapter 24 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch25_01"
+test = true
+hint = "Review Chapter 25 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch26_01"
+test = true
+hint = "Review Chapter 26 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch27_01"
+test = true
+hint = "Review Chapter 27 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch28_01"
+test = true
+hint = "Review Chapter 28 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch29_01"
+test = true
+hint = "Review Chapter 29 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch30_01"
+test = true
+hint = "Review Chapter 30 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch31_01"
+test = true
+hint = "Review Chapter 31 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch32_01"
+test = true
+hint = "Review Chapter 32 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch33_01"
+test = true
+hint = "Review Chapter 33 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch34_01"
+test = true
+hint = "Review Chapter 34 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch35_01"
+test = true
+hint = "Review Chapter 35 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch36_01"
+test = true
+hint = "Review Chapter 36 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch37_01"
+test = true
+hint = "Review Chapter 37 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch38_01"
+test = true
+hint = "Review Chapter 38 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch39_01"
+test = true
+hint = "Review Chapter 39 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch40_01"
+test = true
+hint = "Review Chapter 40 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch41_01"
+test = true
+hint = "Review Chapter 41 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch42_01"
+test = true
+hint = "Review Chapter 42 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch43_01"
+test = true
+hint = "Review Chapter 43 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch44_01"
+test = true
+hint = "Review Chapter 44 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch45_01"
+test = true
+hint = "Review Chapter 45 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch46_01"
+test = true
+hint = "Review Chapter 46 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch47_01"
+test = true
+hint = "Review Chapter 47 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch48_01"
+test = true
+hint = "Review Chapter 48 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch49_01"
+test = true
+hint = "Review Chapter 49 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch50_01"
+test = true
+hint = "Review Chapter 50 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch51_01"
+test = true
+hint = "Review Chapter 51 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch52_01"
+test = true
+hint = "Review Chapter 52 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch53_01"
+test = true
+hint = "Review Chapter 53 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch54_01"
+test = true
+hint = "Review Chapter 54 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch55_01"
+test = true
+hint = "Review Chapter 55 in the local website. Reveal its progressive hints, then compare with the solution only after trying."
+
+[[exercises]]
+name = "ch56_01"
+test = true
+hint = "Review Chapter 56 in the local website. Reveal its progressive hints, then compare with the solution only after trying."

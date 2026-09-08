@@ -1,0 +1,58 @@
+{
+  "outcomes": [
+    "Train and atomically save a model with preprocessing, schema, version, and data fingerprint",
+    "Reject malformed or ambiguous requests before inference",
+    "Serve a validated checkpoint through a real local HTTP endpoint",
+    "Detect a mean shift and roll back a failed canary to a prior artifact"
+  ],
+  "lessons": [
+    "The model is a pipeline artifact",
+    "Version and validate checkpoints",
+    "Serve through a bounded contract",
+    "Monitor drift and roll back",
+    "Operate, debug, and transfer"
+  ],
+  "terms": {
+    "training-serving-skew": {
+      "name": "Training-serving skew",
+      "definition": "A mismatch between computations or data used in training and serving.",
+      "explanation": "A model trained on standardized inputs expects the same mean, scale, feature order, and missing-value policy during inference. Recreating preprocessing from memory can silently shift every score while the weight file still loads. The project stores preprocessing values beside the model and validates the input schema before prediction. Versioning this bundle makes the dependency explicit. It does not detect every semantic change in upstream data, so monitoring remains necessary."
+    },
+    "model-artifact": {
+      "name": "Model artifact",
+      "definition": "A stored, versioned package of inference state and metadata.",
+      "explanation": "The miniature artifact contains a format version, model version, input schema version, preprocessing statistics, learned parameters, and a training-data fingerprint. Loading checks the exact field count, supported versions, positive scale, and finite numbers. A production artifact may also contain architecture, labels, tokenizer files, dependency versions, signatures, and provenance. A filename alone is not a sufficient contract because it cannot prove that the bytes and the serving schema agree."
+    },
+    "data-drift": {
+      "name": "Data drift",
+      "definition": "A change in the distribution of inputs observed over time.",
+      "explanation": "The project compares a live request mean with the training mean and triggers a threshold alert. This is a simple observable signal, not proof that accuracy declined: harmless seasonality can move inputs, and unchanged averages can hide important shifts. Useful monitoring names the reference window, statistic, segment, sample count, and action threshold, then connects drift signals to delayed labels and service health when those are available."
+    },
+    "rollback": {
+      "name": "Rollback",
+      "definition": "Returning service to a previously validated model artifact.",
+      "explanation": "Before activation, the chapter compares a candidate with the previous model on fixed canary inputs. A deviation beyond the declared tolerance selects the previous checkpoint. The local server then loads the selected file at startup. This makes rollback concrete and reversible, but it is not a live distributed swap: an operator must restart or reload the process and verify health. Production systems also coordinate traffic, compatibility, and database or feature changes."
+    }
+  },
+  "sources": [
+    {"title": "TFX User Guide", "url": "https://www.tensorflow.org/tfx/guide", "note": "Pipeline validation, shared preprocessing, and drift monitoring"},
+    {"title": "DVC command reference", "url": "https://dvc.org/doc/command-reference/", "note": "Versioned data and reproducible pipeline dependencies"},
+    {"title": "PyTorch Saving and Loading Models", "url": "https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html", "note": "Checkpoint state beyond weights"},
+    {"title": "RFC 9110 HTTP Semantics", "url": "https://datatracker.ietf.org/doc/html/rfc9110", "note": "HTTP method and response semantics"},
+    {"title": "JSON Schema Validation 2020-12", "url": "https://json-schema.org/draft/2020-12/json-schema-validation", "note": "Structural validation vocabulary"},
+    {"title": "MLflow Model Registry Workflows", "url": "https://mlflow.org/docs/latest/ml/model-registry/workflow", "note": "Immutable versions and release aliases"}
+  ],
+  "checks": [
+    "A checkpoint round trip preserves every model and preprocessing field",
+    "Unsupported formats, nonfinite values, duplicate Content-Length, Transfer-Encoding, extra fields, and oversized requests are rejected",
+    "The default demo detects drift and selects model version one after version two fails its canary",
+    "The explicit train command writes a loadable artifact",
+    "The host-only HTTP test returns a successful response for one valid local POST"
+  ],
+  "limitations": [
+    "The local sequential HTTP server has no TLS, authentication, durable metrics, or production concurrency",
+    "Mean drift is a teaching statistic and does not establish model degradation",
+    "Rollback selects an artifact for process restart; it is not a live fleet-wide atomic swap",
+    "The loopback integration test is ignored in sandboxed runs and must be run on a host that permits local sockets"
+  ]
+}

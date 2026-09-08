@@ -1,0 +1,72 @@
+{
+  "outcomes": [
+    "Run all-parameter supervised fine-tuning on a decoder",
+    "Apply and differentiate a zero-initialized LoRA projection",
+    "Prove the base remains frozen",
+    "Distill teacher probabilities into a smaller decoder",
+    "Separate fit from held-out adaptation evidence"
+  ],
+  "lessons": [
+    "Supervised fine-tuning continues next-token training",
+    "Change a projection through a low-rank path",
+    "Learn a teacher’s distribution",
+    "Choose the adaptation boundary",
+    "Run, debug, and extend",
+    "Before you move on"
+  ],
+  "terms": {
+    "supervised-fine-tuning": {
+      "name": "supervised fine-tuning",
+      "definition": "Continuing model training on labeled prompt-response demonstrations.",
+      "explanation": "Supervised fine-tuning presents desired responses after prompts and optimizes their next-token cross-entropy. It can update every model parameter or a selected subset. Falling training loss shows that optimization fits the demonstrations; held-out prompts are needed to measure transfer, and earlier tasks are needed to detect forgetting. The resulting behavior reflects the supplied examples, their formatting, coverage, hidden errors, and provenance."
+    },
+    "lora": {
+      "name": "LoRA",
+      "definition": "A trainable low-rank update added to a frozen weight matrix.",
+      "explanation": "Low-Rank Adaptation writes an effective weight as a frozen base plus the product of two narrow matrices, usually scaled by alpha divided by rank. One factor is initialized to zero so the adapter initially preserves the base output, while the other is nonzero so gradients can begin. LoRA reduces trainable parameters and task-specific checkpoint size; useful rank and target modules depend on evaluation."
+    },
+    "knowledge-distillation": {
+      "name": "knowledge distillation",
+      "definition": "Training a student model to match a teacher model’s output distribution.",
+      "explanation": "Distillation uses soft probabilities from a teacher as targets for a student, exposing relationships among alternatives that a single hard label omits. The student may have a smaller architecture. Temperature can soften distributions, but the objective and gradient scaling must use that temperature consistently. A lower teacher-student divergence shows imitation on the transfer set, not factual correctness or broad equivalence."
+    }
+  },
+  "sources": [
+    {
+      "title": "Training Language Models to Follow Instructions with Human Feedback",
+      "url": "https://arxiv.org/abs/2203.02155",
+      "note": "Supervised demonstration fine-tuning and evaluation caveats."
+    },
+    {
+      "title": "Finetuned Language Models Are Zero-Shot Learners",
+      "url": "https://arxiv.org/abs/2109.01652",
+      "note": "Instruction tuning and held-out task clusters."
+    },
+    {
+      "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+      "url": "https://arxiv.org/abs/2106.09685",
+      "note": "Frozen base, low-rank update, scaling, and initialization."
+    },
+    {
+      "title": "Distilling the Knowledge in a Neural Network",
+      "url": "https://arxiv.org/abs/1503.02531",
+      "note": "Teacher soft targets, students, and temperature."
+    }
+  ],
+  "checks": [
+    "SFT lowers decoder training loss",
+    "LoRA starts with exactly zero parameter change and lowers loss",
+    "Base parameter values remain unchanged after adapter training",
+    "One adapter gradient matches central differences",
+    "Soft-target gradient matches direct cross-entropy finite differences",
+    "Student KL to teacher falls and remains correct for a confidently wrong student"
+  ],
+  "limitations": [
+    "Base decoder is pretrained only on tiny synthetic cycles, not a useful language model",
+    "SFT and LoRA quality is measured only on tiny training fixtures",
+    "LoRA targets only the output projection",
+    "Distillation uses temperature one and V hard backward passes per example",
+    "Loss covers full sequences rather than masking prompt tokens",
+    "LoRA computes a full backward pass on a cloned effective model, so trainable parameter counts do not establish memory or speed savings"
+  ]
+}

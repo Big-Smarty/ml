@@ -1,0 +1,9 @@
+target/
+__pycache__/
+.venv/
+datasets/downloads/
+*.checkpoint
+*.bin
+!datasets/fixtures/*.bin
+site/generated/
+.tools/

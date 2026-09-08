@@ -1,0 +1,88 @@
+{
+  "outcomes": [
+    "Train an actual pre-normalized causal decoder with sparse expert feed-forward layers",
+    "Derive and check task and auxiliary router gradients away from hard-routing ties",
+    "Compare dense and sparse models at the same token budget with explicit parameter-count conventions",
+    "Resume the identical next SGD step from validated corpus and model state",
+    "Generate text from a saved model through a bounded local HTTP endpoint",
+    "Separate tiny-fixture evidence from language quality and performance claims"
+  ],
+  "lessons": [
+    "Preserve the contextual decoder",
+    "Keep the selected router probability",
+    "Derive capacity and balancing",
+    "Run a controlled dense comparison",
+    "Train, resume, load and serve",
+    "Debug and challenge the capstone"
+  ],
+  "terms": {
+    "selected-expert-gate": {
+      "name": "Selected expert gate",
+      "definition": "The full-softmax probability retained when one expert is selected for a token.",
+      "explanation": "The router scores every expert, chooses the largest probability, and multiplies that expert output by its original softmax probability. The selected index is treated as locally constant away from ties, while the probability remains differentiable. Normalizing a sole selected probability by itself would produce one and remove the task-loss gradient into the router. Experts and the rest of the decoder could still learn, so router gradients and actual parameter changes need separate checks."
+    },
+    "moe-balancing-objective": {
+      "name": "MoE balancing objective",
+      "definition": "An auxiliary objective relating hard expert frequencies to mean router probabilities.",
+      "explanation": "For each expert, the project multiplies its attempted assignment fraction by its mean full-softmax probability, sums across experts, and multiplies by expert count and a coefficient. Hard assignment frequencies are held fixed during differentiation; mean probabilities provide the differentiable path. Counts include tokens later dropped by capacity. This objective encourages distributed use of experts but does not guarantee useful specialization. Evaluation reports task cross-entropy separately so balance cannot masquerade as improved prediction."
+    },
+    "active-parameter-budget": {
+      "name": "Active parameter budget",
+      "definition": "A convention counting shared parameters plus the expert parameters selected for a token.",
+      "explanation": "The capstone reports all nonexpert parameters plus one expert block. This convention allows a comparison with dense parameter count but includes entire embedding tables rather than only lookup rows. It is not a measurement of actual memory traffic, unique values touched, floating-point operations, or latency. Router work, causal attention, activation storage, and capacity drops affect computation too. Total parameter count remains relevant for storing the model even when only one expert executes per token."
+    },
+    "training-identity": {
+      "name": "Training identity",
+      "definition": "The data and update settings required to continue a saved training trajectory.",
+      "explanation": "The checkpoint records corpus length and fingerprint, sequence length, learning rate, step, cursor, RNG state, and model configuration alongside parameters. Resume rejects a different corpus or update setting before altering the model. Plain SGD needs no momentum buffers, but a different optimizer would require additional state. The fingerprint detects accidental data changes and provides no cryptographic authenticity. Exact continuation is tested within the same executable, not promised across hardware, compiler, or numerical-kernel changes."
+    }
+  },
+  "sources": [
+    {
+      "title": "Switch Transformers",
+      "url": "https://arxiv.org/abs/2101.03961",
+      "note": "Top-one selected full-softmax gate, capacity and balancing objective"
+    },
+    {
+      "title": "GShard",
+      "url": "https://arxiv.org/abs/2006.16668",
+      "note": "Capacity counters, overflow residual path and related top-two balancing"
+    },
+    {
+      "title": "Outrageously Large Neural Networks",
+      "url": "https://arxiv.org/abs/1701.06538",
+      "note": "Original sparse gated experts in sequence models"
+    },
+    {
+      "title": "ST-MoE",
+      "url": "https://arxiv.org/abs/2202.08906",
+      "note": "Large sparse-model stability and scaling context; no scale claim for this fixture"
+    },
+    {
+      "title": "Layer Normalization",
+      "url": "https://arxiv.org/abs/1607.06450",
+      "note": "Within-example normalization and trainable gain and bias"
+    }
+  ],
+  "checks": [
+    "One-expert logits agree with independent dense decoder oracle within 1e-12",
+    "Future-token perturbation and prefix shortening preserve earlier inference logits",
+    "All small-model parameter derivatives pass f64 finite differences away from ties",
+    "Router task gradients are nonzero with auxiliary coefficient zero; unselected expert task gradients are zero",
+    "Capacity counts attempted and accepted routes and residual-only drops correctly",
+    "Checkpoint next update resumes exactly and rejects malformed or changed training state",
+    "Fragmented requests yield complete 200 or 400 responses with correct byte length",
+    "Default 160-step run updates router, all experts, embeddings, attention and normalization",
+    "Custom corpus inputs require an explicit held-out file and reject equal/shared 32-byte passages"
+  ],
+  "limitations": [
+    "Single-head single-block CPU f64 decoder using manual full backpropagation and SGD; no GPU or distributed expert communication",
+    "Training is capacity-limited, while task evaluation and generation disable capacity for prefix-invariant inference",
+    "The fictional ASCII corpora reuse a tiny vocabulary and do not establish broad language quality or a general sparse advantage",
+    "Default comparison matches token budget and shared initialization, not total parameters, FLOPs, wall-clock time or multiple seeds",
+    "Nonexpert-plus-one-expert parameter count is a convention rather than measured memory traffic or speed",
+    "Cyclic training windows create an artificial corpus-wrap transition; evaluation resets context at windows",
+    "Local server handles one request, lacks authentication/TLS/batching/KV cache and does not provide a production service",
+    "Eight-million-element configuration check is an aggregate structural bound, not peak process memory; extended training remains explicit"
+  ]
+}

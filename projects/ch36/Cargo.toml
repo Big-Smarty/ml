@@ -1,0 +1,12 @@
+[package]
+name = "ch36"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+gpu = ["dep:ch30"]
+
+[dependencies]
+ch30 = { path = "../ch30", optional = true }
+
+[workspace]

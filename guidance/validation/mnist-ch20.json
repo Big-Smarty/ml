@@ -1,0 +1,12 @@
+{
+  "date_utc": "2026-09-08T12:46:33.287567+00:00",
+  "fit_rows": 2000,
+  "validation_rows": 2000,
+  "epochs": 1,
+  "initial_loss": 2.3018,
+  "final_loss": 0.4614,
+  "initial_accuracy": 0.102,
+  "final_accuracy": 0.867,
+  "official_test_scored": false,
+  "purpose": "Functional CPU convolution/IDX training smoke; not tuned model quality."
+}

@@ -1,0 +1,62 @@
+{
+  "outcomes": [
+    "Select and report a hardware Vulkan adapter without accepting a software fallback",
+    "Explain how Rust buffers and WGSL bindings represent contiguous tensors",
+    "Dispatch enough workgroups for an arbitrary vector length",
+    "Synchronize a real GPU result into a mapped readback buffer",
+    "Compare GPU output with a scalar oracle using an explicit tolerance"
+  ],
+  "lessons": [
+    "Why a GPU needs a different execution model",
+    "Discover the hardware you actually run",
+    "Move a vector through buffers and bindings",
+    "Dispatch WGSL and read the answer back",
+    "Run, debug, and extend the project",
+    "Review and transfer"
+  ],
+  "terms": {
+    "adapter": {
+      "name": "adapter",
+      "definition": "A wgpu handle describing one available physical or software GPU implementation.",
+      "explanation": "An adapter is the capability-discovery stage before a logical device is created. It reports a name, backend, device type, driver, limits, and optional features. A machine may expose several adapters, including an integrated GPU, a discrete GPU, or a CPU software implementation. Selecting one is part of experimental provenance: results only mean what you think they mean when the program prints which adapter and backend actually ran."
+    },
+    "compute-shader": {
+      "name": "compute shader",
+      "definition": "A GPU program launched over numbered invocations without drawing pixels.",
+      "explanation": "A compute shader expresses one small operation that many GPU invocations execute. In this chapter each invocation adds one pair of vector elements. WGSL supplies built-in IDs so the invocation can find its element. The host program still owns validation, buffer creation, binding, dispatch, and synchronization. Compute shaders make parallel arithmetic available without a graphics pipeline, but they do not automatically validate tensor shapes or transfer results back to the CPU."
+    },
+    "storage-buffer": {
+      "name": "storage buffer",
+      "definition": "A GPU-visible byte allocation exposed to a shader for indexed reads or writes.",
+      "explanation": "A storage buffer carries bulk values such as activations, weights, or outputs. The shader interprets its bytes according to a declared WGSL element type, while Rust uploads matching bytes. Usage flags are contracts: an input used by a shader needs STORAGE, a result copied out needs COPY_SRC, and a staging destination needs COPY_DST plus MAP_READ. Incorrect flags are validation errors rather than harmless hints."
+    },
+    "workgroup": {
+      "name": "workgroup",
+      "definition": "A fixed-size group of shader invocations scheduled together and identified within a dispatch grid.",
+      "explanation": "The chapter uses workgroups of 64 invocations. Dispatching two workgroups therefore launches 128 invocation IDs, even for a 65-element vector. The shader must check its global ID before indexing. Workgroup size is declared in WGSL, while workgroup count is chosen by Rust. Later chapters use the fact that invocations in one workgroup can share fast temporary memory and synchronize at barriers."
+    },
+    "readback": {
+      "name": "readback",
+      "definition": "The synchronized copy and mapping that makes GPU-produced bytes visible to CPU code.",
+      "explanation": "GPU storage memory is not treated like an ordinary Rust slice. The program first copies output into a buffer created for MAP_READ, requests asynchronous mapping, and drives device progress until the callback completes. Only then may it view the bytes as f32 values. Mapping every intermediate result is costly and destroys device residency, so readback is best reserved for required outputs, diagnostics, or occasional metrics."
+    }
+  },
+  "sources": [
+    {"title": "wgpu 29 standalone compute example", "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/standalone/01_hello_compute/src/main.rs", "note": "First-party buffer, dispatch, and mapping pattern."},
+    {"title": "wgpu 29 Instance API", "url": "https://github.com/gfx-rs/wgpu/blob/v29/wgpu/src/api/instance.rs", "note": "First-party adapter enumeration API verified against installed source."},
+    {"title": "WebGPU specification", "url": "https://www.w3.org/TR/webgpu/", "note": "Normative resource, command, and synchronization model."},
+    {"title": "WGSL specification", "url": "https://www.w3.org/TR/WGSL/", "note": "Normative shader language and invocation semantics."}
+  ],
+  "checks": [
+    "The executable reports every discovered adapter and the selected hardware Vulkan adapter",
+    "A five-element vector is dispatched and read back from a real compute shader",
+    "The ignored hardware test covers 67 elements, including a partial workgroup",
+    "Empty, mismatched, and nonfinite inputs return errors before dispatch"
+  ],
+  "limitations": [
+    "The project creates a device for one operation rather than maintaining a long-lived compute context",
+    "The vector addition is a correctness demonstration, not a performance benchmark",
+    "Only the Vulkan backend is accepted for the course hardware path",
+    "GPU execution requires a hardware Vulkan adapter and fails explicitly when none is present"
+  ]
+}

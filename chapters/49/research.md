@@ -1,0 +1,25 @@
+# Chapter 49 research record
+
+## Route and verification
+
+The author commissioned the bounded `research49` subagent using GPT-5.6 Luna High. It returned four original papers, the affine scan composition, selective-state distinctions, and a causal linear-attention recurrence. The author aligned each formula with a scalar oracle and made the execution limits explicit.
+
+## Evidence used
+
+S4 develops structured state-space sequence layers from continuous systems and efficient long convolution/recurrent views: <https://arxiv.org/abs/2111.00396>. S5 explains simplified multi-input state-space layers and parallel scan evaluation: <https://arxiv.org/abs/2208.04933>. Mamba makes state-space parameters input dependent and uses a hardware-aware parallel scan: <https://arxiv.org/abs/2312.00752>. The project borrows only the general selective recurrence idea. Its scalar coefficients are course-authored fixed formulas, not trained Mamba weights or an implementation of the Mamba architecture.
+
+Katharopoulos et al. rewrite a causal feature-map attention kernel as recurrent summaries: <https://proceedings.mlr.press/v119/katharopoulos20a.html>. For scalar values, the reference accumulates `S_t += phi(k_t) v_t` and `z_t += phi(k_t)`, then returns `phi(q_t) dot S_t / (phi(q_t) dot z_t + epsilon)`. It uses `phi(x)=ReLU(x)+1`, an explicitly positive course choice. This is not exact softmax attention.
+
+## Decisions and checks
+
+Each scalar state update is the affine map `(a_t,b_t)`, meaning `h -> a_t h + b_t`. A later map composed after an earlier map is `(a_2 a_1, a_2 b_1 + b_2)`. Direct algebra establishes associativity; tests check it and compare every prefix with a sequential recurrence.
+
+The code uses a Hillis–Steele style inclusive scan schedule. Its dependency depth is logarithmic, but this scalar implementation clones a vector at every round, performs O(N log N) work, and runs sequentially. It demonstrates scan structure rather than acceleration. A production parallel implementation would need a work-efficient schedule and actual parallel execution.
+
+For causal linear attention, an O(N²) prefix oracle uses the identical feature kernel and includes positions `j <= t`. Its outputs match the recurrent summary within tolerance. Default times are illustrative single-process CPU observations; the direct oracle is intentionally timed only on the first 256 tokens and is not used for a speedup ratio.
+
+## Astra High review and correction — 2026-09-08
+
+The user-directed ownership is GPT-6 Astra High, reviewing the existing Sol High draft and implementing corrections. Bounded read-only mathematical/source verification was delegated to GPT-5.6 Luna High (`verify_math`), which browsed original Switch, S4, linear-attention, AEVB, GAN, and DDIM sources. The author integrated its evidence and independently inspected all chapter lecture, metadata, reference code, starters, and Rustlings exercise/solution files.
+
+Confirmed ordered affine composition and same-kernel attention parity. Rejected finite inputs whose selective write term overflows, added promised nonfinite-input tests, and distinguished output storage, streaming state memory, and training memory. The starter now retains the direct recurrence oracle. Sequential O(N log N) scan work and fixed untrained selective coefficients remain explicit.

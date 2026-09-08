@@ -1,0 +1,75 @@
+{
+  "outcomes": [
+    "Train and evaluate a dense causal decoder on byte text",
+    "Use distinct licensed training and validation documents without silent fallback",
+    "Save, load, resume, and generate from the actual trained model",
+    "Report exact parameter and persistent-memory budgets",
+    "Measure tokens per second without fabricating scale claims"
+  ],
+  "lessons": [
+    "Define the experiment",
+    "Train the complete tiny decoder",
+    "Generate a continuation",
+    "Save, load, and continue",
+    "Budget the larger option",
+    "Practice, debug, and extend",
+    "Review and transfer"
+  ],
+  "terms": {
+    "teacher-forcing": {
+      "name": "teacher forcing",
+      "definition": "Training sequence positions with the true earlier tokens while predicting their shifted next-token targets.",
+      "explanation": "Teacher forcing creates input and target sequences offset by one token. It permits parallel loss computation because all true context tokens are available, while a causal mask prevents any position from reading later inputs. Generation differs: each sampled token becomes context for the following step, so errors can influence later inputs. A correct training shift and mask avoid target leakage. The method defines how contexts are supplied; it does not guarantee that sampled continuations match the training distribution."
+    },
+    "temperature": {
+      "name": "sampling temperature",
+      "definition": "A positive divisor applied to logits before softmax to control distribution sharpness.",
+      "explanation": "Temperature below one magnifies logit differences and makes high-score tokens more likely. Temperature above one flattens the distribution and increases diversity. At temperature one, probabilities are unchanged. Zero is undefined for this sampling rule; greedy decoding should be implemented explicitly as argmax. Temperature changes generation behavior without retraining and does not repair a weak model. Byte-level sampling may emit invalid UTF-8, so preserve bytes and treat lossy conversion as display only."
+    },
+    "resource-budget": {
+      "name": "resource budget",
+      "definition": "An explicit accounting of parameters, persistent state, activations, time, and hardware for a run.",
+      "explanation": "Parameter count gives a lower bound on storage, not peak training memory. f32 weights require four bytes each; Adam first and second moments add eight more persistent bytes per parameter. Gradients, activations, attention probabilities, allocator overhead, GPU staging, and checkpoint copies add further memory. Throughput must be measured with a release build and reported with shapes, precision, hardware, and flags. Tiny-model measurements should not be extrapolated as claims about a much larger configuration."
+    }
+  },
+  "sources": [
+    {
+      "title": "Attention Is All You Need",
+      "url": "https://arxiv.org/abs/1706.03762",
+      "note": "Primary causal Transformer source."
+    },
+    {
+      "title": "nanoGPT training source",
+      "url": "https://github.com/karpathy/nanoGPT/blob/master/train.py",
+      "note": "Primary compact LM training implementation."
+    },
+    {
+      "title": "nanoGPT model source",
+      "url": "https://github.com/karpathy/nanoGPT/blob/master/model.py",
+      "note": "Primary compact generation implementation."
+    },
+    {
+      "title": "PyTorch CrossEntropyLoss",
+      "url": "https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html",
+      "note": "Current token-average loss semantics."
+    },
+    {
+      "title": "Creative Commons CC0",
+      "url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "note": "Terms for the bundled course-authored text dedication."
+    }
+  ],
+  "checks": [
+    "Tiny test trains the complete decoder, lowers fixture loss, saves, loads, and generates",
+    "Default run evaluates a separate held-out document and reports measured throughput",
+    "Large-info prints exactly 14,442,496 parameters without allocation",
+    "Large mode instantiates the real Trainer and requires an explicit step budget",
+    "Changed training data is rejected on resume"
+  ],
+  "limitations": [
+    "Bundled text is too small for useful language quality",
+    "The CLI checks exact 32-byte overlap; semantic decontamination needs additional detectors beyond Chapter 37\u2019s whole-document audit",
+    "Large smoke performs one CPU forward and no extended training",
+    "GPU bridge is not fully resident"
+  ]
+}

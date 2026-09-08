@@ -1,0 +1,73 @@
+{
+    "outcomes": [
+        "Quantize weight rows to signed int8 and int4",
+        "Pack and sign-extend two int4 values per byte",
+        "Run dequantized matrix-vector multiplication",
+        "Separate storage, numerical error, decoder quality, and measured runtime"
+    ],
+    "lessons": [
+        "Map real weights onto a finite grid",
+        "Put two int4 weights in one byte",
+        "Evaluate error and model behavior separately",
+        "Storage savings do not promise speed",
+        "Run, debug, and extend",
+        "Before you move on"
+    ],
+    "terms": {
+        "weight-quantization": {
+            "name": "weight quantization",
+            "definition": "Representing model weights on a lower-precision numerical grid.",
+            "explanation": "Quantization maps each floating-point weight to an integer code plus metadata such as a scale and possibly a zero point. Reconstruction is approximate because many real values share one code. Finer groups or per-channel scales can reduce error at the cost of metadata and more complex kernels. Storage reduction, task quality, and runtime are separate outcomes and must be measured separately."
+        },
+        "weight-only-quantization": {
+            "name": "weight-only quantization",
+            "definition": "Quantizing weights while activations or accumulation remain floating point.",
+                "explanation": "A weight-only kernel stores compact integer weight codes but accepts floating-point activations. It may dequantize weights during the dot product and accumulate in floating point. This can reduce persistent model storage and weight traffic without requiring activation calibration. It is distinct from integer-only inference, which quantizes activations too and usually uses wider integer accumulators plus output rescaling after each operation."
+        },
+        "dequantization": {
+            "name": "dequantization",
+            "definition": "Reconstructing an approximate real value from a quantized code.",
+                "explanation": "For symmetric quantization, dequantization multiplies signed code q by positive scale s to obtain the approximation sq. It can happen before computation or inside a fused matrix kernel. Materializing a full floating-point matrix is simple but forfeits bandwidth savings during repeated inference. On-the-fly conversion preserves compact storage but adds instructions and needs a layout suited to the target hardware and vector operations."
+        }
+    },
+    "sources": [
+        {
+            "title": "Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference",
+            "url": "https://ar5iv.labs.arxiv.org/html/1712.05877",
+            "note": "Affine quantization, integer accumulation, and error considerations."
+        },
+        {
+            "title": "LiteRT 8-bit quantization specification",
+            "url": "https://developers.google.com/edge/litert/conversion/tensorflow/quantization/quantization_spec",
+            "note": "Signed int8 ranges, zero points, and per-axis scales."
+        },
+        {
+            "title": "TorchAO quantization overview",
+            "url": "https://docs.pytorch.org/ao/stable/contributing/quantization_overview.html",
+            "note": "Quantization metadata and int4 packing."
+        },
+        {
+            "title": "llama.cpp ggml common formats",
+            "url": "https://raw.githubusercontent.com/ggml-org/llama.cpp/master/ggml/src/ggml-common.h",
+            "note": "Primary packed Q4 block layout."
+        },
+        {
+            "title": "GPTQ",
+            "url": "https://ar5iv.labs.arxiv.org/html/2210.17323",
+            "note": "Data-aware weight-only post-training quantization and measured hardware results."
+        }
+    ],
+    "checks": [
+        "Packed int4 round-trips signed values including an odd tail",
+        "Int8 and int4 matvec errors stay within fixture tolerances",
+        "Int4 storage is smaller than int8 including scales",
+        "Decoder comparison reports logits, loss, and token decision",
+        "Benchmark reports warmed median samples and checksums"
+    ],
+    "limitations": [
+        "Only the decoder output projection is quantized in the model-level check",
+        "Scalar CPU kernel is educational and not a production packed GEMM",
+        "Random tiny decoder cannot establish trained-model quality",
+        "Symmetric per-row rounding omits calibration and data-aware quantization"
+    ]
+}

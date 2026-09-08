@@ -1,0 +1,81 @@
+[
+  {
+    "command": [
+      "cargo",
+      "fmt",
+      "--manifest-path",
+      "projects/ch55/framework/Cargo.toml",
+      "--check"
+    ],
+    "returncode": 0,
+    "output": ""
+  },
+  {
+    "command": [
+      "cargo",
+      "clippy",
+      "--offline",
+      "--manifest-path",
+      "projects/ch55/framework/Cargo.toml",
+      "--all-targets",
+      "--",
+      "-D",
+      "warnings"
+    ],
+    "returncode": 0,
+    "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.08s\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "test",
+      "--offline",
+      "--manifest-path",
+      "projects/ch55/framework/Cargo.toml"
+    ],
+    "returncode": 0,
+    "output": "\nrunning 1 test\ntest tests::optional_binary_executes_parity_assertions ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling ch55-burn v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch55/framework)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.31s\n     Running unittests src/main.rs (projects/ch55/framework/target/debug/deps/ch55_burn-a93faeca905c82c1)\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "projects/ch55/framework/Cargo.toml"
+    ],
+    "returncode": 0,
+    "output": "Burn ndarray CPU forward, loss, gradients, SGD, and record round trip match.\n   Compiling ch55-burn v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch55/framework)\n    Finished `release` profile [optimized] target(s) in 4.41s\n     Running `projects/ch55/framework/target/release/ch55-burn`\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "projects/ch55/Cargo.toml",
+      "--",
+      "export",
+      "/tmp/tmpp4khlio1/scratch.bin"
+    ],
+    "returncode": 0,
+    "output": "scratch output: [1.150000, 0.650000]\nscratch mean squared loss: 0.672500\nscratch weight gradient: [[0.22499996, -0.29999995], [1.7249999, -2.3]]\nscratch weights after SGD: [[0.17750001, -0.37], [0.5275, 0.33]]\ncheckpoint round trip: exact\nexported affine parameters to /tmp/tmpp4khlio1/scratch.bin\nRun the optional Burn parity program in projects/ch55/framework.\n   Compiling ch55 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch55)\n    Finished `release` profile [optimized] target(s) in 0.10s\n     Running `projects/ch55/target/release/ch55 export /tmp/tmpp4khlio1/scratch.bin`\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "projects/ch55/framework/Cargo.toml",
+      "--",
+      "import",
+      "/tmp/tmpp4khlio1/scratch.bin"
+    ],
+    "returncode": 0,
+    "output": "Burn ndarray CPU forward, loss, gradients, SGD, and record round trip match.\nexported scratch artifact matches Burn on three input probes\n    Finished `release` profile [optimized] target(s) in 0.08s\n     Running `projects/ch55/framework/target/release/ch55-burn import /tmp/tmpp4khlio1/scratch.bin`\n"
+  }
+]

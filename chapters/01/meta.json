@@ -1,0 +1,111 @@
+{
+  "outcomes": [
+    "Train one scalar neuron without ML libraries",
+    "Calculate prediction and mean squared error by hand",
+    "Explain training versus inference",
+    "Diagnose the update sign and learning rate"
+  ],
+  "lessons": [
+    "Examples and targets",
+    "The prediction rule",
+    "A numerical loss",
+    "Numerical slopes and updates",
+    "Run and check the program",
+    "Practice and transfer"
+  ],
+  "terms": {
+    "dataset": {
+      "name": "Dataset",
+      "definition": "A collection of examples used for learning or evaluation.",
+      "explanation": "In this chapter, each example pairs one input number with a desired output. Other datasets may contain images, documents, or a table with many features. The choice of examples determines what evidence the model can learn from. A dataset is not automatically representative of future use. Later chapters separate training examples from evaluation examples so we can distinguish fitting observed data from predicting new data."
+    },
+    "weight": {
+      "name": "Weight",
+      "definition": "A learned multiplier that controls an input\u2019s contribution.",
+      "explanation": "For the scalar neuron, the weight multiplies the input. A positive weight makes the prediction increase with the input; a negative weight reverses that relationship. In a dense neural layer, many weights connect input features to output units. Weights are adjusted by the optimizer during training and held fixed during ordinary inference. Their interpretation depends on input scaling and the rest of the model."
+    },
+    "bias": {
+      "name": "Bias",
+      "definition": "An additive learned offset in a model.",
+      "explanation": "In the equation predicted y = weight \u00d7 x + bias, the bias controls the prediction at x = 0. Changing it moves the entire prediction line without changing its slope. This usage differs from statistical bias, which concerns systematic estimation error, and social bias, which concerns unfair patterns in data or decisions. Later chapters use those terms too; the surrounding context determines which meaning applies."
+    },
+    "model": {
+      "name": "Model",
+      "definition": "A parameterized rule that maps inputs to predictions.",
+      "explanation": "Our opening model is a straight-line function with two adjustable parameters. Learning chooses those parameters from data, while the model\u2019s mathematical form specifies which relationships it can represent. More complex models can represent more relationships, but require additional data, computation, and evaluation. A model is only one component of an ML system; preprocessing and how predictions are used also influence the final behavior."
+    },
+    "parameter": {
+      "name": "Parameter",
+      "definition": "A value adjusted during training, such as a weight or bias.",
+      "explanation": "Parameters determine the predictions made by a fixed model architecture. They differ from hyperparameters such as the learning rate or layer width, which are selected outside the ordinary parameter-update step. A neuron has very few parameters; language models have many. The training algorithm must calculate how the loss changes with each trainable parameter, then apply updates without accidentally changing values still needed by another gradient calculation."
+    },
+    "loss": {
+      "name": "Loss",
+      "definition": "A number measuring how poorly predictions fit a training objective.",
+      "explanation": "Training attempts to reduce a chosen loss. Mean squared error penalizes numerical prediction errors; classification commonly uses a loss based on predicted probabilities. A low training loss does not guarantee useful behavior on new data or satisfy every real-world goal. Evaluation uses held-out examples and task-appropriate metrics to ask those additional questions. Always state whether a reported loss is summed or averaged over examples or tokens."
+    },
+    "gradient": {
+      "name": "Gradient",
+      "definition": "The collection of local slopes of the loss with respect to parameters.",
+      "explanation": "For a neuron with a weight and bias, the gradient has two components. Each asks how the loss changes when its parameter changes while the others remain fixed. Gradient descent subtracts a positive learning rate times this vector. Numerical finite differences estimate the components by probing nearby values; analytical differentiation and backpropagation compute them more efficiently. A gradient describes local behavior, so large updates can still increase the loss."
+    },
+    "learning-rate": {
+      "name": "Learning rate",
+      "definition": "The positive step-size multiplier used when updating parameters.",
+      "explanation": "Gradient descent multiplies each gradient component by the learning rate before subtracting it from the corresponding parameter. A very small rate can make training slow. A large rate can overshoot useful values or cause divergence. Appropriate rates depend on data scaling, the loss, the model, and the optimizer. Learning-rate schedules change the rate during training; they do not remove the need to check whether the optimization is stable."
+    },
+    "inference": {
+      "name": "Inference",
+      "definition": "Computing predictions using an already specified model.",
+      "explanation": "Ordinary inference keeps model parameters fixed and applies the forward computation to new inputs. It differs from training, which evaluates a loss and changes parameters. The same numerical operations can occur in both paths, but training also needs gradients and optimizer state. Generating text involves many inference steps, because each newly generated token becomes part of the next input. Inference can still contain random sampling without learning new weights."
+    },
+    "training": {
+      "name": "Training",
+      "definition": "Adjusting model parameters using data and an objective.",
+      "explanation": "A typical training iteration selects examples, computes predictions, measures loss, obtains gradients, and updates parameters. Repeating this process can improve the fit to observed data. Whether that improvement transfers to new examples must be evaluated separately. Training uses choices such as learning rate, batch size and number of iterations. Recording those choices alongside the data and random seed makes the experiment easier to reproduce and diagnose."
+    },
+    "target": {
+      "name": "Target",
+      "definition": "The desired answer paired with an input in supervised learning.",
+      "explanation": "A target may be a numerical measurement, a category, or the next token in a sequence. Training compares the model\u2019s prediction with this target through a loss function. Targets can be noisy or wrong, and the chosen target may only approximate the real task we care about. In this opening chapter they are exact synthetic numbers, chosen so we can verify the entire learning calculation by hand."
+    },
+    "supervised-learning": {
+      "name": "Supervised learning",
+      "definition": "Learning from examples that include desired outputs.",
+      "explanation": "Each training input is paired with a target, and the learning algorithm adjusts its predictions to reduce disagreement with those targets. Regression predicts numerical quantities; classification predicts categories or their probabilities. The supervision can come from human annotations, measurements, or data construction such as shifting a text sequence by one token. It does not mean a human must approve each update, nor does it guarantee that the labels are reliable."
+    },
+    "mean-squared-error": {
+      "name": "Mean squared error",
+      "definition": "The average of squared prediction errors.",
+      "explanation": "For each example, subtract the target from the prediction, square that difference, then average across examples. Squaring prevents negative and positive errors from cancelling and penalizes large errors strongly. The units are the square of the target\u2019s units. Taking the square root yields RMSE, a related evaluation metric. Some derivations use half of MSE for simpler gradients; always check the convention when comparing formulas or learning rates."
+    }
+  },
+  "sources": [
+    {
+      "title": "Google linear regression",
+      "url": "https://developers.google.com/machine-learning/crash-course/linear-regression",
+      "note": "Weights, bias, and regression framing"
+    },
+    {
+      "title": "Rust Book",
+      "url": "https://doc.rust-lang.org/book/",
+      "note": "Language reference"
+    },
+    {
+      "title": "Rustlings usage",
+      "url": "https://rustlings.rust-lang.org/usage/",
+      "note": "Exercise workflow"
+    }
+  ],
+  "checks": [
+    "Starting MSE equals 9",
+    "First step is weight 0.8, bias 0.2 within 1e-8",
+    "100 steps yield MSE below 1e-12",
+    "Held-out prediction at 0.5 is within 1e-7 of 2",
+    "Invalid data and learning rates are rejected"
+  ],
+  "limitations": [
+    "Exact synthetic data validates mechanics, not real-world generalization",
+    "Numerical gradients scale poorly with parameter count"
+  ]
+}

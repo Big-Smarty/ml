@@ -1,0 +1,82 @@
+{
+  "chapter": "13",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch13/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.027,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch13/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.041,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch13/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.028,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch13/target/debug/deps/ch13-4dea668aa29e8773)\n\nrunning 2 tests\ntest tests::missing_indicator_and_finite_even_median ... ok\ntest tests::held_out_rows_cannot_affect_fit ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch13/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.125,
+      "output": "   Compiling ch13 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch13)\n    Finished `release` profile [optimized] target(s) in 0.11s\n     Running `projects/ch13/target/release/ch13`\ngroup split: train=3, test=1, fitted median=12\nheld-out row features: [100.0, 0.0, 0.0, 0.0]; label stays separate=1\ntime split: past=3, future=1\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch13/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.026,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch13/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.041,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch13/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.028,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch13/starter/target/debug/ch13_starter`\nmissing rows: 1\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch13/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.016,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch13/starter/target/debug/deps/ch13_starter-00c53d1510c64fe3)\n\nrunning 1 test\ntest ignores_missing ... FAILED\n\nfailures:\n\n---- ignores_missing stdout ----\n\nthread 'ignores_missing' (3081) panicked at src/main.rs:4:5:\nnot yet implemented: collect present training values, sort them, and return the middle value\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    ignores_missing\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch13_starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch13_01.rs -o /tmp/ml-check-x28ljve6/solutionch13_01",
+      "returncode": 0,
+      "seconds": 0.044,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-x28ljve6/solutionch13_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest fills_only_missing ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch13_01.rs -o /tmp/ml-check-x28ljve6/exercisech13_01",
+      "returncode": 0,
+      "seconds": 0.043,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-x28ljve6/exercisech13_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest fills_only_missing ... FAILED\n\nfailures:\n\n---- fills_only_missing stdout ----\n\nthread 'fills_only_missing' (3153) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch13_01.rs:4:5:\nnot yet implemented: use the observed value or the median learned from training rows\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    fills_only_missing\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

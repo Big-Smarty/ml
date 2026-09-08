@@ -1,0 +1,62 @@
+{
+  "outcomes": [
+    "Train and sample a one-dimensional beta-VAE with reparameterized latent noise",
+    "Alternate discriminator and non-saturating generator updates in a trainable GAN",
+    "Train a timestep-conditioned noise predictor and execute a complete deterministic reverse chain",
+    "Distinguish each model's training objective from generated-sample quality"
+  ],
+  "lessons": [
+    "Three ways to model a distribution",
+    "Variational autoencoders",
+    "Adversarial training",
+    "Diffusion and reverse denoising",
+    "Run, diagnose, and transfer"
+  ],
+  "terms": {
+    "latent-variable": {
+      "name": "Latent variable",
+      "definition": "An unobserved variable used to explain or generate observations.",
+      "explanation": "In the chapter's VAE, the encoder maps an observed scalar to the mean and variance of a distribution over a latent scalar z. Sampling z and passing it through the decoder produces a reconstruction or a new sample. The latent coordinate is learned through the objective rather than supplied as a label. Its numerical direction has no guaranteed human meaning, and different training runs may organize an equivalent latent space differently."
+    },
+    "evidence-lower-bound": {
+      "name": "Evidence lower bound",
+      "definition": "A tractable lower bound on a latent model's log likelihood.",
+      "explanation": "The ELBO combines expected decoder log likelihood with a negative KL divergence between the encoder distribution and the prior. Minimizing its negative rewards reconstruction while regularizing the approximate posterior. The project weights KL by 0.1, so it is explicitly a beta-VAE surrogate rather than the unweighted negative ELBO. Its reconstruction term assumes a fixed-variance Gaussian decoder; changing the observation model changes the likelihood term and its scale."
+    },
+    "adversarial-training": {
+      "name": "Adversarial training",
+      "definition": "Alternating optimization of models with opposing objectives.",
+      "explanation": "A GAN discriminator learns to distinguish data samples from generator samples, while the generator learns to make its samples receive higher discriminator scores. The original minimax game motivates both objectives; the project uses the non-saturating generator loss for a stronger early signal. Because each model changes the other's objective, the losses can oscillate and a low-looking discriminator loss does not by itself establish that the generated distribution matches the data."
+    },
+    "diffusion-model": {
+      "name": "Diffusion model",
+      "definition": "A generative model trained to reverse a gradual noising process.",
+      "explanation": "The forward process constructs a noisy x at a chosen timestep directly from clean data and Gaussian noise. A predictor learns the injected noise from that noisy value and a timestep feature. Sampling starts from noise and repeatedly estimates a cleaner state. The chapter uses four cumulative noise levels and a deterministic DDIM-style update so every transition can be checked. This short scalar schedule teaches the mechanics but cannot reproduce image quality or likelihood results from large diffusion systems."
+    },
+    "mode-collapse": {
+      "name": "Mode collapse",
+      "definition": "A generator failure that maps many noise inputs to too few outputs.",
+      "explanation": "A GAN can fool its current discriminator while ignoring parts of the data distribution. In a two-mode target, a collapsed generator may emit samples near only one mode. Average loss may hide this failure, so sample coverage, quantiles, and repeated runs matter. The project's affine generator is deliberately tiny and can represent only a limited family. It demonstrates parameter updates and spread, not a guarantee that adversarial training has captured every mode."
+    }
+  },
+  "sources": [
+    {"title": "Auto-Encoding Variational Bayes", "url": "https://arxiv.org/abs/1312.6114", "note": "ELBO and Gaussian reparameterization"},
+    {"title": "Generative Adversarial Nets", "url": "https://arxiv.org/abs/1406.2661", "note": "Minimax game and non-saturating generator update"},
+    {"title": "Denoising Diffusion Probabilistic Models", "url": "https://arxiv.org/abs/2006.11239", "note": "Forward noising and noise-prediction objective"},
+    {"title": "Denoising Diffusion Implicit Models", "url": "https://arxiv.org/abs/2010.02502", "note": "Deterministic reverse sampling path"}
+  ],
+  "checks": [
+    "The beta-VAE objective falls by at least 30 percent",
+    "GAN training changes both generator and discriminator parameters and yields finite samples",
+    "Diffusion noise MSE falls by at least 20 percent",
+    "A perfect supplied noise value maps each diffusion state to the exact previous deterministic state",
+    "Default execution trains all three models and reports 512-sample distribution summaries, distinguishing VAE means from full observations"
+  ],
+  "limitations": [
+    "Scalar affine networks and six synthetic values are mechanism checks, not image generators",
+    "Finite differences keep the tiny code inspectable but scale poorly and are not hidden automatic differentiation",
+    "The beta-VAE, GAN, and diffusion losses have different meanings and are not directly comparable",
+    "The deterministic four-step sampler is a DDIM-style teaching path rather than the stochastic DDPM sampler",
+    "The affine Gaussian GAN, linear VAE decoder, and affine diffusion reverse chain cannot represent the target distribution's two separated modes"
+  ]
+}

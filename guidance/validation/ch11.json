@@ -1,0 +1,82 @@
+{
+  "chapter": "11",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch11/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.031,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch11/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.048,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch11/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.057,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch11/target/debug/deps/ch11-b431a085c662ed45)\n\nrunning 7 tests\ntest tests::corrupt_checkpoint_fails ... ok\ntest tests::finite_parameters_do_not_hide_overflowing_optimizer_state ... ok\ntest tests::hidden_weight_gradient_matches_difference ... ok\ntest tests::checkpoint_restores_exact_optimizer_state ... ok\ntest tests::unsafe_checkpoint_fields_fail_before_state_allocation ... ok\ntest tests::shared_offset_and_evaluation_only_contract ... ok\ntest tests::both_optimizers_train_real_mlp ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n"
+    },
+    {
+      "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch11/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.328,
+      "output": "   Compiling ch11 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch11)\n    Finished `release` profile [optimized] target(s) in 0.31s\n     Running `projects/ch11/target/release/ch11`\ncheckpoint: /tmp/ch11-fixture-2458.ckpt (step 300)\noptimizer=Adam, held-out loss 2.6914 -> 0.0029, accuracy 0.0% -> 100.0%\nrestored fixture checkpoint at step 300\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch11/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.028,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch11/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.042,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch11/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.031,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch11/starter/target/debug/ch11-starter`\nSGD checkpoint: training loss 2.7378 -> 0.3333\nComplete momentum_step, allocate one velocity per parameter, and replace the SGD update above.\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch11/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.016,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch11/starter/target/debug/deps/ch11_starter-45efe8245ab91606)\n\nrunning 1 test\ntest first_momentum_step ... FAILED\n\nfailures:\n\n---- first_momentum_step stdout ----\n\nthread 'first_momentum_step' (2573) panicked at src/main.rs:234:5:\nnot yet implemented: implement momentum\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    first_momentum_step\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch11-starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch11_01.rs -o /tmp/ml-check-psmonhtg/solutionch11_01",
+      "returncode": 0,
+      "seconds": 0.044,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-psmonhtg/solutionch11_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest remembers ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch11_01.rs -o /tmp/ml-check-psmonhtg/exercisech11_01",
+      "returncode": 0,
+      "seconds": 0.044,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-psmonhtg/exercisech11_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest remembers ... FAILED\n\nfailures:\n\n---- remembers stdout ----\n\nthread 'remembers' (2645) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch11_01.rs:4:5:\nnot yet implemented: store and return beta*v + g\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    remembers\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "chapter": "27",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch27/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.026,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch27/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.036,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch27/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.057,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch27/target/debug/deps/ch27-fff1aaf662b024d8)\n\nrunning 6 tests\ntest tests::empty_inference_is_valid_but_empty_training_is_not ... ok\ntest tests::invalid_arithmetic_is_rejected_before_committing_update ... ok\ntest tests::gradient_and_update_match_nonzero_hand_example ... ok\ntest tests::parallel_inference_and_gradients_agree_with_scalar ... ok\ntest tests::parallel_training_reduces_loss ... ok\ntest tests::inference_handles_every_short_uneven_partition ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s\n\n"
+    },
+    {
+      "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch27/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.018,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch27/target/release/ch27`\nfour-shard training MSE: 0.596916 -> 0.001287\nmodel weights=[0.28969356, 0.56474173, 0.8358448, 1.1560601] bias=0.2500\nparallel inference first 3=[0.3061252, 0.8611804, -0.4087175]\nfixed shard boundaries and reduction order are reproducible for this build; other thread counts may change low bits\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch27/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.026,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch27/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch27/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.072,
+      "output": "   Compiling ch27-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch27/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s\n     Running `projects/ch27/starter/target/debug/ch27-starter`\nprior scalar inference MSE=0\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch27/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.016,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch27/starter/target/debug/deps/ch27_starter-1d6df782c1dd5f1e)\n\nrunning 1 test\ntest tests::parallel_reduction_matches_scalar ... FAILED\n\nfailures:\n\n---- tests::parallel_reduction_matches_scalar stdout ----\n\nthread 'tests::parallel_reduction_matches_scalar' (6425) panicked at src/main.rs:20:5:\nnot yet implemented: implement fixed-order shard reduction\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::parallel_reduction_matches_scalar\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch27-starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch27_01.rs -o /tmp/ml-check-3brk6prc/solutionch27_01",
+      "returncode": 0,
+      "seconds": 0.049,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-3brk6prc/solutionch27_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::sums_private_gradient_shards ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch27_01.rs -o /tmp/ml-check-3brk6prc/exercisech27_01",
+      "returncode": 0,
+      "seconds": 0.04,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-3brk6prc/exercisech27_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::sums_private_gradient_shards ... FAILED\n\nfailures:\n\n---- tests::sums_private_gradient_shards stdout ----\n\nthread 'tests::sums_private_gradient_shards' (6497) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch27_01.rs:4:5:\nnot yet implemented: implement deterministic reduction\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::sums_private_gradient_shards\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

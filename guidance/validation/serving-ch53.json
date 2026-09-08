@@ -1,0 +1,16 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--offline",
+    "--manifest-path",
+    "projects/ch53/Cargo.toml",
+    "--",
+    "--ignored",
+    "--nocapture"
+  ],
+  "returncode": 0,
+  "seconds": 0.01566642400030105,
+  "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch53/target/debug/deps/ch53-c31cce84b08f1620)\n\nrunning 1 test\ntest tests::serving_monitor_and_rollback_are_real ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s\n\n",
+  "scope": "Actual host loopback TCP request/response using local model."
+}

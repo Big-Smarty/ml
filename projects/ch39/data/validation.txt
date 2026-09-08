@@ -1,0 +1,3 @@
+Morning rain taps the library roof while a reader opens a notebook. She predicts what a small program will print, checks the result, and writes down why her first guess was wrong. Careful measurements turn surprise into a useful question. The next page contains unfamiliar sentences reserved from training, so evaluation cannot reward simple recall of the workshop story.
+
+Before lunch, the reader tests a second sequence. Earlier bytes provide context, hidden vectors carry information, and final scores become probabilities. She records loss without changing a weight. This separate course-authored validation document is released under CC0 and exists only for the offline teaching run.

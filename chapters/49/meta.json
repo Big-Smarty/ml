@@ -1,0 +1,59 @@
+{
+  "outcomes": [
+    "Compute a selective state-space sequence as a recurrence",
+    "Derive associative affine-transition composition and verify scan parity",
+    "Implement normalized causal linear attention with recurrent summaries",
+    "Compare recurrence, scan schedule, and a direct prefix oracle without false speed claims"
+  ],
+  "lessons": ["Sequence state without a cache", "Selective recurrence", "Associative scan", "Linear attention", "Rust comparison", "Practice and transfer"],
+  "terms": {
+    "state-space-model": {
+      "name": "State-space model",
+      "definition": "A sequence model that updates a compact hidden state through a recurrence and reads outputs from that state.",
+      "explanation": "A basic discrete state-space step multiplies the previous state by a transition coefficient and adds an input contribution. The output reads the new state. This yields constant state size during one-token inference. Modern structured and selective state-space models choose parameterizations that improve long-sequence learning and computation. The chapter uses one scalar state to expose composition; it is not a faithful implementation or training result for S4 or Mamba."
+    },
+    "recurrence": {
+      "name": "Recurrence",
+      "definition": "A computation whose current state depends on the previous state.",
+      "explanation": "For h_t = a_t h_{t-1} + b_t, evaluation naturally proceeds left to right. Each step can consume a new token with fixed state memory, which suits autoregressive inference. The apparent serial dependency does not always prevent parallel training: when each step is an affine map, maps can be composed associatively and scanned. Recurrence describes the mathematical dependency, while an execution schedule describes how hardware evaluates it."
+    },
+    "selective-state": {
+      "name": "Selective state",
+      "definition": "State dynamics whose coefficients depend on the current input.",
+      "explanation": "Fixed linear dynamics treat every input position with the same transition rules. A selective model computes some transition, input, or readout coefficients from the current token, allowing content to control what is retained or written. The reference chooses a_t with a sigmoid of input magnitude and b_t from a simple input formula. These coefficients are fixed educational choices, not trained Mamba parameters, but they demonstrate that scan composition still works once per-token transitions are known."
+    },
+    "associative-scan": {
+      "name": "Associative scan",
+      "definition": "A prefix computation built from an associative binary operation.",
+      "explanation": "Represent each recurrence step as an affine map (a,b). Applying a later map after an earlier map gives (a₂a₁, a₂b₁+b₂). This operation is associative, so a tree-shaped prefix schedule has logarithmic dependency depth. The Rust checkpoint uses a Hillis–Steele style schedule with O(N log N) scalar work and clones each round; it exposes the dependency structure but executes sequentially and is not a work-efficient parallel kernel."
+    },
+    "linear-attention": {
+      "name": "Linear attention",
+      "definition": "Attention rewritten with feature maps so key-value summaries can be accumulated without an explicit all-pairs score matrix.",
+      "explanation": "With a nonnegative feature map φ, causal linear attention stores S_t = S_{t-1}+φ(k_t)v_t and z_t = z_{t-1}+φ(k_t). A query reads φ(q_t)·S_t divided by φ(q_t)·z_t. This changes the kernel from exact softmax attention unless a special approximation is used. The reference chooses ReLU(x)+1, compares against the same kernel's direct prefix formula, and never claims equivalence to softmax for any sequence or dimension."
+    },
+    "causal-prefix": {
+      "name": "Causal prefix",
+      "definition": "The current position together with only earlier positions available to its computation.",
+      "explanation": "At time t, a causal model must not use keys or values from positions after t. The recurrent linear-attention implementation first adds the current key-value pair, then evaluates the current query, matching an inclusive prefix j ≤ t. A direct quadratic oracle recomputes that prefix and catches off-by-one or future-leakage bugs. Causality concerns information access, not whether the implementation uses a loop, scan, or parallel kernel."
+    }
+  },
+  "sources": [
+    {"title": "Efficiently Modeling Long Sequences with Structured State Spaces", "url": "https://arxiv.org/abs/2111.00396", "note": "Structured state-space sequence modeling"},
+    {"title": "Simplified State Space Layers for Sequence Modeling", "url": "https://arxiv.org/abs/2208.04933", "note": "Parallel scans for state-space layers"},
+    {"title": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces", "url": "https://arxiv.org/abs/2312.00752", "note": "Input-dependent selective state"},
+    {"title": "Transformers are RNNs: Fast Autoregressive Transformers with Linear Attention", "url": "https://proceedings.mlr.press/v119/katharopoulos20a.html", "note": "Causal linear-attention recurrence"}
+  ],
+  "checks": [
+    "Associative scan matches sequential recurrence within absolute-plus-relative tolerance",
+    "Affine composition passes an explicit associativity check",
+    "Causal recurrent linear attention matches a direct prefix oracle",
+    "Empty, mismatched, and nonfinite sequence inputs are rejected"
+  ],
+  "limitations": [
+    "The selective coefficients are fixed and the scalar SSM is not trained",
+    "The scan schedule is sequential and O(N log N) work in this teaching implementation",
+    "ReLU-plus-one linear attention is a different kernel from exact softmax attention",
+    "Default timings are illustrative single-process CPU observations rather than a benchmark claim"
+  ]
+}

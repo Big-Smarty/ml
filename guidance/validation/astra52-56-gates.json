@@ -1,0 +1,252 @@
+[
+  {
+    "command": "cargo fmt --manifest-path projects/ch52/Cargo.toml -- --check",
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": "cargo clippy --all-targets --manifest-path projects/ch52/Cargo.toml -- -D warnings",
+    "exit_code": 0,
+    "output": "    Checking ch52 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch52)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s\n"
+  },
+  {
+    "command": "cargo test --manifest-path projects/ch52/Cargo.toml",
+    "exit_code": 0,
+    "output": "\nrunning 2 tests\ntest tests::invalid_embeddings_are_rejected ... ok\ntest tests::training_improves_loss_and_retrieval ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s\n\n   Compiling ch52 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch52)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.06s\n     Running unittests src/main.rs (projects/ch52/target/debug/deps/ch52-53374b99a151a97f)\n"
+  },
+  {
+    "command": "cargo run --release --manifest-path projects/ch52/Cargo.toml",
+    "exit_code": 0,
+    "output": "symmetric contrastive loss: 1.1322 -> 0.0014\nlocal perturbed-image recall@1: 100%\nimage 0 retrieves \"two vertical pixels\"\nimage 1 retrieves \"two horizontal pixels\"\nimage 2 retrieves \"main diagonal\"\nThe three-pair fixture verifies alignment mechanics, not open-vocabulary understanding.\n   Compiling ch52 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch52)\n    Finished `release` profile [optimized] target(s) in 0.14s\n     Running `projects/ch52/target/release/ch52`\n"
+  },
+  {
+    "command": "cargo fmt --manifest-path projects/ch52/starter/Cargo.toml -- --check",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": ""
+  },
+  {
+    "command": "cargo run --manifest-path projects/ch52/starter/Cargo.toml",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": "vertical   similarity=0.994\nhorizontal similarity=0.110\nNormalized similarity is the retrieval checkpoint before learned encoders.\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running `projects/ch52/starter/target/debug/ch52_starter`\n"
+  },
+  {
+    "command": "cargo test --manifest-path projects/ch52/starter/Cargo.toml",
+    "exit_code": 101,
+    "intentional_todo_failure": true,
+    "output": "\nrunning 1 test\ntest retrieves_nearest_caption ... FAILED\n\nfailures:\n\n---- retrieves_nearest_caption stdout ----\n\nthread 'retrieves_nearest_caption' (262) panicked at src/main.rs:11:5:\nnot yet implemented: compare every caption embedding\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    retrieves_nearest_caption\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch52/starter/target/debug/deps/ch52_starter-22ae116d8e209526)\nerror: test failed, to rerun pass `--bin ch52_starter`\n"
+  },
+  {
+    "command": "rustc --test exercises/cpu/solutions/ch52_01.rs && test binary",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": "\nrunning 1 test\ntest orthogonal_and_equal ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  {
+    "command": "rustc --test exercises/cpu/exercises/ch52_01.rs && test binary",
+    "exit_code": 101,
+    "intentional_todo_failure": true,
+    "output": "\nrunning 1 test\ntest orthogonal_and_equal ... FAILED\n\nfailures:\n\n---- orthogonal_and_equal stdout ----\n\nthread 'orthogonal_and_equal' (334) panicked at exercises/cpu/exercises/ch52_01.rs:4:5:\nnot yet implemented: normalize the dot product\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    orthogonal_and_equal\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  {
+    "command": "cargo fmt --manifest-path projects/ch53/Cargo.toml -- --check",
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": "cargo clippy --all-targets --manifest-path projects/ch53/Cargo.toml -- -D warnings",
+    "exit_code": 0,
+    "output": "    Checking ch53 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch53)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s\n"
+  },
+  {
+    "command": "cargo test --manifest-path projects/ch53/Cargo.toml",
+    "exit_code": 0,
+    "output": "\nrunning 2 tests\ntest tests::serving_monitor_and_rollback_are_real ... ignored, requires host loopback networking\ntest tests::checkpoint_round_trip_and_schema_validation ... ok\n\ntest result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch53/target/debug/deps/ch53-c31cce84b08f1620)\n"
+  },
+  {
+    "command": "cargo run --release --manifest-path projects/ch53/Cargo.toml",
+    "exit_code": 0,
+    "output": "checkpoint: model v1, schema 1, data hash 08dd92a401a54599\ncanary rollback selected previous version: true\nlive input mean 12.25; drift alert: true\nvalidated prediction for x=12: 3.0000\n    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch53/target/release/ch53`\n"
+  },
+  {
+    "command": "cargo fmt --manifest-path projects/ch53/starter/Cargo.toml -- --check",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": ""
+  },
+  {
+    "command": "cargo run --manifest-path projects/ch53/starter/Cargo.toml",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": "version=v1 schema=1 raw=12.0 score=0.500\nThe model and its preprocessing values must travel together.\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running `projects/ch53/starter/target/debug/ch53_starter`\n"
+  },
+  {
+    "command": "cargo test --manifest-path projects/ch53/starter/Cargo.toml",
+    "exit_code": 101,
+    "intentional_todo_failure": true,
+    "output": "\nrunning 1 test\ntest request_schema_is_explicit ... FAILED\n\nfailures:\n\n---- request_schema_is_explicit stdout ----\n\nthread 'request_schema_is_explicit' (456) panicked at src/main.rs:9:5:\nnot yet implemented: validate the serving boundary\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    request_schema_is_explicit\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch53/starter/target/debug/deps/ch53_starter-906b775be2a60e43)\nerror: test failed, to rerun pass `--bin ch53_starter`\n"
+  },
+  {
+    "command": "rustc --test exercises/cpu/solutions/ch53_01.rs && test binary",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": "\nrunning 1 test\ntest schema_version ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  {
+    "command": "rustc --test exercises/cpu/exercises/ch53_01.rs && test binary",
+    "exit_code": 101,
+    "intentional_todo_failure": true,
+    "output": "\nrunning 1 test\ntest schema_version ... FAILED\n\nfailures:\n\n---- schema_version stdout ----\n\nthread 'schema_version' (528) panicked at exercises/cpu/exercises/ch53_01.rs:4:5:\nnot yet implemented: validate name and version\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    schema_version\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  {
+    "command": "cargo fmt --manifest-path projects/ch54/Cargo.toml -- --check",
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": "cargo clippy --all-targets --manifest-path projects/ch54/Cargo.toml -- -D warnings",
+    "exit_code": 0,
+    "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+  },
+  {
+    "command": "cargo test --manifest-path projects/ch54/Cargo.toml",
+    "exit_code": 0,
+    "output": "\nrunning 2 tests\ntest tests::boundaries_and_causal_adjustment_change_the_conclusion ... ok\ntest tests::audit_metrics_use_their_own_denominators ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch54/target/debug/deps/ch54-f1103c06dbf7cff4)\n"
+  },
+  {
+    "command": "cargo run --release --manifest-path projects/ch54/Cargo.toml",
+    "exit_code": 0,
+    "output": "group A n=6 accuracy=0.667 positive_rate=0.500 TPR=0.667 FPR=0.333\ngroup B n=6 accuracy=0.667 positive_rate=0.333 TPR=0.500 FPR=0.250\nlocal logit ablation contributions: feature0=0.800, feature1=0.400\nrobustness at radius 0.25: 4 boundary flips, max probability change 0.050\nloss-threshold membership attack: TPR=0.875 FPR=0.000 advantage=0.875\nsecurity boundary rejects NaN: true\noutcome-rate difference: crude=+0.300, equal-stratum standardized=-0.100\nThese diagnostics expose evidence gaps; they do not certify fairness, privacy, robustness, or causality.\n   Compiling ch54 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch54)\n    Finished `release` profile [optimized] target(s) in 0.10s\n     Running `projects/ch54/target/release/ch54`\n"
+  },
+  {
+    "command": "cargo fmt --manifest-path projects/ch54/starter/Cargo.toml -- --check",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": ""
+  },
+  {
+    "command": "cargo run --manifest-path projects/ch54/starter/Cargo.toml",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": "overall accuracy: 2/3\ngroup A rows: 2\nOverall accuracy is the checkpoint; the audit needs group denominators.\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running `projects/ch54/starter/target/debug/ch54_starter`\n"
+  },
+  {
+    "command": "cargo test --manifest-path projects/ch54/starter/Cargo.toml",
+    "exit_code": 101,
+    "intentional_todo_failure": true,
+    "output": "\nrunning 1 test\ntest group_recall_exposes_difference ... FAILED\n\nfailures:\n\n---- group_recall_exposes_difference stdout ----\n\nthread 'group_recall_exposes_difference' (674) panicked at src/main.rs:12:5:\nnot yet implemented: compute a group-conditional denominator\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    group_recall_exposes_difference\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch54/starter/target/debug/deps/ch54_starter-600255c73dd6d143)\nerror: test failed, to rerun pass `--bin ch54_starter`\n"
+  },
+  {
+    "command": "rustc --test exercises/cpu/solutions/ch54_01.rs && test binary",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": "\nrunning 1 test\ntest defined_and_undefined_rates ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  {
+    "command": "rustc --test exercises/cpu/exercises/ch54_01.rs && test binary",
+    "exit_code": 101,
+    "intentional_todo_failure": true,
+    "output": "\nrunning 1 test\ntest defined_and_undefined_rates ... FAILED\n\nfailures:\n\n---- defined_and_undefined_rates stdout ----\n\nthread 'defined_and_undefined_rates' (746) panicked at exercises/cpu/exercises/ch54_01.rs:4:5:\nnot yet implemented: guard the denominator\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    defined_and_undefined_rates\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  {
+    "command": "cargo fmt --manifest-path projects/ch55/Cargo.toml -- --check",
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": "cargo clippy --all-targets --manifest-path projects/ch55/Cargo.toml -- -D warnings",
+    "exit_code": 0,
+    "output": "    Checking ch55 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch55)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s\n"
+  },
+  {
+    "command": "cargo test --manifest-path projects/ch55/Cargo.toml",
+    "exit_code": 0,
+    "output": "\nrunning 2 tests\ntest tests::fixture_matches_hand_calculation ... ok\ntest tests::checkpoint_rejects_bad_bytes ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling ch55 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch55)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.10s\n     Running unittests src/main.rs (projects/ch55/target/debug/deps/ch55-b2a8aafffbececab)\n"
+  },
+  {
+    "command": "cargo run --release --manifest-path projects/ch55/Cargo.toml",
+    "exit_code": 0,
+    "output": "scratch output: [1.150000, 0.650000]\nscratch mean squared loss: 0.672500\nscratch weight gradient: [[0.22499996, -0.29999995], [1.7249999, -2.3]]\nscratch weights after SGD: [[0.17750001, -0.37], [0.5275, 0.33]]\ncheckpoint round trip: exact\nRun the optional Burn parity program in projects/ch55/framework.\n    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch55/target/release/ch55`\n"
+  },
+  {
+    "command": "cargo fmt --manifest-path projects/ch55/starter/Cargo.toml -- --check",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": ""
+  },
+  {
+    "command": "cargo run --manifest-path projects/ch55/starter/Cargo.toml",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": "output [1.15, 0.65]; MSE 0.6725\n   Compiling ch55-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch55/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s\n     Running `projects/ch55/starter/target/debug/ch55-starter`\n"
+  },
+  {
+    "command": "cargo test --manifest-path projects/ch55/starter/Cargo.toml",
+    "exit_code": 101,
+    "intentional_todo_failure": true,
+    "output": "\nrunning 1 test\ntest tests::port_the_gradient_rule ... FAILED\n\nfailures:\n\n---- tests::port_the_gradient_rule stdout ----\n\nthread 'tests::port_the_gradient_rule' (1080) panicked at src/main.rs:26:5:\nnot yet implemented: multiply the output derivative by input[0]\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::port_the_gradient_rule\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling ch55-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch55/starter)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\n     Running unittests src/main.rs (projects/ch55/starter/target/debug/deps/ch55_starter-4ba5ece4390ce5e9)\nerror: test failed, to rerun pass `--bin ch55-starter`\n"
+  },
+  {
+    "command": "rustc --test exercises/cpu/solutions/ch55_01.rs && test binary",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": "\nrunning 1 test\ntest tests::checks_lengths_and_tolerances ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  {
+    "command": "rustc --test exercises/cpu/exercises/ch55_01.rs && test binary",
+    "exit_code": 101,
+    "intentional_todo_failure": true,
+    "output": "\nrunning 1 test\ntest tests::checks_lengths_and_tolerances ... FAILED\n\nfailures:\n\n---- tests::checks_lengths_and_tolerances stdout ----\n\nthread 'tests::checks_lengths_and_tolerances' (1152) panicked at exercises/cpu/exercises/ch55_01.rs:3:5:\nnot yet implemented: compare each aligned pair\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::checks_lengths_and_tolerances\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  {
+    "command": "cargo fmt --manifest-path projects/ch56/Cargo.toml -- --check",
+    "exit_code": 0,
+    "output": ""
+  },
+  {
+    "command": "cargo clippy --all-targets --manifest-path projects/ch56/Cargo.toml -- -D warnings",
+    "exit_code": 0,
+    "output": "    Checking ch56 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch56)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.16s\n"
+  },
+  {
+    "command": "cargo test --manifest-path projects/ch56/Cargo.toml",
+    "exit_code": 0,
+    "output": "\nrunning 12 tests\ntest tests::request_boundary_is_strict ... ok\ntest verification::large_common_logits_and_tiny_temperature_are_stable ... ok\ntest tests::capacity_counts_attempts_and_drops ... ok\ntest verification::failed_exclusive_save_keeps_existing_temporary_file ... ok\ntest tests::one_expert_is_dense_feed_forward ... ok\ntest tests::router_and_expert_gradients_match_finite_differences ... ok\ntest verification::fragmented_requests_receive_complete_200_or_400_responses ... ok\ntest verification::one_expert_matches_independent_dense_decoder_and_causality ... ok\ntest tests::training_changes_trunk_router_and_expert ... ok\ntest verification::checkpoint_rejects_hostile_headers_and_changed_resume_inputs ... ok\ntest tests::checkpoint_resume_is_exact ... ok\ntest verification::every_parameter_gradient_matches_finite_differences_away_from_ties ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n\nrunning 1 test\ntest split_guard_rejects_equal_or_shared_passages ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/lib.rs (projects/ch56/target/debug/deps/ch56-24d3c8d203b2e41e)\n     Running unittests src/main.rs (projects/ch56/target/debug/deps/ch56-641c7041b23a6e6f)\n   Doc-tests ch56\n"
+  },
+  {
+    "command": "cargo run --release --manifest-path projects/ch56/Cargo.toml",
+    "exit_code": 0,
+    "output": "same fixture: 160 SGD steps, 16 tokens/step, width 8, expert width 12; matched shared initialization\ndense parameters: total 2852, nonexpert+one-expert 2852\nMoE parameters: total 3303, nonexpert+one-expert 2879\nuncapped task cross-entropy, mean over ALL corpus targets:\ndense train loss 4.8493 -> 1.5412; held-out 2.0097\nMoE train loss 4.8489 -> 1.3686; held-out 1.8787\ncapped training probe: routes [2, 6, 8]; accepted [2, 6, 7]; dropped 1; capacity 7; mean gate 0.354\nparameter change norm1: L2=0.020991\nparameter change norm2: L2=0.002767\nparameter change norm_final: L2=2.540640\nparameter change token_embedding: L2=1.505311\nparameter change position_embedding: L2=0.890754\nparameter change qkv_weight: L2=0.322875\nparameter change qkv_bias: L2=0.025608\nparameter change attention_output_weight: L2=0.269020\nparameter change attention_output_bias: L2=0.189475\nparameter change router_weight: L2=0.038408\nparameter change router_bias: L2=0.005840\nparameter change expert.0.ff1_weight: L2=0.035952\nparameter change expert.0.ff1_bias: L2=0.004147\nparameter change expert.0.ff2_weight: L2=0.039778\nparameter change expert.0.ff2_bias: L2=0.058635\nparameter change expert.1.ff1_weight: L2=0.030342\nparameter change expert.1.ff1_bias: L2=0.004218\nparameter change expert.1.ff2_weight: L2=0.031817\nparameter change expert.1.ff2_bias: L2=0.089023\nparameter change expert.2.ff1_weight: L2=0.058558\nparameter change expert.2.ff1_bias: L2=0.014309\nparameter change expert.2.ff2_weight: L2=0.047569\nparameter change expert.2.ff2_bias: L2=0.232496\nparameter change output_weight: L2=4.208293\nparameter change output_bias: L2=0.981971\nsample: \"rust\\0ouse pernstttns trtout rtttutet\"\nTiny overlapping-vocabulary fixture checks mechanics, not language quality, privacy, or scale.\n    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch56/target/release/ch56`\n"
+  },
+  {
+    "command": "cargo fmt --manifest-path projects/ch56/starter/Cargo.toml -- --check",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": ""
+  },
+  {
+    "command": "cargo run --manifest-path projects/ch56/starter/Cargo.toml",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": "expert 1, selected full-softmax gate 0.6136\ncontextual LM task CE before: 4.8652\nafter one complete reference step: 4.8018\nComplete the local selected-gate derivative test, then inspect the library backward pass.\n     Locking 1 package to latest compatible version\n      Adding ch56 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch56)\n   Compiling ch56 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch56)\n   Compiling ch56-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch56/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s\n     Running `projects/ch56/starter/target/debug/ch56-starter`\n"
+  },
+  {
+    "command": "cargo test --manifest-path projects/ch56/starter/Cargo.toml",
+    "exit_code": 101,
+    "intentional_todo_failure": true,
+    "output": "\nrunning 1 test\ntest tests::selected_gate_keeps_router_gradient ... FAILED\n\nfailures:\n\n---- tests::selected_gate_keeps_router_gradient stdout ----\n\nthread 'tests::selected_gate_keeps_router_gradient' (1529) panicked at src/main.rs:43:5:\nnot yet implemented: use p * (1 - p)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::selected_gate_keeps_router_gradient\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Compiling ch56-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch56/starter)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s\n     Running unittests src/main.rs (projects/ch56/starter/target/debug/deps/ch56_starter-de25caeae6cdea1f)\nerror: test failed, to rerun pass `--bin ch56-starter`\n"
+  },
+  {
+    "command": "rustc --test exercises/cpu/solutions/ch56_01.rs && test binary",
+    "exit_code": 0,
+    "intentional_todo_failure": false,
+    "output": "\nrunning 1 test\ntest tests::rounds_up_and_keeps_one_slot ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  {
+    "command": "rustc --test exercises/cpu/exercises/ch56_01.rs && test binary",
+    "exit_code": 101,
+    "intentional_todo_failure": true,
+    "output": "\nrunning 1 test\ntest tests::rounds_up_and_keeps_one_slot ... FAILED\n\nfailures:\n\n---- tests::rounds_up_and_keeps_one_slot stdout ----\n\nthread 'tests::rounds_up_and_keeps_one_slot' (1601) panicked at exercises/cpu/exercises/ch56_01.rs:3:5:\nnot yet implemented: convert after division, then call ceil\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::rounds_up_and_keeps_one_slot\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  }
+]

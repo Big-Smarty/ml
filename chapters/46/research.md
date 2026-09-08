@@ -1,0 +1,29 @@
+# Chapter 46 research record
+
+## Route and verification
+
+The author commissioned the bounded `research46` subagent using GPT-5.6 Luna High. It was asked for verified primary sources, the DPO objective and gradient, the frozen reference role, and a small independently checkable reward-policy experiment. The author matched its equations to the stable loss and simultaneous updates in the final code.
+
+## Evidence used
+
+Rafailov et al. derive Direct Preference Optimization from KL-regularized reward maximization: <https://arxiv.org/abs/2305.18290>. For prompt `x`, chosen response `y_w`, and rejected response `y_l`, the implemented margin is
+
+`z = beta * [(log pi(y_w|x)-log pi(y_l|x)) - (log pi_ref(y_w|x)-log pi_ref(y_l|x))]`.
+
+The mean loss is `-log sigmoid(z)`. The implementation evaluates it as stable softplus of `-z`, and it computes log-softmax with the maximum-subtraction log-sum-exp identity rather than taking the logarithm of an underflowed probability. The reference logits are cloned once and never updated. Gradients from every pair are accumulated at the same old policy before a simultaneous step; this matters because two pairs share each prompt.
+
+Williams's REINFORCE paper is the primary source for score-function updates: <https://doi.org/10.1007/BF00992696>. Sutton et al. provide the policy-gradient theorem and baseline argument: <https://papers.nips.cc/paper/1713-policy-gradient-methods-for-reinforcement-learning-with-function-approximation>. PPO is included only as later practical context, not implemented: <https://arxiv.org/abs/1707.06347>.
+
+## Decisions and checks
+
+The preference model is categorical: each prompt has three complete one-token response choices. This makes the chosen/rejected log-probability calculation real and lets one gradient be checked against central differences without copying an autoregressive decoder. It does not exercise token masks or response-length effects, so the lecture explains the sequence sum separately.
+
+The verifiable-reward experiment parses the course-authored prompt `2 + 3`, evaluates candidate integers 4, 5, and 6, and assigns reward one only to the computed answer. It then follows the exact expected policy gradient rather than using preference pairs. This deliberately separates reward optimization from DPO. Tests include wrong answers and invalid arithmetic text, and the correct candidate reaches probability above 0.99. The checker is transparent and tiny; real verifiers can be incomplete or gamed.
+
+## Independent Astra implementation review — 2026-09-08
+
+Route: GPT-6 Astra High owner/reviewer, with fresh bounded GPT-5.6 Luna High primary-source verification (`verify_42_43` for 42–43; `verify_44_46` for 44–46). Earlier Sol High drafts were retained where correct; the Astra owner independently read and corrected all lesson, metadata, reference, starter, and exercise assets.
+
+Verified DPO margin, averaged simultaneous pair gradients, frozen reference, stable softplus, and exact verifier policy gradient. Expanded the KL derivation with reward/beta and explained the absence of a hard KL guarantee. Fixed arithmetic overflow rejection and stable log-softmax with large common offsets. Validated all reference rows and made failed updates preserve the old policy; added order, reference, extreme, and invalid-input checks.
+
+The Luna High verification checked the original papers and official source URLs listed above. Its concrete findings were integrated by the Astra owner; passing prior author gates was not treated as independent proof. Scoped validation and remaining limits are recorded in `guidance/astra-review-42-46.md`.

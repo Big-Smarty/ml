@@ -1,0 +1,12 @@
+[package]
+name = "ch29"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.96"
+
+[dependencies]
+bytemuck = "=1.25.0"
+pollster = "=0.4.0"
+wgpu = { version = "=29.0.4", default-features = false, features = ["std", "vulkan", "wgsl"] }
+
+[workspace]

@@ -1,0 +1,12 @@
+# Chapter 28 research
+
+Model route: Sol High author with a bounded GPT-5.6 Luna High primary-source researcher. The Rust Reference verified that calling a target-feature function without support is undefined behavior. Current standard-library documentation verified separate AVX2, FMA, and AVX-512F runtime checks and the stable AVX2 FMA intrinsic. Rust 1.89 release notes and a local stable Rust 1.96 compile verified that the AVX-512F intrinsics used here are stable; the outdated blanket claim that AVX-512 requires nightly is therefore excluded. LLVM documentation supports the qualified auto-vectorization discussion. The reference directly tests both AVX2/FMA and AVX-512F on capable hardware across empty, short, and odd lengths, while all generic paths retain scalar fallback behavior.
+
+
+## Independent Astra review, 2026-09-08
+
+GPT-6 Astra High independently read the full lesson, metadata, research, reference, starter, and Rustlings exercise/solution. Bounded GPT-5.6 Luna High primary-source and technical verification covered chapters 25–28; the researcher supplied checks and source findings, while Astra implemented the corrections.
+
+Verified guarded AVX2/FMA and AVX-512 plus scalar tails. Added the Rust 1.89 minimum, store safety explanations, finite oracle comparisons, a glossary link, and dispatch-inclusive timing labels. Executed both supported SIMD paths on the host; no claim about unsupported hardware or automatic vectorization was added.
+
+Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.

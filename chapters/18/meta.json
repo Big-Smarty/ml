@@ -1,0 +1,66 @@
+{
+  "outcomes": [
+    "Run deterministic k-means and compute inertia",
+    "Explain Gaussian-mixture responsibilities and diagonal covariance",
+    "Implement stable expectation-maximization with log-sum-exp",
+    "Use negative log density as an anomaly score without confusing rarity with harm"
+  ],
+  "lessons": [
+    "Alternate between centers and assignments",
+    "Replace a hard group with a probability",
+    "Fit the mixture with expectation-maximization",
+    "Turn density into an anomaly score",
+    "Run the models and practice"
+  ],
+  "terms": {
+    "cluster": {
+      "name": "cluster",
+      "definition": "A group of rows treated as similar under a chosen representation and distance or density model.",
+      "explanation": "Clusters are outputs of modeling choices rather than discovered ground-truth labels. Feature scaling, distance, model family, initialization, and the requested number of groups can all change the partition. A useful cluster should therefore be evaluated against the purpose of the analysis and its stability, not accepted merely because an algorithm returned an integer assignment. External domain evidence can help interpret whether a grouping is actionable."
+    },
+    "inertia": {
+      "name": "inertia",
+      "definition": "The sum of squared distances from every row to its assigned k-means center.",
+      "explanation": "K-means alternates assignments and mean updates to reduce inertia. Squared distance makes the arithmetic mean the optimal center for a fixed cluster. Inertia never increases under exact standard steps, but it typically decreases when k increases and therefore cannot select k by itself. Its scale also changes when feature units or scaling change. Comparing runs requires the same data transformation and distance convention."
+    },
+    "gaussian-mixture": {
+      "name": "Gaussian mixture model",
+      "definition": "A probability density formed by a weighted sum of Gaussian component densities.",
+      "explanation": "Each component has a mixture weight, mean, and covariance. A row can belong fractionally to several components, unlike a hard k-means assignment. The reference uses diagonal covariance to avoid matrix inversion and model axis-aligned spreads. Mixture labels are exchangeable, and likelihood can become singular when a variance collapses, so the implementation floors each variance. The weights remain nonnegative and normalized to one."
+    },
+    "responsibility": {
+      "name": "responsibility",
+      "definition": "The posterior probability that one mixture component generated a row under current parameters.",
+      "explanation": "Responsibilities normalize component weight times density across all components and sum to one for each row. EM uses them as fractional counts: their component-wise sum determines a component's effective mass, weighted mean, variance, and updated mixture weight. Stable implementations compute them from log probabilities with log-sum-exp rather than dividing raw densities that may underflow. Ambiguous rows can therefore influence several components at once."
+    },
+    "expectation-maximization": {
+      "name": "expectation-maximization",
+      "definition": "An alternating procedure for maximum-likelihood estimation with hidden variables.",
+      "explanation": "For a Gaussian mixture, the E-step calculates posterior component responsibilities. The M-step uses those fractional assignments to update weights, means, and variances. Under the standard unconstrained derivation, observed-data likelihood does not decrease. Practical variance floors and dead-component policies prevent singularities but must be documented because they modify the exact optimization problem. A maximum iteration count prevents an endless numerical convergence loop."
+    },
+    "anomaly-score": {
+      "name": "anomaly score",
+      "definition": "A numeric ranking of how unusual an observation is under a fitted reference model.",
+      "explanation": "This chapter uses negative log mixture density, so low-density rows receive larger scores. A score becomes an alarm only after a threshold is calibrated on separate representative data. Density and thresholds depend on feature units, dimension, and population drift. Statistical rarity does not determine whether a row is harmful, erroneous, or valuable; that judgment requires domain investigation. False-positive and detection rates must accompany any deployed threshold."
+    }
+  },
+  "sources": [
+    {"title": "Some Methods for Classification and Analysis of Multivariate Observations", "url": "https://digicoll.lib.berkeley.edu/record/113015?v=pdf", "note": "MacQueen's original k-means paper."},
+    {"title": "Least Squares Quantization in PCM", "url": "https://doi.org/10.1109/TIT.1982.1056489", "note": "Lloyd's least-squares quantization algorithm."},
+    {"title": "Maximum Likelihood from Incomplete Data via the EM Algorithm", "url": "https://academic.oup.com/jrsssb/article/39/1/1/7027539", "note": "Original general EM paper."},
+    {"title": "Pattern Clustering by Multivariate Mixture Analysis", "url": "https://doi.org/10.1207/s15327906mbr0503_6", "note": "Early multivariate Gaussian-mixture clustering."}
+  ],
+  "checks": [
+    "K-means finds one negative and one positive fixture center with inertia below 3",
+    "Final assignments are recomputed from the returned centers",
+    "Mixture responsibilities sum to one and component weights remain normalized",
+    "The distant point receives a larger anomaly score than a cluster-center point",
+    "Later well-conditioned EM fits do not reduce fixture log likelihood beyond tolerance"
+  ],
+  "limitations": [
+    "K-means uses deterministic single-start initialization",
+    "Empty k-means centers are retained rather than reseeded",
+    "The GMM supports diagonal two-dimensional components only",
+    "No anomaly threshold is estimated from the tiny training fixture"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "command": [
+    "cargo",
+    "run",
+    "--release",
+    "--offline",
+    "--manifest-path",
+    "projects/ch39/Cargo.toml",
+    "--",
+    "--large",
+    "--steps",
+    "1",
+    "--generate",
+    "0",
+    "--checkpoint",
+    "/tmp/ml-large-smoke.bin"
+  ],
+  "returncode": 0,
+  "wall_seconds": 0.3658598229994823,
+  "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `projects/ch39/target/release/ch39 --large --steps 1 --generate 0 --checkpoint /tmp/ml-large-smoke.bin`\ntrainable parameters: 14442496\nvalidation cross-entropy: 5.577 -> 5.593\nlarge smoke evaluation used the first 16 held-out target bytes\nprocessed 16 tokens in 0.215s (74.4 tokens/s)\nmodel+Adam moments: 173309952 bytes; activations depend on sequence and layers\nsample: The \nsaved resumable checkpoint to /tmp/ml-large-smoke.bin\n",
+  "scope": "Actual 14,442,496-parameter forward, backward, AdamW update on two 8-token microbatches; 16 held-out target bytes. No extended training."
+}

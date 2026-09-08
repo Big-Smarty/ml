@@ -1,0 +1,82 @@
+{
+  "chapter": "55",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch55/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.026,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch55/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.036,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch55/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.026,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch55/target/debug/deps/ch55-b2a8aafffbececab)\n\nrunning 2 tests\ntest tests::fixture_matches_hand_calculation ... ok\ntest tests::checkpoint_rejects_bad_bytes ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch55/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch55/target/release/ch55`\nscratch output: [1.150000, 0.650000]\nscratch mean squared loss: 0.672500\nscratch weight gradient: [[0.22499996, -0.29999995], [1.7249999, -2.3]]\nscratch weights after SGD: [[0.17750001, -0.37], [0.5275, 0.33]]\ncheckpoint round trip: exact\nRun the optional Burn parity program in projects/ch55/framework.\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch55/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.025,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch55/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.055,
+      "output": "    Checking ch55-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch55/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch55/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.027,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch55/starter/target/debug/ch55-starter`\noutput [1.15, 0.65]; MSE 0.6725\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch55/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.015,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch55/starter/target/debug/deps/ch55_starter-4ba5ece4390ce5e9)\n\nrunning 1 test\ntest tests::port_the_gradient_rule ... FAILED\n\nfailures:\n\n---- tests::port_the_gradient_rule stdout ----\n\nthread 'tests::port_the_gradient_rule' (18138) panicked at src/main.rs:26:5:\nnot yet implemented: multiply the output derivative by input[0]\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::port_the_gradient_rule\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch55-starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch55_01.rs -o /tmp/ml-check-08fal7_p/solutionch55_01",
+      "returncode": 0,
+      "seconds": 0.042,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-08fal7_p/solutionch55_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::checks_lengths_and_tolerances ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch55_01.rs -o /tmp/ml-check-08fal7_p/exercisech55_01",
+      "returncode": 0,
+      "seconds": 0.039,
+      "output": "warning: unused variable: `left`\n --> /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch55_01.rs:1:10\n  |\n1 | fn close(left: &[f32], right: &[f32], atol: f32, rtol: f32) -> bool {\n  |          ^^^^ help: if this is intentional, prefix it with an underscore: `_left`\n  |\n  = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `right`\n --> /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch55_01.rs:1:24\n  |\n1 | fn close(left: &[f32], right: &[f32], atol: f32, rtol: f32) -> bool {\n  |                        ^^^^^ help: if this is intentional, prefix it with an underscore: `_right`\n\nwarning: unused variable: `atol`\n --> /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch55_01.rs:1:39\n  |\n1 | fn close(left: &[f32], right: &[f32], atol: f32, rtol: f32) -> bool {\n  |                                       ^^^^ help: if this is intentional, prefix it with an underscore: `_atol`\n\nwarning: unused variable: `rtol`\n --> /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch55_01.rs:1:50\n  |\n1 | fn close(left: &[f32], right: &[f32], atol: f32, rtol: f32) -> bool {\n  |                                                  ^^^^ help: if this is intentional, prefix it with an underscore: `_rtol`\n\nwarning: 4 warnings emitted\n\n"
+    },
+    {
+      "command": "/tmp/ml-check-08fal7_p/exercisech55_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::checks_lengths_and_tolerances ... FAILED\n\nfailures:\n\n---- tests::checks_lengths_and_tolerances stdout ----\n\nthread 'tests::checks_lengths_and_tolerances' (18210) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch55_01.rs:3:5:\nnot yet implemented: compare each aligned pair\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::checks_lengths_and_tolerances\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

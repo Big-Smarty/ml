@@ -1,0 +1,76 @@
+{
+  "chapter": "30",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch30/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.028,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch30/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.056,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch30/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.057,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running unittests src/lib.rs (projects/ch30/target/debug/deps/ch30-81836d48385ae258)\n\nrunning 3 tests\ntest tests::gpu_matmul_and_reduction_match_scalar_oracles ... ignored, requires a hardware Vulkan GPU\ntest tests::invalid_dimensions_are_rejected_without_a_gpu ... ok\ntest tests::scalar_oracle_handles_nonsquare_odd_shapes ... ok\n\ntest result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running unittests src/main.rs (projects/ch30/target/debug/deps/ch30-867eb5ae88546898)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests ch30\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch30/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.027,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch30/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.038,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch30/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.074,
+      "output": "   Compiling ch30-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch30/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s\n     Running `projects/ch30/starter/target/debug/ch30-starter`\nCPU checkpoint: [13.0, 16.0]\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch30/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.015,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch30/starter/target/debug/deps/ch30_starter-55ec7bc42224a560)\n\nrunning 1 test\ntest tests::odd_inner_dimension_keeps_last_tile ... FAILED\n\nfailures:\n\n---- tests::odd_inner_dimension_keeps_last_tile stdout ----\n\nthread 'tests::odd_inner_dimension_keeps_last_tile' (11713) panicked at src/main.rs:15:5:\nnot yet implemented: include the partial K tile\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::odd_inner_dimension_keeps_last_tile\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch30-starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch30_01.rs -o /tmp/ml-check-x9yjyp6b/solutionch30_01",
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-x9yjyp6b/solutionch30_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::row_major_index_uses_column_count ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch30_01.rs -o /tmp/ml-check-x9yjyp6b/exercisech30_01",
+      "returncode": 0,
+      "seconds": 0.039,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-x9yjyp6b/exercisech30_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::row_major_index_uses_column_count ... FAILED\n\nfailures:\n\n---- tests::row_major_index_uses_column_count stdout ----\n\nthread 'tests::row_major_index_uses_column_count' (11785) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch30_01.rs:4:5:\nnot yet implemented: compute row-major offset\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::row_major_index_uses_column_count\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

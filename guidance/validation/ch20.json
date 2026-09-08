@@ -1,0 +1,82 @@
+{
+  "chapter": "20",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch20/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.028,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch20/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch20/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.101,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch20/target/debug/deps/ch20-c16c954cf8337ff3)\n\nrunning 6 tests\ntest tests::idx_payload_is_decoded_and_validated ... ok\ntest tests::malformed_idx_is_rejected ... ok\ntest tests::cross_entropy_preserves_small_loss_at_large_common_offset ... ok\ntest tests::fixture_validation_images_are_disjoint ... ok\ntest tests::convolution_gradient_matches_central_difference_away_from_ties ... ok\ntest tests::training_reduces_held_out_loss ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s\n\n"
+    },
+    {
+      "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch20/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.018,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch20/target/release/ch20`\nfit=30 validation=10 shape=8x8\nvalidation cross-entropy 2.3062 -> 0.0630; accuracy 10.0% -> 100.0%\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch20/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.025,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch20/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.036,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch20/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.026,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch20/starter/target/debug/ch20-starter`\nfixture: 2 images, shape 4x4\nlinear logits [4.0, -4.0], probabilities [0.9996646498695336, 0.00033535013046647816]\nlinear logits [-4.0, 4.0], probabilities [0.00033535013046647816, 0.9996646498695336]\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch20/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.015,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch20/starter/target/debug/deps/ch20_starter-346b96a91e799cc4)\n\nrunning 1 test\ntest tests::center_convolution_matches_hand_sum ... FAILED\n\nfailures:\n\n---- tests::center_convolution_matches_hand_sum stdout ----\n\nthread 'tests::center_convolution_matches_hand_sum' (1258) panicked at src/main.rs:37:5:\nnot yet implemented: sum valid image pixels times their shared kernel weights\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::center_convolution_matches_hand_sum\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch20-starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch20_01.rs -o /tmp/ml-check-ywlbyz0z/solutionch20_01",
+      "returncode": 0,
+      "seconds": 0.038,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-ywlbyz0z/solutionch20_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest checks_stride_and_padding ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch20_01.rs -o /tmp/ml-check-ywlbyz0z/exercisech20_01",
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-ywlbyz0z/exercisech20_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest checks_stride_and_padding ... FAILED\n\nfailures:\n\n---- checks_stride_and_padding stdout ----\n\nthread 'checks_stride_and_padding' (1330) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch20_01.rs:3:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    checks_stride_and_padding\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

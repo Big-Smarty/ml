@@ -1,0 +1,82 @@
+{
+  "chapter": "25",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch25/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.025,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch25/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.036,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch25/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.025,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch25/target/debug/deps/ch25-3f6605cf3b676f1b)\n\nrunning 3 tests\ntest tests::bad_shapes_are_rejected ... ok\ntest tests::dense_matches_hand_calculation ... ok\ntest tests::f32_kernel_agrees_with_f64_reference ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch25/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch25/target/release/ch25`\narchitecture=x86_64 OS=linux threads=1\ndense [32,64] x [32,64]^T; f32; release mode recommended\nwarmups=3 samples=11 median=17.18\u00b5s range=17.15\u00b5s..17.25\u00b5s\nmeasured throughput=7.629 GFLOP/s checksum=84.045035\ncorrectness checked against an f64 accumulator before timing\nalgorithmic work=131072 FLOPs; cold-array traffic estimate=20608 bytes; intensity under that assumption=6.36 FLOP/byte (not measured warm-cache DRAM traffic)\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch25/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.024,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch25/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.035,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch25/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.067,
+      "output": "   Compiling ch25-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch25/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s\n     Running `projects/ch25/starter/target/debug/ch25-starter`\nprior dense inference: [-1.5, -2.5]; now add warmups and repeated timing in the test\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch25/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.015,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch25/starter/target/debug/deps/ch25_starter-f617be6326865943)\n\nrunning 1 test\ntest tests::reports_median_not_best_case ... FAILED\n\nfailures:\n\n---- tests::reports_median_not_best_case stdout ----\n\nthread 'tests::reports_median_not_best_case' (2405) panicked at src/main.rs:18:5:\nnot yet implemented: complete the benchmark statistic\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::reports_median_not_best_case\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch25-starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch25_01.rs -o /tmp/ml-check-hh47gspe/solutionch25_01",
+      "returncode": 0,
+      "seconds": 0.047,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-hh47gspe/solutionch25_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::ignores_one_fast_and_one_slow_outlier ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch25_01.rs -o /tmp/ml-check-hh47gspe/exercisech25_01",
+      "returncode": 0,
+      "seconds": 0.039,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-hh47gspe/exercisech25_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::ignores_one_fast_and_one_slow_outlier ... FAILED\n\nfailures:\n\n---- tests::ignores_one_fast_and_one_slow_outlier stdout ----\n\nthread 'tests::ignores_one_fast_and_one_slow_outlier' (2477) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch25_01.rs:3:5:\nnot yet implemented: sort and return the middle sample\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::ignores_one_fast_and_one_slow_outlier\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

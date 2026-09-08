@@ -1,0 +1,64 @@
+{
+  "outcomes": [
+    "Separate host wall time from device timestamp duration",
+    "Explain asynchronous queue submission and explicit completion points",
+    "Fuse an affine transform and ReLU while preserving a scalar oracle",
+    "Query timestamp and shader-f16 support before requesting optional features",
+    "Relate wgpu's f16 feature to concrete Vulkan capability extensions"
+  ],
+  "lessons": [
+    "Performance begins with a well-defined clock",
+    "Understand asynchronous submission",
+    "Fuse adjacent elementwise kernels",
+    "Choose mixed precision by capability and range",
+    "Connect wgpu to Vulkan extensions",
+    "Measure, debug, and transfer"
+  ],
+  "terms": {
+    "gpu-timestamp": {
+      "name": "GPU timestamp",
+      "definition": "A device-written counter sampled around GPU work and converted using the queue's timestamp period.",
+      "explanation": "Timestamp queries measure intervals on the device timeline. The reference writes a timestamp at the beginning and end of each compute pass, resolves 64-bit ticks into a query buffer, copies them to a mappable staging buffer, and multiplies tick differences by nanoseconds per tick. This excludes some host work and does not equal end-to-end latency. The feature is optional, so the program reports unavailable rather than inventing a duration."
+    },
+    "wall-clock-latency": {
+      "name": "wall-clock latency",
+      "definition": "Elapsed host time across a precisely stated operation boundary.",
+      "explanation": "The project's wall clock begins before command encoding and ends after output mapping completes. It therefore includes command creation, queue submission, scheduling, execution, copying, polling, and readback, while initial buffer allocation is outside the boundary. This differs deliberately from GPU timestamps. Small operations are noisy, so the final experiment warms up and reports a median and range over repeated runs rather than treating one observation as a speed claim."
+    },
+    "kernel-fusion": {
+      "name": "kernel fusion",
+      "definition": "Combining adjacent operations into one kernel so an intermediate need not travel through global memory.",
+      "explanation": "Separate affine and ReLU kernels read the input, write an intermediate, read that intermediate, and write output: four element transfers through storage memory. The fused kernel reads input and writes output: two. Fusion also removes one dispatch. It can reduce overhead and traffic, but larger fused kernels may increase register use or reduce scheduling flexibility. The chapter measures both paths and checks identical f32 output before drawing any conclusion."
+    },
+    "mixed-precision": {
+      "name": "mixed precision",
+      "definition": "Using more than one floating-point format to trade range and accuracy for storage or arithmetic benefits.",
+      "explanation": "The optional chapter path reads f32 input, converts arithmetic to f16, then writes f32 output. It first checks `SHADER_F16` and requests the feature only when supported; otherwise the same operation runs in f32. Half precision has a much smaller finite range and fewer significand bits, so finite f32 input is not automatically safe. The example bounds inputs before selecting f16 and uses a looser tolerance calibrated only for its deterministic fixture."
+    },
+    "vulkan-extension": {
+      "name": "Vulkan extension",
+      "definition": "A named set of capabilities that augments a Vulkan implementation beyond core requirements.",
+      "explanation": "At the lower API layer, half arithmetic and half storage are distinct capabilities. `VK_KHR_shader_float16_int8` exposes shaderFloat16 arithmetic, while `VK_KHR_16bit_storage` controls where 16-bit values may be stored. Cooperative matrix extensions add subgroup operations with supported shapes and element types. wgpu normally translates these details into portable features such as `SHADER_F16`; querying before use keeps the program correct across adapters and avoids unsupported shader creation."
+    }
+  },
+  "sources": [
+    {"title": "wgpu 29 timestamp query example", "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/features/src/timestamp_queries/mod.rs", "note": "First-party timestamp creation, resolve, and period conversion."},
+    {"title": "wgpu 29 feature definitions", "url": "https://github.com/gfx-rs/wgpu/blob/v29/wgpu-types/src/features.rs", "note": "First-party TIMESTAMP_QUERY and SHADER_F16 capability definitions."},
+    {"title": "VK_KHR_shader_float16_int8", "url": "https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_shader_float16_int8.html", "note": "Khronos extension for 16-bit arithmetic."},
+    {"title": "VK_KHR_16bit_storage", "url": "https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_16bit_storage.html", "note": "Khronos extension for 16-bit storage."},
+    {"title": "VK_KHR_cooperative_matrix", "url": "https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_cooperative_matrix.html", "note": "Khronos cooperative matrix extension."}
+  ],
+  "checks": [
+    "Separate and fused f32 outputs match the scalar oracle for an odd invocation count",
+    "The default run uses warmups and reports repeated wall-clock median and range",
+    "GPU timestamps are reported only when TIMESTAMP_QUERY is supported",
+    "The f16 shader is created only when SHADER_F16 is supported",
+    "Inputs outside the safe teaching range use the f32 fallback"
+  ],
+  "limitations": [
+    "The timing experiment is a microbenchmark of one elementwise chain, not an application benchmark",
+    "Pass timestamp sums omit time between passes and differ from the wall-clock boundary",
+    "The f16 path demonstrates arithmetic conversion but retains f32 storage",
+    "Measured results depend on adapter, driver, clocks, background work, build mode, and workload size"
+  ]
+}

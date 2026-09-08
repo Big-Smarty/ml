@@ -1,0 +1,56 @@
+{
+  "outcomes": [
+    "Compute signed margins and hinge loss for labels encoded as -1 and +1",
+    "Train and evaluate a two-feature linear soft-margin SVM",
+    "Explain how an RBF kernel turns distances into nonlinear influence",
+    "Diagnose label-encoding and kernel-inference bugs"
+  ],
+  "lessons": [
+    "From a correct boundary to a confident boundary",
+    "Hinge loss spends effort near the margin",
+    "Turn the objective into Rust updates",
+    "Curve the boundary with similarity",
+    "Run, inspect, and practice",
+    "Review and transfer"
+  ],
+  "terms": {
+    "margin": {
+      "name": "margin",
+      "definition": "The signed confidence y f(x) of a binary classifier on one labeled example.",
+      "explanation": "With labels encoded as -1 and +1, a positive margin means the score has the correct sign and a negative margin means a mistake. The raw functional margin changes if the whole score is rescaled. Dividing the absolute score by the weight norm gives the geometric distance to the decision plane. Support-vector machines use a fixed score convention and weight penalty to prefer a wider corridor between classes."
+    },
+    "hinge-loss": {
+      "name": "hinge loss",
+      "definition": "The piecewise loss max(0, 1 - y f(x)) used by soft-margin linear SVMs.",
+      "explanation": "Hinge loss is zero for a point whose signed margin is at least one. It remains positive for a correctly classified point inside the desired margin and grows linearly for misclassified points. This concentrates updates on boundary points and violations. The loss is not differentiable exactly at margin one, so optimization uses a valid subgradient rather than an ordinary derivative at that point."
+    },
+    "support-vector-machine": {
+      "name": "support-vector machine",
+      "definition": "A classifier that balances margin violations against a penalty favoring a wide separating boundary.",
+      "explanation": "A linear soft-margin SVM minimizes hinge loss plus a squared weight penalty. In its dual formulation, the score depends on selected training examples called support vectors. The reference project trains the linear primal objective directly, so it stores one weight vector. Its separate nonlinear example uses a kernel perceptron to teach kernel similarity and should not be mistaken for a maximum-margin kernel SVM solver."
+    },
+    "kernel": {
+      "name": "kernel",
+      "definition": "A function that computes an inner-product-like similarity without explicitly constructing transformed features.",
+      "explanation": "A valid kernel produces a symmetric positive-semidefinite Gram matrix. Replacing ordinary dot products with kernels lets a linear method in an implicit feature space produce a nonlinear boundary in the original inputs. The RBF kernel decreases exponentially with squared distance. Kernel prediction usually compares a query with retained training points, so runtime grows with the number of support points. Its width parameter must be selected on held-out development data."
+    }
+  },
+  "sources": [
+    {"title": "Support-Vector Networks", "url": "https://doi.org/10.1007/BF00994018", "note": "Original soft-margin support-vector network paper."},
+    {"title": "A Training Algorithm for Optimal Margin Classifiers", "url": "https://doi.org/10.1145/130385.130401", "note": "Original kernelized optimal-margin formulation."},
+    {"title": "Sequential Minimal Optimization", "url": "https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/", "note": "Primary source for a full dual optimizer beyond this project."},
+    {"title": "Stanford Statistics 202: Support Vector Machines", "url": "https://web.stanford.edu/class/stats202/slides/Support-vector-machines.html", "note": "University teaching source for margin, hinge loss, and kernels."}
+  ],
+  "checks": [
+    "The zero model has average hinge objective 1 on the linear fixture",
+    "The trained linear SVM classifies all eight linearly separated fixture points",
+    "The linear model reaches at most 75% on XOR while the RBF classifier reaches 100%",
+    "Empty data and invalid gamma are rejected"
+  ],
+  "limitations": [
+    "The nonlinear model is a kernel perceptron, not a maximum-margin kernel SVM",
+    "Training uses a fixed order and learning rate rather than a production optimizer",
+    "Kernel prediction and storage scale with retained training points",
+    "Synthetic training accuracy does not estimate real-world generalization"
+  ]
+}

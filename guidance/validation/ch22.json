@@ -1,0 +1,82 @@
+{
+  "chapter": "22",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch22/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.026,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch22/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.036,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch22/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.03,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch22/target/debug/deps/ch22-242c1086d7b0fd35)\n\nrunning 7 tests\ntest tests::autoencoder_encoder_gradient_matches_central_difference ... ok\ntest tests::analytic_infonce_gradient_matches_central_difference ... ok\ntest tests::contrastive_settings_reject_nonfinite_values ... ok\ntest tests::bottleneck_has_requested_shape ... ok\ntest tests::rejects_nonfinite_rows_and_temperature_overflow ... ok\ntest tests::contrastive_training_reduces_stable_infonce ... ok\ntest tests::autoencoder_training_reduces_reconstruction_error ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch22/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch22/target/release/ch22`\nautoencoder reconstruction MSE 0.38879 -> 0.00252; first code [-0.635, 0.478]\ncontrastive InfoNCE 1.22625 -> 0.79667; paired retrieval 16.7% -> 50.0%\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch22/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.024,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch22/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.035,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch22/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.025,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch22/starter/target/debug/ch22-starter`\nprevious checkpoint centered image: [-1.0, 0.0, 1.0]\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch22/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.015,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch22/starter/target/debug/deps/ch22_starter-851ff50d5eda1c55)\n\nrunning 1 test\ntest tests::bottleneck_is_a_matrix_vector_product ... FAILED\n\nfailures:\n\n---- tests::bottleneck_is_a_matrix_vector_product stdout ----\n\nthread 'tests::bottleneck_is_a_matrix_vector_product' (1703) panicked at src/main.rs:7:5:\nnot yet implemented: matrix-vector product\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::bottleneck_is_a_matrix_vector_product\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch22-starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch22_01.rs -o /tmp/ml-check-n9uhu5x3/solutionch22_01",
+      "returncode": 0,
+      "seconds": 0.041,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-n9uhu5x3/solutionch22_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest averages_over_coordinates ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch22_01.rs -o /tmp/ml-check-n9uhu5x3/exercisech22_01",
+      "returncode": 0,
+      "seconds": 0.038,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-n9uhu5x3/exercisech22_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest averages_over_coordinates ... FAILED\n\nfailures:\n\n---- averages_over_coordinates stdout ----\n\nthread 'averages_over_coordinates' (1775) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch22_01.rs:3:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    averages_over_coordinates\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

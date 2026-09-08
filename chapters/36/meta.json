@@ -1,0 +1,78 @@
+{
+  "outcomes": [
+    "Assemble a pre-normalized causal decoder with residual and feed-forward paths",
+    "Derive tensor-level backward operations through every component",
+    "Inventory and train every parameter family",
+    "Validate causality, normalization, gradients, loss reduction, and optional GPU GEMMs"
+  ],
+  "lessons": [
+    "Assemble a pre-normalized decoder block",
+    "Normalize features within each token",
+    "Store all trainable state in one checked buffer",
+    "Backpropagate tensors in reverse order",
+    "Verify CPU and optional GPU execution",
+    "Practice and debug",
+    "Review and transfer"
+  ],
+  "terms": {
+    "decoder-transformer": {
+      "name": "decoder Transformer",
+      "definition": "A stack of causal self-attention and position-wise feed-forward blocks used for autoregressive prediction.",
+      "explanation": "A decoder maps token and position embeddings through repeated residual blocks, then projects final hidden states to next-token logits. In the chapter's pre-normalized form, each attention or feed-forward branch receives layer-normalized input and its output adds to an identity path. Causal masking prevents future-token access. Training must propagate cross-entropy gradients through the output head, final normalization, every reversed block, and both embedding tables. A complete decoder is an architecture; language quality still depends on data, optimization, scale, and evaluation."
+    },
+    "residual-path": {
+      "name": "residual path",
+      "definition": "An identity connection that adds a block input to a learned update of the same shape.",
+      "explanation": "For y=x+f(x), forward preserves x while adding a learned change. Backward sends the upstream gradient directly to x and also through f, then sums both contributions. Residual paths help information and gradients traverse deep stacks, but they require matching shapes. In a decoder block, attention and feed-forward branches each have their own residual addition. Forgetting the direct gradient can leave earlier parameters with weak or zero updates even when the output head learns."
+    },
+    "layer-normalization": {
+      "name": "layer normalization",
+      "definition": "Per-token feature normalization followed by learned gain and bias.",
+      "explanation": "Layer normalization computes mean and variance across a hidden row's features, independently for each token. It centers and scales the row, then applies trainable vectors \u03b3 and \u03b2. Unlike batch normalization, it uses the same type of statistics during training and inference and does not mix examples. Backward must include the dependence of mean and variance on every feature. The chapter uses pre-normalization, so normalized values enter each learned branch while the residual identity remains unnormalized."
+    },
+    "gelu": {
+      "name": "Gaussian error linear unit",
+      "definition": "A smooth activation that gates a scalar according to its magnitude.",
+      "explanation": "GELU multiplies an input by a smooth approximation to the probability that a related Gaussian variable falls below it. Transformer feed-forward blocks commonly use it between their expansion and contraction projections. This chapter implements the tanh approximation and differentiates that exact formula during backward. Matching the derivative to the forward approximation matters for gradient checks. Unlike ReLU, negative inputs can retain small nonzero outputs and gradients rather than being cut off abruptly."
+    }
+  },
+  "sources": [
+    {
+      "title": "Attention Is All You Need",
+      "url": "https://arxiv.org/abs/1706.03762",
+      "note": "Original Transformer architecture."
+    },
+    {
+      "title": "Language Models are Unsupervised Multitask Learners",
+      "url": "https://cdn.openai.com/better-language-models/language-models.pdf",
+      "note": "Primary GPT-2 pre-normalized decoder description."
+    },
+    {
+      "title": "Layer Normalization",
+      "url": "https://arxiv.org/abs/1607.06450",
+      "note": "Original normalization paper."
+    },
+    {
+      "title": "On Layer Normalization in the Transformer Architecture",
+      "url": "https://arxiv.org/abs/2002.04745",
+      "note": "Analysis of pre- and post-normalized training."
+    },
+    {
+      "title": "Gaussian Error Linear Units (GELUs)",
+      "url": "https://arxiv.org/abs/1606.08415",
+      "note": "Original GELU definition and tanh approximation differentiated by the reference."
+    }
+  ],
+  "checks": [
+    "Exact large configuration count equals 14,442,496",
+    "Causal prefix logits ignore future token changes",
+    "Attention, normalization, feed-forward, embedding, and output gradients pass representative f32 finite differences",
+    "Representative identifiable parameter families change while loss falls",
+    "Optional GPU feature routes forward and backward GEMMs through chapter 30"
+  ],
+  "limitations": [
+    "GPU bridge transfers around every GEMM",
+    "Attention and activation caches scale poorly with long contexts",
+    "Raw mutable parameter access is an expert boundary"
+  ]
+}

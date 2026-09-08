@@ -1,0 +1,13 @@
+{
+  "command": [
+    "cargo",
+    "run",
+    "--release",
+    "--offline",
+    "--manifest-path",
+    "projects/ch32/Cargo.toml"
+  ],
+  "returncode": 0,
+  "seconds": 0.42791247367858887,
+  "output": "   Compiling ch32 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch32)\n    Finished `release` profile [optimized] target(s) in 0.38s\n     Running `projects/ch30/target/release/ch32`\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\noptional features: timestamp_query=true, shader_f16=true\nseparate f32 passes: wall median=235.504\u00b5s, range=229.015\u00b5s..251.235\u00b5s\nseparate f32 passes: summed pass timestamps median=6480 ns, range=6360..7120 ns\nfused f32 pass: wall median=216.085\u00b5s, range=208.076\u00b5s..246.884\u00b5s\nfused f32 pass: summed pass timestamps median=3520 ns, range=3480..4120 ns\nmixed precision pass: wall median=199.015\u00b5s, range=196.566\u00b5s..203.945\u00b5s\nmixed precision pass: summed pass timestamps median=3640 ns, range=3600..4240 ns\nmixed path: f16 arithmetic supported, in range, and selected\n"
+}

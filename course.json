@@ -1,0 +1,960 @@
+[
+  {
+    "id": "01",
+    "number": 1,
+    "title": "One neuron learns from data",
+    "part": "First principles",
+    "topics": [
+      "Prediction",
+      "weights and bias",
+      "squared loss",
+      "numerical slopes",
+      "training and inference"
+    ],
+    "project": "Fit a line with one neuron",
+    "dataset": "Course-authored line samples",
+    "prerequisites": []
+  },
+  {
+    "id": "02",
+    "number": 2,
+    "title": "Why learning works",
+    "part": "First principles",
+    "topics": [
+      "Derivatives",
+      "gradients",
+      "analytical updates",
+      "finite-difference checks"
+    ],
+    "project": "Check an analytical gradient",
+    "dataset": "Course-authored line samples",
+    "prerequisites": [
+      "01"
+    ]
+  },
+  {
+    "id": "03",
+    "number": 3,
+    "title": "Multiple inputs",
+    "part": "First principles",
+    "topics": [
+      "Vectors",
+      "dot products",
+      "linear regression",
+      "feature scaling"
+    ],
+    "project": "Predict from several measurements",
+    "dataset": "Synthetic multifeature regression",
+    "prerequisites": [
+      "02"
+    ]
+  },
+  {
+    "id": "04",
+    "number": 4,
+    "title": "Classification",
+    "part": "First principles",
+    "topics": [
+      "Probability",
+      "sigmoid",
+      "likelihood",
+      "stable binary cross-entropy"
+    ],
+    "project": "Train a binary classifier",
+    "dataset": "Course-authored two-class points",
+    "prerequisites": [
+      "03"
+    ]
+  },
+  {
+    "id": "05",
+    "number": 5,
+    "title": "Measuring learning",
+    "part": "First principles",
+    "topics": [
+      "Splits",
+      "leakage",
+      "metrics",
+      "thresholds",
+      "baselines"
+    ],
+    "project": "Audit a classifier evaluation",
+    "dataset": "Synthetic imbalanced classification",
+    "prerequisites": [
+      "04"
+    ]
+  },
+  {
+    "id": "06",
+    "number": 6,
+    "title": "Reliable optimization",
+    "part": "First principles",
+    "topics": [
+      "Learning rates",
+      "minibatches",
+      "regularization",
+      "generalization"
+    ],
+    "project": "Compare learning curves",
+    "dataset": "Synthetic noisy regression",
+    "prerequisites": [
+      "05"
+    ]
+  },
+  {
+    "id": "07",
+    "number": 7,
+    "title": "From a neuron to XOR",
+    "part": "Build a neural network",
+    "topics": [
+      "Nonlinearities",
+      "hidden layers",
+      "manual backpropagation"
+    ],
+    "project": "Solve XOR with a small MLP",
+    "dataset": "XOR truth table",
+    "prerequisites": [
+      "06"
+    ]
+  },
+  {
+    "id": "08",
+    "number": 8,
+    "title": "Automatic differentiation",
+    "part": "Build a neural network",
+    "topics": [
+      "Computation graphs",
+      "reverse mode",
+      "accumulated gradients"
+    ],
+    "project": "Build scalar autodiff",
+    "dataset": "Synthetic computation graphs",
+    "prerequisites": [
+      "07"
+    ]
+  },
+  {
+    "id": "09",
+    "number": 9,
+    "title": "Tensors and batches",
+    "part": "Build a neural network",
+    "topics": [
+      "Shapes",
+      "contiguous storage",
+      "matrix operations",
+      "batched gradients"
+    ],
+    "project": "Build a batched dense layer",
+    "dataset": "Hand-computed matrices",
+    "prerequisites": [
+      "08"
+    ]
+  },
+  {
+    "id": "10",
+    "number": 10,
+    "title": "Recognizing digits with a linear model",
+    "part": "Build a neural network",
+    "topics": [
+      "IDX format",
+      "MNIST",
+      "softmax",
+      "multiclass evaluation"
+    ],
+    "project": "Train a digit classifier",
+    "dataset": "MNIST plus generated IDX fixture",
+    "prerequisites": [
+      "09"
+    ]
+  },
+  {
+    "id": "11",
+    "number": 11,
+    "title": "An MNIST neural network",
+    "part": "Build a neural network",
+    "topics": [
+      "Initialization",
+      "momentum",
+      "Adam",
+      "debugging",
+      "checkpoints"
+    ],
+    "project": "Train and restore a digit MLP",
+    "dataset": "MNIST plus tiny generated fixture",
+    "prerequisites": [
+      "10"
+    ]
+  },
+  {
+    "id": "12",
+    "number": 12,
+    "title": "Statistics and uncertainty",
+    "part": "Beyond neural networks",
+    "topics": [
+      "Sampling",
+      "confidence intervals",
+      "bootstrap",
+      "calibration"
+    ],
+    "project": "Measure uncertainty in evaluation",
+    "dataset": "Synthetic predictions",
+    "prerequisites": [
+      "11"
+    ]
+  },
+  {
+    "id": "13",
+    "number": 13,
+    "title": "Real tabular data",
+    "part": "Beyond neural networks",
+    "topics": [
+      "Missing values",
+      "categories",
+      "grouped splits",
+      "temporal splits"
+    ],
+    "project": "Build a leakage-safe preprocessor",
+    "dataset": "Tiny local tabular fixture; UCI Auto MPG extension",
+    "prerequisites": [
+      "12"
+    ]
+  },
+  {
+    "id": "14",
+    "number": 14,
+    "title": "Nearest neighbors and naive Bayes",
+    "part": "Beyond neural networks",
+    "topics": [
+      "Distance",
+      "scaling",
+      "nearest neighbors",
+      "Gaussian naive Bayes"
+    ],
+    "project": "Compare two classifiers",
+    "dataset": "Local three-class fixture; UCI Iris extension",
+    "prerequisites": [
+      "13"
+    ]
+  },
+  {
+    "id": "15",
+    "number": 15,
+    "title": "Trees, forests, and boosting",
+    "part": "Beyond neural networks",
+    "topics": [
+      "Decision trees",
+      "bagging",
+      "random forests",
+      "gradient boosting"
+    ],
+    "project": "Build a tabular ensemble",
+    "dataset": "Local tabular fixture",
+    "prerequisites": [
+      "14"
+    ]
+  },
+  {
+    "id": "16",
+    "number": 16,
+    "title": "Margins and kernels",
+    "part": "Beyond neural networks",
+    "topics": [
+      "Hinge loss",
+      "linear SVM",
+      "kernel similarity"
+    ],
+    "project": "Classify linear and curved boundaries",
+    "dataset": "Synthetic points",
+    "prerequisites": [
+      "15"
+    ]
+  },
+  {
+    "id": "17",
+    "number": 17,
+    "title": "PCA and numerical linear algebra",
+    "part": "Beyond neural networks",
+    "topics": [
+      "Covariance",
+      "eigenvectors",
+      "power iteration",
+      "projections",
+      "conditioning"
+    ],
+    "project": "Compress correlated measurements",
+    "dataset": "Synthetic correlated data; UCI Wine extension",
+    "prerequisites": [
+      "16"
+    ]
+  },
+  {
+    "id": "18",
+    "number": 18,
+    "title": "Clustering and density",
+    "part": "Beyond neural networks",
+    "topics": [
+      "K-means",
+      "Gaussian mixtures",
+      "EM",
+      "anomaly scores"
+    ],
+    "project": "Discover synthetic clusters",
+    "dataset": "Synthetic Gaussian clusters",
+    "prerequisites": [
+      "17"
+    ]
+  },
+  {
+    "id": "19",
+    "number": 19,
+    "title": "Tabular ML capstone",
+    "part": "Beyond neural networks",
+    "topics": [
+      "Cross-validation",
+      "hyperparameter search",
+      "fair baselines",
+      "error analysis"
+    ],
+    "project": "Run a reproducible model comparison",
+    "dataset": "Bundled tabular fixture; UCI extension",
+    "prerequisites": [
+      "18"
+    ]
+  },
+  {
+    "id": "20",
+    "number": 20,
+    "title": "Convolutional networks",
+    "part": "Broader deep learning",
+    "topics": [
+      "Convolution",
+      "padding and stride",
+      "pooling",
+      "gradients"
+    ],
+    "project": "Build a small convolutional digit model",
+    "dataset": "Tiny images; MNIST extension",
+    "prerequisites": [
+      "19"
+    ]
+  },
+  {
+    "id": "21",
+    "number": 21,
+    "title": "Deeper vision models",
+    "part": "Broader deep learning",
+    "topics": [
+      "Residual connections",
+      "normalization",
+      "augmentation"
+    ],
+    "project": "Train a residual image block",
+    "dataset": "Course-authored images",
+    "prerequisites": [
+      "20"
+    ]
+  },
+  {
+    "id": "22",
+    "number": 22,
+    "title": "Learning representations",
+    "part": "Broader deep learning",
+    "topics": [
+      "Autoencoders",
+      "bottlenecks",
+      "contrastive learning"
+    ],
+    "project": "Learn a useful small representation",
+    "dataset": "Course-authored paired vectors",
+    "prerequisites": [
+      "21"
+    ]
+  },
+  {
+    "id": "23",
+    "number": 23,
+    "title": "Sequences and forecasting",
+    "part": "Broader deep learning",
+    "topics": [
+      "RNNs",
+      "BPTT",
+      "LSTMs",
+      "temporal evaluation"
+    ],
+    "project": "Forecast a held-out signal",
+    "dataset": "Course-authored time series",
+    "prerequisites": [
+      "22"
+    ]
+  },
+  {
+    "id": "24",
+    "number": 24,
+    "title": "Recommendation systems",
+    "part": "Broader deep learning",
+    "topics": [
+      "Embeddings",
+      "matrix factorization",
+      "ranking metrics"
+    ],
+    "project": "Recommend held-out items",
+    "dataset": "Course-authored interaction matrix",
+    "prerequisites": [
+      "23"
+    ]
+  },
+  {
+    "id": "25",
+    "number": 25,
+    "title": "Measure before optimizing",
+    "part": "Make the CPU faster",
+    "topics": [
+      "Floating point",
+      "profiling",
+      "memory costs",
+      "arithmetic intensity"
+    ],
+    "project": "Write an honest CPU benchmark",
+    "dataset": "Deterministic matrices",
+    "prerequisites": [
+      "24"
+    ]
+  },
+  {
+    "id": "26",
+    "number": 26,
+    "title": "Fast matrix multiplication",
+    "part": "Make the CPU faster",
+    "topics": [
+      "Loop ordering",
+      "cache locality",
+      "blocking",
+      "allocation reuse"
+    ],
+    "project": "Optimize a matrix kernel",
+    "dataset": "Deterministic rectangular matrices",
+    "prerequisites": [
+      "25"
+    ]
+  },
+  {
+    "id": "27",
+    "number": 27,
+    "title": "Multithreaded training and inference",
+    "part": "Make the CPU faster",
+    "topics": [
+      "Partitioning",
+      "scoped threads",
+      "gradient reduction",
+      "reproducibility"
+    ],
+    "project": "Parallelize dense computation",
+    "dataset": "Deterministic batches",
+    "prerequisites": [
+      "26"
+    ]
+  },
+  {
+    "id": "28",
+    "number": 28,
+    "title": "SIMD",
+    "part": "Make the CPU faster",
+    "topics": [
+      "Auto-vectorization",
+      "AVX2 and FMA",
+      "feature detection",
+      "tails",
+      "AVX-512 extension"
+    ],
+    "project": "Dispatch a portable vector kernel",
+    "dataset": "Odd-length deterministic vectors",
+    "prerequisites": [
+      "27"
+    ]
+  },
+  {
+    "id": "29",
+    "number": 29,
+    "title": "GPU fundamentals",
+    "part": "Write GPU kernels",
+    "topics": [
+      "Adapter discovery",
+      "wgpu",
+      "WGSL",
+      "buffers",
+      "dispatch",
+      "readback"
+    ],
+    "project": "Run a checked GPU vector addition",
+    "dataset": "Deterministic vectors",
+    "prerequisites": [
+      "28"
+    ]
+  },
+  {
+    "id": "30",
+    "number": 30,
+    "title": "Reductions and tiled matrix multiplication",
+    "part": "Write GPU kernels",
+    "topics": [
+      "Workgroups",
+      "shared memory",
+      "barriers",
+      "edge dimensions"
+    ],
+    "project": "Build GPU reduction and GEMM",
+    "dataset": "Deterministic rectangular matrices",
+    "prerequisites": [
+      "29"
+    ]
+  },
+  {
+    "id": "31",
+    "number": 31,
+    "title": "Train on the GPU",
+    "part": "Write GPU kernels",
+    "topics": [
+      "Forward and backward kernels",
+      "updates",
+      "residency"
+    ],
+    "project": "Train a GPU neural network",
+    "dataset": "Synthetic nonlinear points",
+    "prerequisites": [
+      "30"
+    ]
+  },
+  {
+    "id": "32",
+    "number": 32,
+    "title": "GPU performance",
+    "part": "Write GPU kernels",
+    "topics": [
+      "Asynchronous execution",
+      "timing",
+      "fusion",
+      "mixed precision",
+      "Vulkan extension"
+    ],
+    "project": "Measure and improve GPU kernels",
+    "dataset": "Deterministic GPU workloads",
+    "prerequisites": [
+      "31"
+    ]
+  },
+  {
+    "id": "33",
+    "number": 33,
+    "title": "Language modeling",
+    "part": "Train your language model",
+    "topics": [
+      "Byte models",
+      "n-grams",
+      "embeddings",
+      "next-token loss"
+    ],
+    "project": "Train a tiny text predictor",
+    "dataset": "Course-authored text",
+    "prerequisites": [
+      "32"
+    ]
+  },
+  {
+    "id": "34",
+    "number": 34,
+    "title": "Tokenization",
+    "part": "Train your language model",
+    "topics": [
+      "UTF-8",
+      "byte tokens",
+      "BPE training",
+      "serialization"
+    ],
+    "project": "Build and test a BPE tokenizer",
+    "dataset": "Course-authored multilingual text",
+    "prerequisites": [
+      "33"
+    ]
+  },
+  {
+    "id": "35",
+    "number": 35,
+    "title": "Attention",
+    "part": "Train your language model",
+    "topics": [
+      "Queries",
+      "keys",
+      "values",
+      "causal masking",
+      "gradients"
+    ],
+    "project": "Implement causal self-attention",
+    "dataset": "Hand-computed sequence tensors",
+    "prerequisites": [
+      "34"
+    ]
+  },
+  {
+    "id": "36",
+    "number": 36,
+    "title": "A decoder Transformer",
+    "part": "Train your language model",
+    "topics": [
+      "Residual paths",
+      "normalization",
+      "positions",
+      "feed-forward blocks"
+    ],
+    "project": "Build a trainable decoder",
+    "dataset": "Course-authored text",
+    "prerequisites": [
+      "35"
+    ]
+  },
+  {
+    "id": "37",
+    "number": 37,
+    "title": "Language-model data",
+    "part": "Train your language model",
+    "topics": [
+      "Provenance",
+      "cleaning",
+      "deduplication",
+      "document splits",
+      "contamination"
+    ],
+    "project": "Prepare an auditable text corpus",
+    "dataset": "Course-authored documents; licensed corpus extension",
+    "prerequisites": [
+      "36"
+    ]
+  },
+  {
+    "id": "38",
+    "number": 38,
+    "title": "Training at a larger scale",
+    "part": "Train your language model",
+    "topics": [
+      "AdamW",
+      "schedules",
+      "accumulation",
+      "memory",
+      "resumable training"
+    ],
+    "project": "Resume a reproducible LM run",
+    "dataset": "Course-authored text",
+    "prerequisites": [
+      "37"
+    ]
+  },
+  {
+    "id": "39",
+    "number": 39,
+    "title": "Scratch-trained language-model capstone",
+    "part": "Train your language model",
+    "topics": [
+      "Training",
+      "validation",
+      "checkpoints",
+      "generation",
+      "resource budgeting"
+    ],
+    "project": "Train your own dense language model",
+    "dataset": "Tiny local corpus; user-supplied licensed corpus",
+    "prerequisites": [
+      "38"
+    ]
+  },
+  {
+    "id": "40",
+    "number": 40,
+    "title": "Inference systems",
+    "part": "Efficient and adapted LLMs",
+    "topics": [
+      "KV cache",
+      "sampling",
+      "batching",
+      "streaming"
+    ],
+    "project": "Build a cached text generator",
+    "dataset": "Chapter 39 model and fixture",
+    "prerequisites": [
+      "39"
+    ]
+  },
+  {
+    "id": "41",
+    "number": 41,
+    "title": "Quantization",
+    "part": "Efficient and adapted LLMs",
+    "topics": [
+      "Int8",
+      "int4",
+      "dequantization",
+      "quality and speed"
+    ],
+    "project": "Quantize and evaluate a linear layer",
+    "dataset": "Deterministic weights and activations",
+    "prerequisites": [
+      "40"
+    ]
+  },
+  {
+    "id": "42",
+    "number": 42,
+    "title": "Efficient attention",
+    "part": "Efficient and adapted LLMs",
+    "topics": [
+      "Online softmax",
+      "tiled attention",
+      "grouped-query attention",
+      "context costs"
+    ],
+    "project": "Compare attention algorithms",
+    "dataset": "Deterministic attention tensors",
+    "prerequisites": [
+      "41"
+    ]
+  },
+  {
+    "id": "43",
+    "number": 43,
+    "title": "Adaptation",
+    "part": "Efficient and adapted LLMs",
+    "topics": [
+      "Supervised fine-tuning",
+      "LoRA",
+      "distillation"
+    ],
+    "project": "Adapt a small model",
+    "dataset": "Course-authored instruction pairs",
+    "prerequisites": [
+      "42"
+    ]
+  },
+  {
+    "id": "44",
+    "number": 44,
+    "title": "Retrieval and RAG",
+    "part": "Efficient and adapted LLMs",
+    "topics": [
+      "Retrieval baselines",
+      "embeddings",
+      "indexing",
+      "grounded evaluation"
+    ],
+    "project": "Answer from a local document collection",
+    "dataset": "Course-authored fact corpus",
+    "prerequisites": [
+      "43"
+    ]
+  },
+  {
+    "id": "45",
+    "number": 45,
+    "title": "Reinforcement learning foundations",
+    "part": "Efficient and adapted LLMs",
+    "topics": [
+      "Bandits",
+      "tabular control",
+      "policy gradients"
+    ],
+    "project": "Learn a policy in a tiny environment",
+    "dataset": "Course-authored bandit and gridworld",
+    "prerequisites": [
+      "44"
+    ]
+  },
+  {
+    "id": "46",
+    "number": 46,
+    "title": "Preference and reward training",
+    "part": "Efficient and adapted LLMs",
+    "topics": [
+      "DPO",
+      "reference policy",
+      "preference pairs",
+      "verifiable reward"
+    ],
+    "project": "Improve a toy policy from feedback",
+    "dataset": "Course-authored preference pairs",
+    "prerequisites": [
+      "45"
+    ]
+  },
+  {
+    "id": "47",
+    "number": 47,
+    "title": "Sparsity and pruning",
+    "part": "Advanced architectures & engineering",
+    "topics": [
+      "Sparse representations",
+      "pruning",
+      "sparse kernels",
+      "measured savings"
+    ],
+    "project": "Prune and execute a sparse model",
+    "dataset": "Deterministic matrices",
+    "prerequisites": [
+      "46"
+    ]
+  },
+  {
+    "id": "48",
+    "number": 48,
+    "title": "Mixture of experts",
+    "part": "Advanced architectures & engineering",
+    "topics": [
+      "Routing",
+      "expert capacity",
+      "load balancing",
+      "conditional compute"
+    ],
+    "project": "Train a small expert layer",
+    "dataset": "Synthetic routed examples",
+    "prerequisites": [
+      "47"
+    ]
+  },
+  {
+    "id": "49",
+    "number": 49,
+    "title": "State-space models and linear attention",
+    "part": "Advanced architectures & engineering",
+    "topics": [
+      "Recurrence",
+      "scans",
+      "selective state",
+      "linear attention"
+    ],
+    "project": "Compare sequence computation methods",
+    "dataset": "Synthetic sequences",
+    "prerequisites": [
+      "48"
+    ]
+  },
+  {
+    "id": "50",
+    "number": 50,
+    "title": "Distributed training",
+    "part": "Advanced architectures & engineering",
+    "topics": [
+      "Data parallelism",
+      "tensor parallelism",
+      "pipeline stages",
+      "recovery"
+    ],
+    "project": "Reproduce a multi-worker training step",
+    "dataset": "Deterministic local worker batches",
+    "prerequisites": [
+      "49"
+    ]
+  },
+  {
+    "id": "51",
+    "number": 51,
+    "title": "Generative modeling beyond text",
+    "part": "Advanced architectures & engineering",
+    "topics": [
+      "VAE",
+      "GAN",
+      "diffusion",
+      "sampling",
+      "objectives"
+    ],
+    "project": "Generate a small synthetic distribution",
+    "dataset": "Course-authored distributions",
+    "prerequisites": [
+      "50"
+    ]
+  },
+  {
+    "id": "52",
+    "number": 52,
+    "title": "Multimodal models",
+    "part": "Advanced architectures & engineering",
+    "topics": [
+      "Image and text encoders",
+      "contrastive alignment",
+      "retrieval"
+    ],
+    "project": "Match small images and captions",
+    "dataset": "Course-authored image-caption pairs",
+    "prerequisites": [
+      "51"
+    ]
+  },
+  {
+    "id": "53",
+    "number": 53,
+    "title": "Production ML",
+    "part": "Advanced architectures & engineering",
+    "topics": [
+      "Pipelines",
+      "serving",
+      "monitoring",
+      "drift",
+      "versioning",
+      "rollback"
+    ],
+    "project": "Package and monitor an inference service",
+    "dataset": "Versioned local model and requests",
+    "prerequisites": [
+      "52"
+    ]
+  },
+  {
+    "id": "54",
+    "number": 54,
+    "title": "Responsible evaluation",
+    "part": "Advanced architectures & engineering",
+    "topics": [
+      "Interpretability",
+      "robustness",
+      "privacy",
+      "security",
+      "fairness",
+      "causal limits"
+    ],
+    "project": "Audit a model and its evidence",
+    "dataset": "Course-authored grouped evaluation data",
+    "prerequisites": [
+      "53"
+    ]
+  },
+  {
+    "id": "55",
+    "number": 55,
+    "title": "Working with established tools",
+    "part": "Advanced architectures & engineering",
+    "topics": [
+      "Framework concepts",
+      "runtime interchange",
+      "parity checks",
+      "optional integration"
+    ],
+    "project": "Export and verify a simple model",
+    "dataset": "Course-authored model fixture",
+    "prerequisites": [
+      "54"
+    ]
+  },
+  {
+    "id": "56",
+    "number": 56,
+    "title": "Advanced capstone",
+    "part": "Advanced architectures & engineering",
+    "topics": [
+      "Sparse MoE language model",
+      "dense baseline",
+      "training",
+      "serving",
+      "evaluation"
+    ],
+    "project": "Train and serve a small MoE LM",
+    "dataset": "Course-authored text; licensed corpus extension",
+    "prerequisites": [
+      "55"
+    ]
+  }
+]

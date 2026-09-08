@@ -1,0 +1,76 @@
+{
+  "chapter": "31",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch31/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.028,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch31/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.056,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch31/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.048,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running unittests src/main.rs (projects/ch31/target/debug/deps/ch31-15f452c1102623b1)\n\nrunning 4 tests\ntest tests::gpu_training_matches_cpu_and_lowers_loss ... ignored, requires a hardware Vulkan GPU\ntest tests::logit_loss_stays_finite_at_extremes ... ok\ntest tests::analytic_gradient_matches_central_difference ... ok\ntest tests::scalar_training_fits_nonlinear_xor ... ok\n\ntest result: ok. 3 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch31/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.024,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch31/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch31/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.065,
+      "output": "   Compiling ch31-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch31/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s\n     Running `projects/ch31/starter/target/debug/ch31-starter`\nCPU forward checkpoint: p=0.5987, target=1\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch31/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.016,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch31/starter/target/debug/deps/ch31_starter-1cd3b978fdf05a29)\n\nrunning 1 test\ntest tests::cross_entropy_sigmoid_delta_has_correct_sign ... FAILED\n\nfailures:\n\n---- tests::cross_entropy_sigmoid_delta_has_correct_sign stdout ----\n\nthread 'tests::cross_entropy_sigmoid_delta_has_correct_sign' (11957) panicked at src/main.rs:7:5:\nnot yet implemented: differentiate sigmoid cross-entropy\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::cross_entropy_sigmoid_delta_has_correct_sign\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch31-starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch31_01.rs -o /tmp/ml-check-87ld9blr/solutionch31_01",
+      "returncode": 0,
+      "seconds": 0.038,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-87ld9blr/solutionch31_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::sign_moves_wrong_prediction_toward_target ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch31_01.rs -o /tmp/ml-check-87ld9blr/exercisech31_01",
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-87ld9blr/exercisech31_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::sign_moves_wrong_prediction_toward_target ... FAILED\n\nfailures:\n\n---- tests::sign_moves_wrong_prediction_toward_target stdout ----\n\nthread 'tests::sign_moves_wrong_prediction_toward_target' (12029) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch31_01.rs:4:5:\nnot yet implemented: return the logit gradient\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::sign_moves_wrong_prediction_toward_target\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

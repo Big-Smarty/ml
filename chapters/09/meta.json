@@ -1,0 +1,16 @@
+{
+  "outcomes": ["Interpret contiguous row-major data using shapes", "Compute a batched dense forward pass", "Derive gradients for inputs, weights, and bias", "Reject incompatible shapes and check a weight gradient numerically"],
+  "lessons": ["Shapes and contiguous layout", "Dense-layer gradients", "Reference kernels", "Run the matrix checkpoint", "Shape practice", "Review and transfer"],
+  "terms": {
+    "tensor": {"name":"Tensor","definition":"An array of values with a data type and an ordered list of dimensions.","explanation":"A scalar has rank zero, a vector rank one, and a matrix rank two; higher-rank tensors add more axes. Shape tells software how flat storage maps to logical coordinates. This chapter stores rank-two f64 matrices in contiguous row-major order and gives activations shape [batch,features]. A tensor abstraction may also track strides, devices, and gradient metadata, but those capabilities are omitted until a concrete need appears."},
+    "row-major": {"name":"Row-major order","definition":"A contiguous layout in which all columns of one row precede the next row.","explanation":"For a matrix with C columns, coordinate (r,c) maps to flat offset r×C+c. This layout makes each example row contiguous when activations are [batch,features], supporting simple sequential traversal. A different layout can represent the same mathematical matrix, but indexing and performance change. Correct kernels must state their convention; a silent mismatch can produce plausible numbers while multiplying the wrong elements. Shape validation alone cannot detect a layout disagreement between producers and consumers."},
+    "vector-jacobian-product": {"name":"Vector-Jacobian product","definition":"A vector multiplied by a function’s Jacobian, computed without materializing the full Jacobian.","explanation":"A dense backward pass receives derivatives with respect to outputs and maps them to derivatives with respect to inputs and parameters. This is a vector-Jacobian product. Reverse-mode differentiation composes such products from the loss toward leaves. Avoiding the explicit Jacobian saves memory and work: the dense layer needs matrix-shaped gradient buffers and ordinary products, rather than a derivative entry for every output-input pair across the whole program."}
+  },
+  "sources": [
+    {"title":"MIT Matrix Calculus for Machine Learning","url":"https://live.ocw.mit.edu/courses/18-s096-matrix-calculus-for-machine-learning-and-beyond-january-iap-2023/mit18_s096iap23_lec_full.pdf","note":"Product differential"},
+    {"title":"NumPy matmul","url":"https://numpy.org/doc/stable/reference/generated/numpy.matmul.html","note":"Core and batch matrix dimensions"},
+    {"title":"JAX Jacobian-vector products","url":"https://docs.jax.dev/en/latest/jacobian-vector-products.html","note":"Reverse-mode vector-Jacobian products"}
+  ],
+  "checks": ["Forward fixture equals [-1.5,3.5,-1.5,12.5]", "dX, dW, and bias gradients match hand calculations", "A weight gradient matches central differences", "Invalid matrix and backward shapes return errors"],
+  "limitations": ["Only rank-two matrices and one dense operation are implemented", "The scalar kernel is not optimized", "Backward returns summed contributions according to the supplied upstream gradient"]
+}

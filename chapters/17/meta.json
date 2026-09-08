@@ -1,0 +1,68 @@
+{
+  "outcomes": [
+    "Center a two-feature dataset and compute sample covariance",
+    "Find a leading eigenvector with checked power iteration",
+    "Project and reconstruct rows with one principal component",
+    "Interpret explained variance, eigengaps, and covariance conditioning"
+  ],
+  "lessons": [
+    "Turn correlated columns into a matrix",
+    "Variance chooses an eigenvector",
+    "Find the direction by repeated multiplication",
+    "Conditioning tells you when answers wobble",
+    "Run the compressor and practice",
+    "Review and transfer"
+  ],
+  "terms": {
+    "pca": {
+      "name": "principal component analysis",
+      "definition": "A linear method that represents centered data along orthogonal directions of decreasing variance.",
+      "explanation": "PCA finds covariance eigenvectors and orders them by eigenvalue. Keeping the first k directions compresses each d-feature row into k scores, and multiplying those scores by the directions reconstructs an approximation. PCA is unsupervised: it preserves variation, which need not be the variation useful for prediction. Centering is required, and feature scaling changes the question the method answers. Discarded directions cannot be recovered from the compressed scores."
+    },
+    "covariance": {
+      "name": "covariance",
+      "definition": "A measure of how two centered features vary together across rows.",
+      "explanation": "The covariance matrix stores feature variances on its diagonal and pairwise covariances off the diagonal. This chapter uses sample covariance with denominator n-1. Positive covariance means two features tend to be above or below their means together; negative covariance means they tend to move oppositely. Covariance depends on units, so raw and standardized PCA can produce very different components. Its matrix is symmetric by construction."
+    },
+    "eigenvector": {
+      "name": "eigenvector",
+      "definition": "A nonzero direction that a matrix scales without rotating, satisfying Cq = lambda q.",
+      "explanation": "For a covariance matrix, an eigenvector is a direction through feature space and its eigenvalue is the sample variance along that direction. PCA keeps eigenvectors with the largest eigenvalues. The sign is arbitrary because q and -q span the same axis. When eigenvalues are nearly tied, individual eigenvectors may rotate under tiny perturbations even when their combined subspace remains useful."
+    },
+    "projection": {
+      "name": "projection",
+      "definition": "The dot-product score of a centered row along a unit component direction.",
+      "explanation": "For component q and stored mean mu, the score is q transpose times x minus mu. A one-component reconstruction adds the mean to q times that score. Forgetting to center forces the approximation through the origin and breaks translation invariance. Projection reduces dimension, but discarded orthogonal directions cannot be recovered from the retained score. Unit components make score magnitudes comparable to distances along their axes."
+    },
+    "power-iteration": {
+      "name": "power iteration",
+      "definition": "Repeated matrix multiplication and normalization used to estimate a dominant eigenvector.",
+      "explanation": "Each iteration multiplies a direction by the matrix, then divides by its Euclidean norm. When the largest eigenvalue magnitude is unique and the start overlaps its eigenvector, the dominant contribution grows relative to others. A start exactly orthogonal to that direction fails, so the two-dimensional reference tries two independent starts. Unit norm and a small eigenpair residual provide direct correctness checks."
+    },
+    "condition-number": {
+      "name": "condition number",
+      "definition": "For positive covariance, the ratio of largest to smallest eigenvalue.",
+      "explanation": "A large covariance condition number indicates a nearly flat direction. This can signal strong compressibility, but any later division by the small eigenvalue amplifies noise. Forming covariance as centered-data transpose times centered-data squares the original matrix condition number. Production PCA therefore often uses singular-value decomposition rather than explicitly forming covariance, especially for high-dimensional or ill-conditioned data. Infinite condition number indicates an exactly zero-variance direction."
+    }
+  },
+  "sources": [
+    {"title": "On Lines and Planes of Closest Fit", "url": "https://doi.org/10.1080/14786440109462720", "note": "Pearson's original geometric formulation."},
+    {"title": "Analysis of a Complex of Statistical Variables into Principal Components", "url": "https://doi.org/10.1037/h0071325", "note": "Hotelling's statistical formulation."},
+    {"title": "MIT OpenCourseWare Lecture 17: PCA", "url": "https://ocw.mit.edu/courses/9-40-introduction-to-neural-computation-spring-2018/resources/mit9_40s18_lec17/", "note": "University teaching source for covariance and PCA."},
+    {"title": "University of Illinois CS 357: Eigenvalues and Eigenvectors", "url": "https://courses.physics.illinois.edu/cs357/sp2020/notes/ref-12-eigen.html", "note": "University numerical linear algebra source for power iteration."},
+    {"title": "UCI Wine", "url": "https://archive.ics.uci.edu/dataset/109/wine", "note": "Optional extension dataset; UCI lists CC BY 4.0."}
+  ],
+  "checks": [
+    "Power iteration recovers eigenvalue 3 for the matrix [[2,1],[1,2]]",
+    "The returned component has unit norm and a small eigenpair residual",
+    "Translating all rows preserves eigenvalues, directions, and reconstruction error",
+    "Rank-one data reconstructs with negligible one-component error",
+    "Too few or nonfinite rows are rejected"
+  ],
+  "limitations": [
+    "The reference supports two features and one retained component",
+    "Two fixed independent starts are not a general eigensolver",
+    "Explicit covariance can lose accuracy on badly conditioned data",
+    "The Wine extension requires a user-prepared attributed dataset"
+  ]
+}

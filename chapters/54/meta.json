@@ -1,0 +1,64 @@
+{
+  "outcomes": [
+    "Compute feature ablation, perturbation, subgroup, and membership-attack measurements",
+    "Name the denominator, threat model, and evidence boundary for each metric",
+    "Explain why adding noise alone does not establish differential privacy",
+    "Distinguish predictive association from a causal intervention claim"
+  ],
+  "lessons": [
+    "One score cannot audit every risk",
+    "Interpretability and robustness",
+    "Fairness and privacy measurements",
+    "Security boundaries and causal limits",
+    "Run, challenge, and transfer"
+  ],
+  "terms": {
+    "feature-attribution": {
+      "name": "Feature attribution",
+      "definition": "A quantity assigning parts of a prediction to input features.",
+      "explanation": "The project replaces one feature with a declared baseline and measures the resulting change in logit. For a linear model this recovers a transparent local contribution. In nonlinear systems, interactions and baseline choice make the interpretation less direct. An attribution describes model sensitivity under a chosen procedure; it does not prove that the feature caused the outcome. Sanity checks should test whether an explanation changes when the model or data relationship is changed."
+    },
+    "threat-model": {
+      "name": "Threat model",
+      "definition": "An explicit description of an attacker, access, goal, and allowed actions.",
+      "explanation": "A robustness percentage is meaningful only relative to a perturbation set and budget. A privacy attack likewise depends on which scores an attacker sees and which candidate records it can test. The chapter states a one-feature radius for robustness and a label-assisted, probability-access membership rule for privacy. Passing either small test does not cover different norms, adaptive attacks, training-data access, poisoned inputs, or operational compromise."
+    },
+    "differential-privacy": {
+      "name": "Differential privacy",
+      "definition": "A quantified stability guarantee over neighboring datasets for a randomized mechanism.",
+      "explanation": "An epsilon and optional delta bound how much an output distribution can change when one protected unit is added or removed. Establishing that guarantee requires a neighboring-unit definition, sensitivity or clipping bound, calibrated randomness, and composition accounting across releases. Noise is only one ingredient. This chapter measures membership-attack discrimination but implements no private training mechanism, accountant, or privacy budget, so it makes no differential-privacy claim."
+    },
+    "equal-opportunity": {
+      "name": "True-positive-rate parity",
+      "definition": "A fairness criterion comparing recall across named groups.",
+      "explanation": "For each group, true positive rate divides correctly predicted positives by all positive labels in that group. Similar rates may matter when missed positive cases carry comparable harms. Another application may prioritize false-positive rates, calibration, or different thresholds. Metrics can conflict when base rates differ, estimates can be unstable for small groups, and measurement does not choose policy. The project reports several rates and their counts rather than labeling one number as a fairness guarantee."
+    },
+    "causal-identification": {
+      "name": "Causal identification",
+      "definition": "Showing that a causal quantity is determined by data plus stated assumptions.",
+      "explanation": "The fixture produces opposite crude and stratum-standardized associations because treatment assignment differs by risk stratum. Adjustment illustrates how an observed comparison can change, but calling the standardized contrast an effect would require assumptions such as no unmeasured confounding, consistent treatment, and suitable overlap. Predictive fit alone cannot supply those assumptions. A causal claim should name its intervention, design or graph, target population, and identification argument."
+    }
+  },
+  "sources": [
+    {"title": "Sanity Checks for Saliency Maps", "url": "https://proceedings.neurips.cc/paper/2018/hash/294a8ed24b1ad22ec2e7efea049b8737-Abstract.html", "note": "Model and data randomization checks"},
+    {"title": "Towards Deep Learning Models Resistant to Adversarial Attacks", "url": "https://arxiv.org/abs/1706.06083", "note": "Threat-model-specific robust optimization"},
+    {"title": "The Algorithmic Foundations of Differential Privacy", "url": "https://privacytools.seas.harvard.edu/sites/g/files/omnuum6656/files/privacytools/files/the_algorithmic_foundations_of_differential_privacy.pdf", "note": "DP definition, mechanisms, and composition"},
+    {"title": "Membership Inference Attacks Against Machine Learning Models", "url": "https://www.ieee-security.org/TC/SP2017/papers/313.pdf", "note": "Black-box membership inference"},
+    {"title": "Inherent Trade-Offs in the Fair Determination of Risk Scores", "url": "https://arxiv.org/abs/1609.05807", "note": "Fairness criterion incompatibilities"},
+    {"title": "The Seven Tools of Causal Inference", "url": "https://ftp.cs.ucla.edu/pub/stat_ser/r481.pdf", "note": "Observational and interventional distinctions"}
+  ],
+  "checks": [
+    "Group A and B metrics report counts, accuracy, positive rate, TPR, and FPR",
+    "A radius-0.25 perturbation reports boundary flips and maximum probability change",
+    "A loss-threshold membership attack evaluates a model trained only on marked member rows",
+    "Nonfinite, out-of-range, and wrong-schema inputs are rejected before scoring",
+    "The crude association is +0.30 while the equal-stratum standardized association is -0.10"
+  ],
+  "limitations": [
+    "The fictional twelve-row fixture is too small for policy conclusions or uncertainty estimates",
+    "The preset threshold and groups illustrate denominators rather than establish a fairness decision",
+    "The membership experiment measures one attack and does not prove privacy when it fails",
+    "No differential privacy mechanism or budget is implemented",
+    "The standardized contrast remains associational without causal assumptions"
+  ]
+}

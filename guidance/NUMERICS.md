@@ -1,0 +1,14 @@
+# Numerical and Rust conventions
+
+- Stable Rust; standard library first. Tools for website generation may use Python stdlib; ML implementations are Rust plus WGSL for GPU kernels. Rustlings is authoring/exercise tooling, not an ML dependency.
+- Initial scalar examples use f64, sum-of-squared-error / sample count, central differences with epsilon 1e-5, and simultaneous weight/bias updates. Teach half-MSE separately if used; state its factor explicitly.
+- Later arrays are contiguous row-major, activations [batch,features], dense weights [out_features,in_features]; explain every change of layout. No general tensor abstraction until chapter 9.
+- Check analytic derivatives on tiny smooth inputs with f64 central differences, typically atol 1e-6 + rtol 1e-4. Avoid nondifferentiable ReLU points. Float32/GPU tolerances depend on accumulation length; document them, not universal exact equality.
+- Maintain scalar reference kernels. Compare optimized outputs with absolute plus relative tolerances. Never promise bitwise cross-platform reproducibility after FMA, threads, GPUs or reduction reordering.
+- Softmax subtracts maximum; cross-entropy operates on logits with log-sum-exp. Reject empty/invalid shapes, malformed files and nonfinite external input with Result errors. Assertions are fine for tiny closed teaching fixtures and tests; user file/CLI boundaries need errors.
+- Preserve earlier layers' weights until all backward gradients using them are computed. Clear gradient accumulators intentionally. State whether losses/gradients sum or average over batch/tokens.
+- GPU baseline uses wgpu and WGSL, Vulkan hardware adapter on the AMD target; query features before optional precision/timestamps/subgroups. GPU no-device is an explicit unsupported run, not a passing GPU test. Do not request fallback software adapters silently. Readback synchronization must be real.
+- CPU SIMD requires cfg architecture gates, feature detection, scalar fallback, and documented SAFETY invariants. Scoped threads with independent output slices or private gradient buffers before fixed-order reduction.
+- Benchmarks: release mode, fixed data, warmups, repeated samples, black_box/checksum, no allocation/I/O in kernel timing, median and range; separately report end-to-end latency. Hardware, dimensions, threads, precision and flags accompany results. Never fabricate speedups.
+- Reference CLI examples are small and deterministic; expensive workloads require flags. No paid compute. Checkpoints validate version, dimensions, lengths and finite values; write safely and include optimizer/scheduler/step state where exact resume is taught.
+- Deliberate real limitations receive a `ponytail:` comment with ceiling and upgrade path. Do not add speculative abstractions. Test the smallest meaningful correctness and error case.

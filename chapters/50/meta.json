@@ -1,0 +1,56 @@
+{
+  "outcomes": [
+    "Reproduce a serial gradient update with communicating data-parallel workers",
+    "Trace tensor-sharded forward and backward reductions",
+    "Send activations forward and gradients backward through two pipeline stages",
+    "Resume minibatch training from validated state and explain the limits of equivalence"
+  ],
+  "lessons": [
+    "Why one worker stops being enough",
+    "Data-parallel gradients",
+    "Tensor and pipeline partitions",
+    "Recovery and equivalence",
+    "Run, debug, and transfer"
+  ],
+  "terms": {
+    "data-parallelism": {
+      "name": "Data parallelism",
+      "definition": "Replicating a model while assigning different examples to workers.",
+      "explanation": "Each worker evaluates the same parameter values on a different slice of the batch and produces a local gradient sum. A collective combines those sums, using example counts when slices are uneven, before every replica applies the same update. The approach increases throughput when computation outweighs communication. It does not change the mathematical full-batch objective when reductions and scaling agree, although floating-point reduction order can change the final low bits."
+    },
+    "tensor-parallelism": {
+      "name": "Tensor parallelism",
+      "definition": "Partitioning one tensor operation across workers.",
+      "explanation": "A matrix or dot product can be split by rows or columns so each worker owns only part of the parameters and arithmetic. The local results are incomplete until a mathematically required communication combines them. The chapter splits a four-feature dot product into two parameter shards, sums their partial activations, computes one shared residual, and routes gradient components back to the owning shards. Real accelerator systems apply the same idea at far larger scale."
+    },
+    "pipeline-parallelism": {
+      "name": "Pipeline parallelism",
+      "definition": "Placing consecutive model stages on different workers.",
+      "explanation": "The first stage sends activations to the next stage during the forward pass. The later stage sends activation gradients in the reverse direction during backpropagation. Dividing a batch into microbatches can keep several stages busy, though filling and draining the pipeline creates idle bubbles. The local project uses two CPU threads and typed channels to expose both directions while freezing the stage parameters until the complete minibatch gradient has been collected."
+    },
+    "checkpoint-recovery": {
+      "name": "Checkpoint recovery",
+      "definition": "Restoring all state needed to continue an interrupted computation.",
+      "explanation": "A useful training checkpoint includes parameters, optimizer state when present, progress counters, and the data or random cursor that determines the next update. The chapter serializes a versioned model, step, and minibatch cursor, reloads them, and compares the next result with uninterrupted training. This demonstrates deterministic recovery for the local fixture. Distributed hardware, different reduction trees, or nondeterministic kernels can still prevent bitwise reproduction across environments."
+    }
+  },
+  "sources": [
+    {"title": "PyTorch Distributed Data Parallel design note", "url": "https://docs.pytorch.org/docs/stable/notes/ddp.html", "note": "Replica synchronization and gradient reduction"},
+    {"title": "Writing Distributed Applications with PyTorch", "url": "https://docs.pytorch.org/tutorials/intermediate/dist_tuto.html", "note": "Collective reduction semantics"},
+    {"title": "Megatron-LM", "url": "https://arxiv.org/abs/1909.08053", "note": "Intra-layer tensor parallelism"},
+    {"title": "GPipe", "url": "https://arxiv.org/abs/1811.06965", "note": "Pipeline microbatches and bubbles"},
+    {"title": "PyTorch Saving and Loading Models", "url": "https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html", "note": "Resume-capable training state"}
+  ],
+  "checks": [
+    "Data-parallel steps match serial steps within 1e-12 for batch sizes 1, 3, and 5",
+    "Tensor-parallel prediction and parameter update match the serial reference within 1e-12",
+    "Two-stage pipeline backward updates both stages and matches one serial update within 1e-12",
+    "A restored two-minibatch run equals the uninterrupted local run",
+    "Malformed and nonfinite checkpoints are rejected"
+  ],
+  "limitations": [
+    "Threads and channels verify local CPU communication, not multi-GPU execution or network collectives",
+    "The checkpoint demo round-trips a serialized string in one process; it does not persist to disk, relaunch, or implement automatic worker failure detection",
+    "Floating-point equivalence is tolerance-based across different reduction orders and hardware"
+  ]
+}

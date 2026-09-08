@@ -1,0 +1,20 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--release",
+    "--offline",
+    "--manifest-path",
+    "projects/ch36/Cargo.toml",
+    "--features",
+    "gpu",
+    "--test",
+    "gpu",
+    "--",
+    "--ignored",
+    "--nocapture"
+  ],
+  "returncode": 0,
+  "seconds": 0.7572021484375,
+  "output": "   Compiling ch30 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch30)\n   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n    Finished `release` profile [optimized] target(s) in 0.71s\n     Running tests/gpu.rs (projects/ch30/target/release/deps/gpu-a123b95e724979a4)\n\nrunning 1 test\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\nTwo-layer odd-shape decoder: GPU logits, every gradient, and three updates match CPU.\ntest gpu_forward_backward_and_updates_match_cpu ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s\n\n"
+}

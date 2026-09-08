@@ -1,0 +1,82 @@
+{
+  "chapter": "36",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch36/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.031,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch36/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.045,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch36/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.052,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s\n     Running unittests src/lib.rs (projects/ch36/target/debug/deps/ch36-2b72a4bcadc6afe0)\n\nrunning 9 tests\ntest tests::causal_mask_blocks_future_tokens ... ok\ntest tests::impossible_config_is_rejected_before_allocation ... ok\ntest tests::cross_entropy_and_sampling_handle_large_shared_offsets ... ok\ntest tests::large_count_is_exact ... ok\ntest tests::layer_norm_backward_matches_nontrivial_finite_difference ... ok\ntest tests::standalone_attention_backward_checks_q_k_and_v ... ok\ntest tests::several_parameter_groups_pass_finite_differences ... ok\ntest tests::attention_and_both_layers_have_nontrivial_checked_gradients ... ok\ntest tests::training_changes_representative_parameter_families_and_lowers_loss ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running unittests src/main.rs (projects/ch36/target/debug/deps/ch36-fbd47e3e51a8991d)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/gpu.rs (projects/ch36/target/debug/deps/gpu-23c6f99a7acd573d)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests ch36\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch36/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.023,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `projects/ch36/target/release/ch36`\n784 trainable parameters\nloss: 2.0803 -> 0.0383\nRepresentative embeddings, attention, norms, feed-forward, and output weights were updated.\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch36/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.025,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch36/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.036,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch36/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.024,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch36/starter/target/debug/ch36_starter`\nChapter 35 causal attention output: 5.924\nComplete residual(), then run cargo test.\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch36/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.017,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch36/starter/target/debug/deps/ch36_starter-244808045627428a)\n\nrunning 1 test\ntest residual_path_preserves_and_updates ... FAILED\n\nfailures:\n\n---- residual_path_preserves_and_updates stdout ----\n\nthread 'residual_path_preserves_and_updates' (13105) panicked at src/main.rs:4:5:\nnot yet implemented: guided repair: add the residual paths\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    residual_path_preserves_and_updates\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch36_starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch36_01.rs -o /tmp/ml-check-9e0q846o/solutionch36_01",
+      "returncode": 0,
+      "seconds": 0.044,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-9e0q846o/solutionch36_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest adds_paths ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch36_01.rs -o /tmp/ml-check-9e0q846o/exercisech36_01",
+      "returncode": 0,
+      "seconds": 0.042,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-9e0q846o/exercisech36_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest adds_paths ... FAILED\n\nfailures:\n\n---- adds_paths stdout ----\n\nthread 'adds_paths' (13177) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch36_01.rs:4:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    adds_paths\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

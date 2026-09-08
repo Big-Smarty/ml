@@ -1,0 +1,16 @@
+{
+  "scope": "Actual CLI train-to-file, serve saved artifact, valid and invalid HTTP requests",
+  "results": [
+    {
+      "body": "schema=1&x=12.0",
+      "status": 200,
+      "response": "version=1 prediction=3.000000\n"
+    },
+    {
+      "body": "schema=1&x=NaN",
+      "status": 400,
+      "response": "error=x must be finite and within [-1000,1000]\n"
+    }
+  ],
+  "passed": true
+}

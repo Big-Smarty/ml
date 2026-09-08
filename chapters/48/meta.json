@@ -1,0 +1,58 @@
+{
+  "outcomes": [
+    "Train experts and a router jointly through a selected full-softmax gate",
+    "Derive why renormalized top-1 gating removes the task-loss router gradient",
+    "Enforce per-expert capacity and account for overflow",
+    "Compute a Switch-style differentiable load-balancing loss"
+  ],
+  "lessons": ["Conditional computation", "Routing gradients", "Capacity and overflow", "Balancing experts", "Rust experiment", "Practice and transfer"],
+  "terms": {
+    "mixture-of-experts": {
+      "name": "Mixture of experts",
+      "definition": "A layer containing several parameterized expert functions and a router that selects which experts process each input.",
+      "explanation": "An MoE layer increases parameter capacity while activating only a subset of experts per token. Each expert can be an ordinary feed-forward network; this chapter uses scalar linear experts so every gradient is visible. The router produces probabilities and a sparse dispatch decision. Conditional computation can reduce arithmetic relative to evaluating every expert, but routing, communication, imbalance, and memory still cost resources. A tiny CPU layer does not demonstrate large-scale efficiency."
+    },
+    "router": {
+      "name": "Router",
+      "definition": "A learned function that scores experts for each input and determines sparse dispatch.",
+      "explanation": "The chapter's router is a matrix mapping a two-feature input to three logits, followed by stable softmax and top-1 selection. The argmax index is piecewise constant, so gradients do not pass through a change of selected index. They do pass through the selected full-softmax probability used in the output. A separate balancing term supplies another gradient based on average probabilities and observed assignment frequencies."
+    },
+    "conditional-compute": {
+      "name": "Conditional computation",
+      "definition": "Evaluating only selected model components for a particular input.",
+      "explanation": "Dense layers run every parameter for every token. Sparse MoE routing chooses one or a few experts, so different tokens activate different parameters. The potential saving depends on expert size and system overhead. The reference executes only one selected expert per accepted example, but still computes all three small router scores. It measures correctness and learning; it does not claim a speedup because the fixture is far too small and has no distributed communication."
+    },
+    "expert-capacity": {
+      "name": "Expert capacity",
+      "definition": "The maximum number of tokens an expert accepts from one routing group or batch.",
+      "explanation": "Capacity is based on tokens divided by experts times a capacity factor; this project explicitly rounds up and bounds it below by one. It turns uneven routing into an explicit resource limit. Once an expert is full, later assigned tokens overflow. The reference counts them and omits their expert task update; large residual architectures may pass dropped tokens through a residual path. Higher capacity reduces dropping while allocating more temporary space and computation."
+    },
+    "load-balancing-loss": {
+      "name": "Load-balancing loss",
+      "definition": "An auxiliary objective encouraging routing traffic and probability mass to spread across experts.",
+      "explanation": "The Switch-style term multiplies each expert's hard assignment fraction by its mean router probability, sums across experts, and scales by the expert count. Hard assignments are treated as fixed for differentiation, while mean probabilities provide a smooth path into router logits. This discourages collapse but does not guarantee semantically useful specialization. Its coefficient trades task fit against balance and must be reported rather than hidden in training code."
+    },
+    "top-k-routing": {
+      "name": "Top-k routing",
+      "definition": "Selecting the k highest-scoring experts for each input.",
+      "explanation": "Top-1 minimizes expert evaluations. If its sole selected probability is divided by itself, the gate becomes exactly one and task loss has zero local derivative with respect to router logits. Keeping the selected full-softmax probability avoids that failure. Top-2 can instead renormalize two selected weights: their relative softmax still changes with both logits when expert outputs differ. The discrete membership boundary remains nondifferentiable in either design."
+    }
+  },
+  "sources": [
+    {"title": "Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity", "url": "https://arxiv.org/abs/2101.03961", "note": "Top-1 selected gates, capacity, and balancing"},
+    {"title": "GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding", "url": "https://arxiv.org/abs/2006.16668", "note": "Top-2 routing and capacity"},
+    {"title": "Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer", "url": "https://arxiv.org/abs/1701.06538", "note": "Jointly trained sparse gating and experts"}
+  ],
+  "checks": [
+    "Router and selected-expert gradients match central differences away from a routing tie",
+    "Mean uncapped task loss falls below one fifth of its initial value",
+    "All three experts receive routes after training on the deterministic fixture",
+    "Overflow count equals assignments beyond the computed per-expert capacity"
+  ],
+  "limitations": [
+    "The reported mean loss is uncapped task loss and excludes the balancing term",
+    "Scalar linear experts do not establish language-model quality or conditional-compute speed",
+    "Hard top-1 selection is nondifferentiable at routing boundaries",
+    "The fixture runs on one CPU process without expert communication"
+  ]
+}

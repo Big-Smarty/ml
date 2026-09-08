@@ -1,0 +1,80 @@
+{
+  "outcomes": [
+    "Map an affine model between scratch [out,in] storage and framework matrix multiplication",
+    "Check predictions, mean loss, gradients, both SGD updates, and restored inference",
+    "Export actual scratch weights and biases and import them into the optional Burn CPU runtime",
+    "Distinguish numerical parity, backend records, graph interchange, and training resume"
+  ],
+  "lessons": [
+    "Specify the computation contract",
+    "Work the affine update by hand",
+    "Separate autodiff from optimization",
+    "Export and restore inference state",
+    "Run and debug an optional integration",
+    "Retrieve the parity contract"
+  ],
+  "terms": {
+    "framework-parity": {
+      "name": "Framework parity",
+      "definition": "Agreement between corresponding computations under a stated numerical contract.",
+      "explanation": "A port can produce plausible predictions while changing weight layout, bias broadcasting, or loss reduction. Parity checks fix data, parameters, dtype, shapes, and optimization settings, then compare intermediate quantities in order. This chapter checks forward output before gradients, one update, and restored inference. Absolute and relative tolerances account for bounded rounding after equivalent operations; they must not conceal nonfinite values or a different mathematical function. A passing affine fixture does not validate every model in a framework."
+    },
+    "autodiff-backend": {
+      "name": "Differentiable backend",
+      "definition": "An execution backend augmented with automatic differentiation of recorded operations.",
+      "explanation": "The optional Burn program wraps its CPU ndarray backend in an Autodiff decorator. Trainable tensors request gradients before the forward computation, and backward returns a container from which individual derivatives are retrieved. These derivatives do not update parameters automatically. The example applies explicit SGD to the inner weight and bias tensors after obtaining both gradients. This separation makes the mathematical comparison visible and avoids confusing differentiation, device execution, and optimizer state as one operation."
+    },
+    "runtime-interchange": {
+      "name": "Runtime interchange",
+      "definition": "Moving a specified computation and its state between execution implementations.",
+      "explanation": "Weights alone do not describe a portable model. An interchange contract must identify architecture, tensor names, shapes, layout, dtype, preprocessing, and supported operations. The course exports a fixed affine layer as an eleven-byte marker followed by six little-endian floats. Burn imports those actual bytes and checks several inputs against a scalar oracle. Burn records provide a separate within-framework mechanism. Neither file is an ONNX graph or a general training-resume checkpoint."
+    }
+  },
+  "sources": [
+    {
+      "title": "Burn Tensor API",
+      "url": "https://burn.dev/docs/burn/prelude/struct.Tensor.html",
+      "note": "Tensor rank, backend type, shape and arithmetic APIs verified for the pinned integration"
+    },
+    {
+      "title": "Burn Autodiff guide",
+      "url": "https://burn.dev/books/burn/building-blocks/autodiff.html",
+      "note": "Backward returns gradients; require_grad, grad, and inner behavior"
+    },
+    {
+      "title": "Burn Record guide",
+      "url": "https://burn.dev/books/burn/building-blocks/record.html",
+      "note": "Within-Burn record semantics and limitations"
+    },
+    {
+      "title": "Burn 0.21.0 release",
+      "url": "https://burn.dev/blog/release-0.21.0/",
+      "note": "ndarray transition/deprecation and newer CPU backend direction"
+    },
+    {
+      "title": "PyTorch functional linear",
+      "url": "https://docs.pytorch.org/docs/main/generated/torch.nn.functional.linear.html",
+      "note": "Explicit [out,in] parameter layout; no universal transpose rule"
+    },
+    {
+      "title": "ONNX Concepts",
+      "url": "https://onnx.ai/onnx/intro/concepts.html",
+      "note": "Graph, operators and tensors as broader interchange concepts; no ONNX export claimed"
+    }
+  ],
+  "checks": [
+    "Scratch predicts [1.15,0.65] with MSE 0.6725 within f32 tolerance",
+    "Framework test executes real forward, loss, gradient, weight and bias update, record and restored-output assertions",
+    "Both updated biases match [0.035,-0.315] and updated output matches [1.04125,-0.18375]",
+    "Scratch export is imported and compared on three input probes in Burn",
+    "Wrong headers, length, and nonfinite artifact values are rejected",
+    "Starter launches successfully and its derivative TODO fails the intended test"
+  ],
+  "limitations": [
+    "Standard-library default and optional Burn package are independent",
+    "Pinned Burn 0.21 ndarray CPU fixture is on the upstream deprecation path; not recommended as a new general CPU backend",
+    "The model is one affine layer; no GPU, speedup, full Module trainer, or complex-model parity is claimed",
+    "The course artifact and Burn record are not ONNX; neither stores optimizer resume state",
+    "Optional integration can need dependency download access and compilation time"
+  ]
+}

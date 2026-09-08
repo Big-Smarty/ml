@@ -1,0 +1,9 @@
+[package]
+name = "ch40-starter"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ch36 = { path = "../../ch36" }
+
+[workspace]

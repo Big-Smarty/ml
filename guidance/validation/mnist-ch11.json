@@ -1,0 +1,25 @@
+{
+  "chapter": "11",
+  "purpose": "Real IDX parsing, training, validation and checkpoint smoke check; official test not scored",
+  "command": [
+    "cargo",
+    "run",
+    "--release",
+    "--offline",
+    "--manifest-path",
+    "projects/ch11/Cargo.toml",
+    "--",
+    "--mnist",
+    "datasets/downloads/mnist/fit-images-idx3-ubyte",
+    "datasets/downloads/mnist/fit-labels-idx1-ubyte",
+    "datasets/downloads/mnist/validation-images-idx3-ubyte",
+    "datasets/downloads/mnist/validation-labels-idx1-ubyte",
+    "1",
+    "adam",
+    "/tmp/ml-mnist-review-vipw2agc/model.bin"
+  ],
+  "seconds_including_build": 0.7517206940001415,
+  "returncode": 0,
+  "output": "checkpoint: /tmp/ml-mnist-review-vipw2agc/model.bin (step 1719)\noptimizer=Adam, held-out loss 2.4401 -> 0.4512, accuracy 10.9% -> 88.0%\n",
+  "stderr": "   Compiling ch11 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch11)\n    Finished `release` profile [optimized] target(s) in 0.29s\n     Running `projects/ch11/target/release/ch11 --mnist datasets/downloads/mnist/fit-images-idx3-ubyte datasets/downloads/mnist/fit-labels-idx1-ubyte datasets/downloads/mnist/validation-images-idx3-ubyte datasets/downloads/mnist/validation-labels-idx1-ubyte 1 adam /tmp/ml-mnist-review-vipw2agc/model.bin`\n"
+}

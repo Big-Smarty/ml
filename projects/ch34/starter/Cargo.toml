@@ -1,0 +1,5 @@
+[package]
+name="ch34_starter"
+version="0.1.0"
+edition="2021"
+[workspace]

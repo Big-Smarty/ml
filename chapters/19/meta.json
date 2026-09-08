@@ -1,0 +1,64 @@
+{
+  "outcomes": [
+    "Construct deterministic stratified folds from stable row IDs",
+    "Keep scaling and all learned preprocessing inside each training fold",
+    "Run a fixed-budget hyperparameter search with deterministic tie-breaking",
+    "Compare a learned logistic model with a fair majority baseline",
+    "Evaluate once on untouched test rows and inspect errors by ID"
+  ],
+  "lessons": [
+    "Write the evaluation contract before tuning",
+    "Cross-validation reuses development data safely",
+    "Fit every learned transformation inside the fold",
+    "Search a fixed budget and compare fairly",
+    "Finish with error analysis, not one score",
+    "Run the capstone and practice"
+  ],
+  "terms": {
+    "evaluation-protocol": {
+      "name": "evaluation protocol",
+      "definition": "A frozen specification of data, splits, metric, candidates, seed, and selection procedure.",
+      "explanation": "An evaluation protocol makes the question and all opportunities for adaptation visible before results arrive. Stable row IDs, a dataset checksum, fold assignments, preprocessing boundaries, candidate order, and stopping rules let another run reconstruct the comparison. Changing any choice after observing the test score turns the test into development feedback and requires fresh held-out evidence. The protocol also names the prediction and split units."
+    },
+    "cross-validation": {
+      "name": "cross-validation",
+      "definition": "Repeated fitting in which each development fold serves once as held-out validation data.",
+      "explanation": "In k-fold cross-validation, each row receives exactly one validation prediction while appearing in the training portion of other fits. Fold construction must respect groups or time when rows are dependent. Stratification preserves class proportions but does not remove dependence. Scores across folds share training rows, so their spread is useful diagnostic information rather than an automatic independent-sample confidence interval. Every row must appear in exactly one validation fold."
+    },
+    "data-leakage": {
+      "name": "data leakage",
+      "definition": "Information crossing from held-out rows into any fitted part of the training procedure.",
+      "explanation": "Leakage includes more than using validation labels. Scaling, imputation, category vocabularies, feature selection, PCA, and threshold calibration all learn from data and must be fitted on each training fold. Applying a stored transformation to validation rows is safe; fitting it on the full dataset before splitting is not. Leakage usually creates optimistic scores that will not survive new data. Stable pipelines make the training-only boundary explicit."
+    },
+    "hyperparameter": {
+      "name": "hyperparameter",
+      "definition": "A training setting selected outside the model's parameter-learning update.",
+      "explanation": "Learning rate, regularization strength, tree depth, kernel width, and epoch count are common hyperparameters. Searching many values adapts to validation noise, so the search space and budget are part of the model-selection procedure. Fair comparisons give each model family a declared opportunity budget and select without consulting the final test set. Deterministic tie-breaking keeps repeated selections reproducible across machines and runs."
+    },
+    "error-analysis": {
+      "name": "error analysis",
+      "definition": "Inspection of individual mistakes and meaningful slices after aggregate metrics are computed.",
+      "explanation": "Error analysis connects a score to failure modes such as unit errors, label problems, population shifts, or a missing feature. Stable row IDs make mistakes traceable. Slice reports need denominators as well as error counts. New hypotheses discovered from test errors belong to a later development cycle; they do not justify silently revising the model while preserving the old test claim."
+    }
+  },
+  "sources": [
+    {"title": "A Study of Cross-Validation and Bootstrap", "url": "https://ai.stanford.edu/~ronnyk/accEst.pdf", "note": "Kohavi's empirical comparison of accuracy-estimation methods."},
+    {"title": "On Over-fitting in Model Selection and Subsequent Selection Bias", "url": "https://www.jmlr.org/papers/v11/cawley10a.html", "note": "Primary analysis of model-selection overfitting."},
+    {"title": "Random Search for Hyper-Parameter Optimization", "url": "https://jmlr.org/papers/v13/bergstra12a.html", "note": "Primary fixed-budget random-search study."},
+    {"title": "Rules of Machine Learning", "url": "https://developers.google.com/machine-learning/guides/rules-of-ml", "note": "First-party guidance on simple baselines and pipeline foundations."},
+    {"title": "Rust slice documentation", "url": "https://doc.rust-lang.org/std/primitive.slice.html", "note": "Official stable sorting API used in fold construction."}
+  ],
+  "checks": [
+    "A fixed seed yields identical fold membership across runs",
+    "Every development row receives one valid fold and each fold contains three rows per class",
+    "Scaling is fitted separately on each fold's training rows",
+    "Candidate ties resolve to the earliest frozen candidate",
+    "The selected logistic model beats the majority baseline on the untouched fixture test"
+  ],
+  "limitations": [
+    "The bundled fixture is small, balanced, independent, and deliberately separable",
+    "The executable compares majority prediction with one learned logistic model",
+    "The capstone does not compute confidence intervals or nested cross-validation",
+    "Group and temporal split strategies are explained but not implemented"
+  ]
+}

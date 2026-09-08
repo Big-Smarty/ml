@@ -1,0 +1,82 @@
+{
+  "chapter": "46",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch46/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.027,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch46/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch46/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.028,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch46/target/debug/deps/ch46-3552af3fd844ab5a)\n\nrunning 4 tests\ntest tests::dpo_gradient_matches_central_difference ... ok\ntest tests::stable_probabilities_and_batch_order ... ok\ntest tests::verifiable_reward_concentrates_on_correct_action ... ok\ntest tests::dpo_lowers_loss_and_ranks_chosen_answers ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch46/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch46/target/release/ch46`\nDPO mean loss: 0.6931 -> 0.0718\nlearned prompt policies: [[0.006690125537209091, 0.9892521082071472, 0.004057766255643759], [0.006037179659922977, 0.007373827888138401, 0.9865889924519387]]\nexact-reward policy after 200 steps: [0.0036, 0.9928, 0.0036]\nThe categorical fixture checks objective mechanics; it is not language-model alignment evidence.\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch46/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.025,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch46/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch46/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.026,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch46/starter/target/debug/ch46-starter`\nprevious checkpoint policy: [0.011, 0.989]\nNow run cargo test and implement dpo_pair_loss.\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch46/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.015,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch46/starter/target/debug/deps/ch46_starter-706ebc76a7d038b9)\n\nrunning 1 test\ntest tests::equal_policy_and_reference_margins_have_log_two_loss ... FAILED\n\nfailures:\n\n---- tests::equal_policy_and_reference_margins_have_log_two_loss stdout ----\n\nthread 'tests::equal_policy_and_reference_margins_have_log_two_loss' (15943) panicked at src/main.rs:21:5:\nnot yet implemented: compute -ln(sigmoid(beta * (policy_margin - reference_margin)))\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::equal_policy_and_reference_margins_have_log_two_loss\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch46-starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch46_01.rs -o /tmp/ml-check-1pojtw0b/solutionch46_01",
+      "returncode": 0,
+      "seconds": 0.038,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-1pojtw0b/solutionch46_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::equal_margins_give_log_two ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch46_01.rs -o /tmp/ml-check-1pojtw0b/exercisech46_01",
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-1pojtw0b/exercisech46_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::equal_margins_give_log_two ... FAILED\n\nfailures:\n\n---- tests::equal_margins_give_log_two stdout ----\n\nthread 'tests::equal_margins_give_log_two' (16015) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch46_01.rs:4:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::equal_margins_give_log_two\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

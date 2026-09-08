@@ -1,0 +1,82 @@
+{
+  "chapter": "44",
+  "passed": true,
+  "results": [
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch44/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.028,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch44/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.038,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch44/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.034,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch44/target/debug/deps/ch44-0364cb2cc296b291)\n\nrunning 4 tests\ntest tests::lexical_baseline_rewards_exact_terms ... ok\ntest tests::both_embedding_tables_match_finite_differences ... ok\ntest tests::pipeline_attributes_and_abstains ... ok\ntest tests::learned_exact_index_recovers_paraphrases ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n"
+    },
+    {
+      "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch44/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch44/target/release/ch44`\ndense held-out retrieval hit@1: 3/3\nquery: Which satellites orbit the red planet?\n  BM25 top=planet scores=[0.0, 0.0, 0.0]\n  context=[planet] Mars has two moons named Phobos and Deimos.\n  extracted=Mars has two moons named Phobos and Deimos. [planet]\nquery: What is the French capital?\n  BM25 top=france scores=[0.0, 1.0336882, 0.0]\n  context=[france] Paris is the capital city of France.\n  extracted=Paris is the capital city of France. [france]\nquery: Who won the lunar chess final?\n  BM25 top=planet scores=[0.0, 0.0, 0.0]\n  abstain: retrieved evidence is unsupported or ambiguous\ngrounded evaluation: dense hit@1=3/3, correct supported source=2/2, answered=2/3, answers with matching source label=2/2, unsupported abstained=1/1\n"
+    },
+    {
+      "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch44/starter/Cargo.toml --check",
+      "returncode": 0,
+      "seconds": 0.024,
+      "output": ""
+    },
+    {
+      "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch44/starter/Cargo.toml --all-targets -- -D warnings",
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch44/starter/Cargo.toml",
+      "returncode": 0,
+      "seconds": 0.026,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch44/starter/target/debug/ch44-starter`\ncheckpoint lexical scores: [0, 2]\n"
+    },
+    {
+      "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch44/starter/Cargo.toml",
+      "returncode": 101,
+      "seconds": 0.015,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch44/starter/target/debug/deps/ch44_starter-ade9a2b9829af40f)\n\nrunning 1 test\ntest tests::gate_rejects_unsupported_and_ambiguous ... FAILED\n\nfailures:\n\n---- tests::gate_rejects_unsupported_and_ambiguous stdout ----\n\nthread 'tests::gate_rejects_unsupported_and_ambiguous' (15500) panicked at src/main.rs:13:5:\nnot yet implemented: implement an evidence gate\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::gate_rejects_unsupported_and_ambiguous\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch44-starter`\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch44_01.rs -o /tmp/ml-check-axnuy7n3/solutionch44_01",
+      "returncode": 0,
+      "seconds": 0.042,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-axnuy7n3/solutionch44_01",
+      "returncode": 0,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::retrieves_largest_inner_product ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch44_01.rs -o /tmp/ml-check-axnuy7n3/exercisech44_01",
+      "returncode": 0,
+      "seconds": 0.038,
+      "output": ""
+    },
+    {
+      "command": "/tmp/ml-check-axnuy7n3/exercisech44_01",
+      "returncode": 101,
+      "seconds": 0.001,
+      "output": "\nrunning 1 test\ntest tests::retrieves_largest_inner_product ... FAILED\n\nfailures:\n\n---- tests::retrieves_largest_inner_product stdout ----\n\nthread 'tests::retrieves_largest_inner_product' (15572) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch44_01.rs:3:5:\nnot yet implemented: scan every document\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::retrieves_largest_inner_product\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "expected_failure": true,
+      "expected_failure_observed": true
+    }
+  ]
+}

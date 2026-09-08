@@ -1,0 +1,73 @@
+{
+  "outcomes": [
+    "Derive Adam moment, bias-correction, and decoupled-decay updates",
+    "Combine equal microbatch gradients before global clipping",
+    "Compute cosine decay with warmup per optimizer step",
+    "Save and validate every state item required for exact continuation",
+    "Estimate persistent memory and define a throughput measurement"
+  ],
+  "lessons": [
+    "Adapt each parameter's update scale",
+    "Change learning rate with progress",
+    "Accumulate microbatches",
+    "Account for memory",
+    "Resume the exact next step",
+    "Practice and diagnose",
+    "Review and transfer"
+  ],
+  "terms": {
+    "adamw": {
+      "name": "AdamW",
+      "definition": "An adaptive moment optimizer that applies weight decay separately from the gradient moment update.",
+      "explanation": "AdamW tracks exponential averages of gradients and squared gradients, corrects their initialization bias, and divides the first by the square root of the second. It then adds \u03bb\u03b8 as a separate decay contribution. This separation matters because placing an L2 penalty inside the gradient lets Adam's adaptive scaling alter it. A resumable run stores both moment vectors, step, and all hyperparameters. Parameter-group policies may exclude gains or biases, but such choices must be explicit."
+    },
+    "gradient-accumulation": {
+      "name": "gradient accumulation",
+      "definition": "Summing or averaging gradients from sequential microbatches before one optimizer update.",
+      "explanation": "Accumulation increases effective batch tokens without retaining all microbatch activations at once. Each microbatch evaluates the same unchanged parameters; only after its gradients are combined does the optimizer step. Equal-sized microbatch averages can be averaged equally. Unequal sizes must be weighted by target-token count. Clipping should usually operate on the combined global vector. Accumulation reduces activation pressure but does not reduce model, gradient, or optimizer-state storage and can change throughput."
+    },
+    "checkpoint": {
+      "name": "training checkpoint",
+      "definition": "A versioned snapshot containing enough state to continue a run from the same next update.",
+      "explanation": "A complete training checkpoint includes model dimensions and parameters, optimizer moments and hyperparameters, scheduler progress, optimizer step, RNG state, and data cursor. Loaders validate headers, dimensions, lengths, finite values, and compatibility before mutation. The strongest test saves one trainer, reloads another, then requires the same next-step loss and state. Current-logit equality alone misses optimizer and progress errors. Production systems may also retain checksums, data identities, compiler revisions, and multiple generations."
+    }
+  },
+  "sources": [
+    {
+      "title": "Adam",
+      "url": "https://arxiv.org/abs/1412.6980",
+      "note": "Original adaptive optimizer paper."
+    },
+    {
+      "title": "Decoupled Weight Decay Regularization",
+      "url": "https://arxiv.org/abs/1711.05101",
+      "note": "Original AdamW paper."
+    },
+    {
+      "title": "SGDR",
+      "url": "https://arxiv.org/abs/1608.03983",
+      "note": "Primary cosine-annealing source."
+    },
+    {
+      "title": "PyTorch AMP examples",
+      "url": "https://docs.pytorch.org/docs/main/notes/amp_examples.html",
+      "note": "Current accumulation and clipping guidance."
+    },
+    {
+      "title": "PyTorch saving and loading models",
+      "url": "https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html",
+      "note": "Current checkpoint guidance."
+    }
+  ],
+  "checks": [
+    "Save-load branch produces bit-identical next loss and parameters",
+    "Checkpoint restores cursor, RNG, schedule step, model, and moments",
+    "Nonfinite gradients and checkpoint values are rejected",
+    "Default run reports calculated persistent memory and measured loss"
+  ],
+  "limitations": [
+    "Weight decay applies uniformly to all spans",
+    "Checkpoint format lacks a checksum and parent-directory synchronization",
+    "GPU feature retains host optimizer and per-GEMM transfers"
+  ]
+}

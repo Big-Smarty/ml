@@ -1,0 +1,76 @@
+{
+    "outcomes": [
+        "Implement per-layer decoder KV caching",
+        "Verify cached logits against every full prefix",
+        "Apply temperature and top-k sampling",
+        "Schedule and stream multiple requests"
+    ],
+    "lessons": [
+        "Reuse the past without changing the model",
+        "Match full-prefix logits, layer by layer",
+        "Turn logits into a controlled choice",
+        "Batch iterations and stream completed tokens",
+        "Run and investigate",
+        "Before you move on"
+    ],
+    "terms": {
+        "kv-cache": {
+            "name": "KV cache",
+            "definition": "Stored attention keys and values from earlier positions.",
+                "explanation": "During autoregressive decoding, earlier hidden states do not change. Their projected keys and values can be retained in each decoder layer and reused by later queries. This avoids repeating their projection and feed-forward work. Cache memory still grows with layers, positions, batch size, head width, and precision, and every new query still reads the relevant cached keys and values during attention."
+        },
+        "top-k-sampling": {
+            "name": "top-k sampling",
+            "definition": "Sampling after retaining only the k highest-logit tokens.",
+                "explanation": "Top-k sampling sorts candidate tokens by logit, masks every token outside the first k, renormalizes the remaining probability mass, and draws from that smaller set. With k equal to one it becomes greedy decoding. A larger k allows more variety but can admit weak candidates. The useful setting depends on the model, prompt, temperature, evaluation goal, and desired run reproducibility."
+        },
+        "continuous-batching": {
+            "name": "continuous batching",
+            "definition": "Changing the active request batch between decoding iterations.",
+            "explanation": "Autoregressive serving advances requests one token at a time. Continuous batching uses those iteration boundaries to admit new requests and remove finished ones, rather than holding a fixed batch until its longest request completes. Each request retains separate tokens, cache, stopping state, and randomness. Actual gains depend on kernel shapes, scheduling overhead, cache capacity, fairness policy, and the request-length distribution."
+        },
+        "token-streaming": {
+            "name": "token streaming",
+            "definition": "Delivering generated tokens before the whole response is complete.",
+                "explanation": "A streaming interface emits each available token or text chunk as generation proceeds. The user can begin reading after the first token, reducing perceived latency and time to first output. Streaming does not inherently reduce the model computations or total completion time. A deployed stream additionally needs cancellation, backpressure, error signaling, and a transport protocol that preserves chunk order across the complete response."
+        }
+    },
+    "sources": [
+        {
+            "title": "PagedAttention",
+            "url": "https://arxiv.org/abs/2309.06180",
+            "note": "KV-cache memory management and serving measurements."
+        },
+        {
+            "title": "Orca",
+            "url": "https://www.usenix.org/conference/osdi22/presentation/yu",
+            "note": "Iteration-level scheduling and selective batching."
+        },
+        {
+            "title": "Transformers logits processors",
+            "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/generation/logits_process.py",
+            "note": "Primary implementation of temperature and top-k transforms."
+        },
+        {
+            "title": "TGI streaming",
+            "url": "https://huggingface.co/docs/text-generation-inference/en/conceptual/streaming",
+            "note": "Official streaming behavior and latency distinction."
+        },
+        {
+            "title": "The Curious Case of Neural Text Degeneration",
+            "url": "https://arxiv.org/abs/1904.09751",
+            "note": "Sampling tradeoffs and unreliable probability tails."
+        }
+    ],
+    "checks": [
+        "Cached logits differ from full-prefix last-row logits by less than 2e-5",
+        "Cache stores exactly two width-sized vectors per layer and position",
+        "Top-k one always returns the maximum-logit token",
+        "Context overflow returns an error"
+    ],
+    "limitations": [
+        "Scalar CPU scheduler does not fuse requests into batched matrix kernels",
+        "Cache uses the fixed learned-position window and must be replayed after cropping",
+        "Tiny random model establishes equivalence, not language quality or serving speed"
+    ]
+}

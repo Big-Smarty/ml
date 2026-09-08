@@ -1,0 +1,27 @@
+# Chapter 45 research record
+
+## Route and verification
+
+The author commissioned the bounded `research45` subagent using GPT-5.6 Luna High. It was instructed to use primary or authoritative sources and return equations, source URLs, implementation guidance, and tiny-fixture limitations. The author checked that the cited pages are the original textbook or papers and reconciled the equations with the final Rust implementation.
+
+## Evidence used
+
+Sutton and Barto's *Reinforcement Learning: An Introduction* (second edition) gives the sample-average bandit estimate and its incremental form, epsilon-greedy action selection, tabular temporal-difference control, and the score-function view of policy gradients: <https://incompleteideas.net/book/bookdraft2018mar21.pdf>. The chapter uses the exact incremental mean `Q <- Q + (R-Q)/N`, including exploration over every action.
+
+Watkins and Dayan's original Q-learning paper defines the off-policy control update and states convergence conditions for the finite tabular setting: <https://doi.org/10.1007/BF00992698>. The project uses `reward + gamma * max_a Q(next,a)` for nonterminal transitions and omits the bootstrap at the terminal state. Its constant learning rate, decaying exploration, and finite 600 episodes are explicitly outside the theorem's full conditions.
+
+Williams's REINFORCE paper supplies the stochastic log-probability gradient estimator: <https://doi.org/10.1007/BF00992696>. Sutton et al. formalize policy gradients with function approximation and the role of baselines: <https://papers.nips.cc/paper/1713-policy-gradient-methods-for-reinforcement-learning-with-function-approximation>. For two softmax actions, the implementation uses `one_hot(a) - p` as the derivative of the selected action's log probability and subtracts a moving reward baseline.
+
+## Decisions and checks
+
+The three mechanisms stay separate so a learner can see what each adds. The bandit has no state transition. The five-state chain introduces delayed value propagation with a lookup table. The REINFORCE experiment directly parameterizes a policy and obtains its update from sampled rewards; it is not a disguised value update.
+
+The deterministic generator makes output reproducible but is not cryptographic and is not evidence about behavior across seeds. Tests check that the best bandit arm is identified, all nonterminal grid states prefer the short path, and the higher-reward policy action exceeds probability 0.9. The result is a mechanics check on a stationary simulator. It does not test function approximation, continuous actions, nonstationarity, safety constraints, or difficult exploration.
+
+## Independent Astra implementation review — 2026-09-08
+
+Route: GPT-6 Astra High owner/reviewer, with fresh bounded GPT-5.6 Luna High primary-source verification (`verify_42_43` for 42–43; `verify_44_46` for 44–46). Earlier Sol High drafts were retained where correct; the Astra owner independently read and corrected all lesson, metadata, reference, starter, and exercise assets.
+
+Verified sample-average bandits, epsilon exploration, terminal Q-learning targets, and sampled REINFORCE with the pre-update action-independent baseline. Corrected the four-step worked return to 0.800325. Added absorbing terminal behavior, sentinel-bootstrap tests and exact learned path values. Clarified return-to-go and baseline ordering.
+
+The Luna High verification checked the original papers and official source URLs listed above. Its concrete findings were integrated by the Astra owner; passing prior author gates was not treated as independent proof. Scoped validation and remaining limits are recorded in `guidance/astra-review-42-46.md`.

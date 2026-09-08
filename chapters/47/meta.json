@@ -1,0 +1,59 @@
+{
+  "outcomes": [
+    "Prune a dense matrix by global weight magnitude",
+    "Construct and validate compressed sparse row storage",
+    "Prove scalar dense and CSR matrix-vector kernels agree within tolerance",
+    "Measure kernel time and output error across several densities"
+  ],
+  "lessons": ["Why zeros need a representation", "Magnitude pruning", "CSR arithmetic", "Correct benchmarking", "Rust experiment", "Practice and transfer"],
+  "terms": {
+    "sparsity": {
+      "name": "Sparsity",
+      "definition": "The fraction of entries in an array that are structurally zero.",
+      "explanation": "A sparse matrix contains enough zeros that skipping their storage or arithmetic may help. Density is the complementary fraction of nonzero entries. Merely writing zeros into a dense array does not reduce its allocation and does not make a dense loop skip work. Sparse benefits depend on the representation, matrix shape, nonzero pattern, numeric type, kernel, and hardware. This chapter reports density directly rather than treating the word sparse as a performance claim."
+    },
+    "magnitude-pruning": {
+      "name": "Magnitude pruning",
+      "definition": "Removing weights with the smallest absolute values under a chosen budget.",
+      "explanation": "Global magnitude pruning ranks every weight by |w| and retains a requested count. The sign does not matter to the rank: −3 is larger in magnitude than 0.2. A deterministic tie rule makes fixtures reproducible. In a trained network, pruning normally requires evaluation and may be followed by retraining of surviving weights. The chapter prunes a fixed matrix to isolate representation and kernel behavior; it does not claim accuracy preservation for learned models."
+    },
+    "csr": {
+      "name": "Compressed sparse row",
+      "definition": "A sparse matrix layout storing nonzero values, their column indices, and row offsets.",
+      "explanation": "CSR stores values and column indices in row order. A row-pointer array of length rows plus one marks each row's half-open segment. Equal adjacent pointers represent an empty row, and the final pointer equals the number of stored values. For matrix-vector multiplication, the kernel visits only that segment and multiplies each value by the input at its stored column. Indices save arithmetic but consume memory and add indirect access."
+    },
+    "structural-zero": {
+      "name": "Structural zero",
+      "definition": "A matrix position omitted from a sparse representation and treated as exactly zero.",
+      "explanation": "A structural zero has no value or column entry in CSR. It differs from a stored floating-point zero, which still costs an index and participates in the kernel. Conversion should therefore omit values equal to zero. In numerical applications, deciding that a small weight becomes exactly zero is the pruning rule's job; CSR conversion should preserve the already-made decision rather than silently applying another threshold. Empty rows remain legitimate structural information through repeated row pointers."
+    },
+    "kernel-benchmark": {
+      "name": "Kernel benchmark",
+      "definition": "A timing experiment restricted to the repeated numerical operation of interest.",
+      "explanation": "A kernel benchmark constructs matrices and allocates reusable output buffers before timing. It warms each path, repeats fixed input, consumes outputs through an optimization barrier, and reports a distribution such as median and range. Conversion and pruning may matter end to end, but mixing them into only one path answers a different question. Release flags, shape, numeric type, processor, density, and nonzero pattern are part of the result, not incidental details."
+    },
+    "parity-check": {
+      "name": "Numerical parity check",
+      "definition": "A comparison showing two implementations compute the same intended result within stated tolerances.",
+      "explanation": "The dense oracle and CSR kernel must consume the same pruned matrix and input. Their outputs may differ in final floating-point digits if accumulation order changes, so the check combines absolute and relative tolerance and rejects nonfinite values. This representation parity is separate from pruning quality: comparison with the unpruned output measures how much the model calculation changed. Passing one comparison does not imply passing the other."
+    }
+  },
+  "sources": [
+    {"title": "Learning both Weights and Connections for Efficient Neural Networks", "url": "https://proceedings.neurips.cc/paper/2015/hash/ae0eb3eed39d2bcef4622b2499a05fe6-Abstract.html", "note": "Magnitude pruning and retraining"},
+    {"title": "The State of Sparsity in Deep Neural Networks", "url": "https://arxiv.org/abs/1902.09574", "note": "Large-scale pruning comparisons and caveats"},
+    {"title": "Intel oneMKL sparse storage formats", "url": "https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-dpcpp/2025-2/sparse-storage-formats.html", "note": "Authoritative CSR layout"},
+    {"title": "Implementing Sparse Matrix-Vector Multiplication on Throughput-Oriented Processors", "url": "https://www.nvidia.com/docs/IO/77944/sc09-spmv-throughput.pdf", "note": "Sparse-kernel performance factors"},
+    {"title": "Rust std::hint::black_box", "url": "https://doc.rust-lang.org/std/hint/fn.black_box.html", "note": "Optimization-barrier semantics and limits"}
+  ],
+  "checks": [
+    "CSR row pointers preserve an empty middle row",
+    "CSR and dense outputs agree within 1e-10 absolute plus 1e-8 relative tolerance",
+    "Fifty-percent pruning keeps the two largest magnitudes in the four-value fixture",
+    "Default run reports kernel median and range plus output RMSE at four densities"
+  ],
+  "limitations": [
+    "Scalar matrix-vector timing does not predict SIMD, batched, or GPU sparse performance",
+    "The deterministic matrix is not a trained model and has no task-accuracy metric",
+    "Global pruning is performed once without sparse retraining"
+  ]
+}
