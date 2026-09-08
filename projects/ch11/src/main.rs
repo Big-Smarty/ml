@@ -371,9 +371,11 @@ fn save(path: &Path, model: &Mlp, optimizer: &Optimizer) -> Result<(), String> {
             put_f64(&mut b, v)
         }
     }
-    let tmp = path.with_extension("tmp");
-    let mut f =
-        fs::File::create(&tmp).map_err(|e| format!("cannot create checkpoint temp file: {e}"))?;
+    let mut tmp = path.as_os_str().to_os_string();
+    tmp.push(".tmp");
+    let tmp = PathBuf::from(tmp);
+    let mut f = fs::File::create_new(&tmp)
+        .map_err(|e| format!("cannot create checkpoint temp file {}: {e}", tmp.display()))?;
     f.write_all(&b)
         .and_then(|_| f.sync_all())
         .map_err(|e| format!("cannot write checkpoint: {e}"))?;
@@ -597,6 +599,35 @@ mod tests {
         fs::write(&p, b"bad").unwrap();
         assert!(restore(&p).is_err());
         fs::remove_file(p).unwrap();
+    }
+    #[test]
+    fn checkpoint_save_preserves_temporary_siblings() {
+        let directory = env::temp_dir().join(format!("ch11-save-{}", std::process::id()));
+        fs::create_dir(&directory).unwrap();
+        let model = Mlp::new(4, 8);
+        let optimizer = Optimizer::new(Kind::Adam, model.parameters.len());
+        let path = directory.join("model.bin");
+        let sibling = directory.join("model.tmp");
+        fs::write(&sibling, b"unrelated file").unwrap();
+        let saved = save(&path, &model, &optimizer);
+        let sibling_bytes = fs::read(&sibling);
+        let original = fs::read(&path).unwrap();
+        let temporary = directory.join("model.bin.tmp");
+        fs::write(&temporary, b"existing temporary file").unwrap();
+        let collision = save(&path, &model, &optimizer);
+        let preserved = fs::read(&path).unwrap();
+        let temporary_bytes = fs::read(&temporary).unwrap();
+        let tmp_target = directory.join("checkpoint.tmp");
+        let tmp_saved = save(&tmp_target, &model, &optimizer);
+        let restored = restore(&tmp_target);
+        fs::remove_dir_all(&directory).unwrap();
+        assert!(saved.is_ok());
+        assert_eq!(sibling_bytes.unwrap(), b"unrelated file");
+        assert!(collision.is_err());
+        assert_eq!(preserved, original);
+        assert_eq!(temporary_bytes, b"existing temporary file");
+        assert!(tmp_saved.is_ok());
+        assert_eq!(restored.unwrap().0.parameters, model.parameters);
     }
     #[test]
     fn unsafe_checkpoint_fields_fail_before_state_allocation() {

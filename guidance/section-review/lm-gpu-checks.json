@@ -1,0 +1,46 @@
+[
+  {
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--features",
+      "gpu",
+      "--manifest-path",
+      "projects/ch39/Cargo.toml",
+      "--",
+      "--gpu",
+      "--generate",
+      "0",
+      "--steps",
+      "1",
+      "--checkpoint",
+      "/tmp/ml-section-review-gpu-w1vwg14k/tiny.bin"
+    ],
+    "returncode": 0,
+    "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch38 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38)\n   Compiling ch39 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch39)\n    Finished `release` profile [optimized] target(s) in 0.68s\n     Running `projects/ch39/target/release/ch39 --gpu --generate 0 --steps 1 --checkpoint /tmp/ml-section-review-gpu-w1vwg14k/tiny.bin`\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\ntrainable parameters: 10896\nvalidation cross-entropy: 5.545 -> 5.525\noptimizer steps: 0 -> 1; processed 24 target tokens in 0.007s (3652.2 target tokens/s)\nmodel+Adam moments: 130752 bytes; activations depend on sequence and layers\nsample: The \nsaved resumable checkpoint to /tmp/ml-section-review-gpu-w1vwg14k/tiny.bin\n"
+  },
+  {
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--features",
+      "gpu",
+      "--manifest-path",
+      "projects/ch39/Cargo.toml",
+      "--",
+      "--gpu",
+      "--generate",
+      "0",
+      "--resume",
+      "/tmp/ml-section-review-gpu-w1vwg14k/tiny.bin",
+      "--steps",
+      "1"
+    ],
+    "returncode": 0,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `projects/ch39/target/release/ch39 --gpu --generate 0 --resume /tmp/ml-section-review-gpu-w1vwg14k/tiny.bin --steps 1`\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\ntrainable parameters: 10896\nvalidation cross-entropy: 5.525 -> 5.522\noptimizer steps: 1 -> 2; processed 24 target tokens in 0.009s (2593.1 target tokens/s)\nmodel+Adam moments: 130752 bytes; activations depend on sequence and layers\nsample: The \n"
+  }
+]

@@ -11,71 +11,71 @@
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch39/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.174,
-      "output": "    Checking ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n    Checking ch38 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38)\n    Checking ch39 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch39)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s\n"
+      "seconds": 0.035,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch39/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.236,
-      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch38 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38)\n   Compiling ch39 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch39)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.20s\n     Running unittests src/main.rs (projects/ch39/target/debug/deps/ch39-409c5498d4bf52b8)\n\nrunning 3 tests\ntest tests::published_parameter_counts_are_exact ... ok\ntest tests::overlap_and_tail_evaluation_are_checked ... ok\ntest tests::tiny_run_trains_saves_loads_and_generates ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n"
+      "seconds": 0.056,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s\n     Running unittests src/main.rs (projects/ch39/target/debug/deps/ch39-409c5498d4bf52b8)\n\nrunning 4 tests\ntest tests::published_parameter_counts_are_exact ... ok\ntest tests::resume_requires_byte_ids_and_explicit_large_mode ... ok\ntest tests::overlap_and_tail_evaluation_are_checked ... ok\ntest tests::tiny_run_trains_saves_loads_and_generates ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch39/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.67,
-      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch38 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38)\n   Compiling ch39 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch39)\n    Finished `release` profile [optimized] target(s) in 0.64s\n     Running `projects/ch39/target/release/ch39`\ntrainable parameters: 10896\nvalidation cross-entropy: 5.545 -> 4.472\noptimizer steps: 0 -> 40; processed 960 target tokens in 0.008s (127209.1 target tokens/s)\nmodel+Adam moments: 130752 bytes; activations depend on sequence and layers\nsample: The z\ufffdX&_kan\n\u0006\ufffdhp4\ufffd\u000f\ufffdSIio\ufffd\ufffd\ufffd\ufffd\ufffdhex[=\\k\ufffd\ufffdWi\ufffd\ufffd\ufffdn\ufffds\ufffd\ufffde\u0006&p\ufffd5a\u001c\ufffde\ufffdFb+\ufffdtk\ufffd\ufffdcTr\ufffdlt\ufffd\ufffd$\ufffdm\ufffd]\u0010\ufffd\ufffd\n"
+      "seconds": 0.035,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `projects/ch39/target/release/ch39`\ntrainable parameters: 10896\nvalidation cross-entropy: 5.545 -> 4.472\noptimizer steps: 0 -> 40; processed 960 target tokens in 0.007s (128300.7 target tokens/s)\nmodel+Adam moments: 130752 bytes; activations depend on sequence and layers\nsample: The z\ufffdX&_kan\n\u0006\ufffdhp4\ufffd\u000f\ufffdSIio\ufffd\ufffd\ufffd\ufffd\ufffdhex[=\\k\ufffd\ufffdWi\ufffd\ufffd\ufffdn\ufffds\ufffd\ufffde\u0006&p\ufffd5a\u001c\ufffde\ufffdFb+\ufffdtk\ufffd\ufffdcTr\ufffdlt\ufffd\ufffd$\ufffdm\ufffd]\u0010\ufffd\ufffd\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch39/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.025,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch39/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.154,
-      "output": "    Checking ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n    Checking ch38 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38)\n    Checking ch39_starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch39/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.13s\n"
+      "seconds": 0.037,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch39/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.183,
-      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch38 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38)\n   Compiling ch39_starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch39/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.17s\n     Running `projects/ch39/starter/target/debug/ch39_starter`\nReady to train 10896 parameters on 20 bytes.\nComplete next_token_windows, then run cargo test.\n"
+      "seconds": 0.026,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch39/starter/target/debug/ch39_starter`\nReady to train 10896 parameters on 20 bytes.\nComplete next_token_windows, then run cargo test.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch39/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.063,
-      "output": "   Compiling ch39_starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch39/starter)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.05s\n     Running unittests src/main.rs (projects/ch39/starter/target/debug/deps/ch39_starter-9bc660fa1de4b7dc)\n\nrunning 1 test\ntest targets_are_shifted_one_token ... FAILED\n\nfailures:\n\n---- targets_are_shifted_one_token stdout ----\n\nthread 'targets_are_shifted_one_token' (13529) panicked at src/main.rs:6:5:\nnot yet implemented: guided repair: construct shifted windows\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    targets_are_shifted_one_token\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch39_starter`\n",
+      "seconds": 0.016,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch39/starter/target/debug/deps/ch39_starter-9bc660fa1de4b7dc)\n\nrunning 1 test\ntest targets_are_shifted_one_token ... FAILED\n\nfailures:\n\n---- targets_are_shifted_one_token stdout ----\n\nthread 'targets_are_shifted_one_token' (2023134) panicked at src/main.rs:6:5:\nnot yet implemented: guided repair: construct shifted windows\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    targets_are_shifted_one_token\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch39_starter`\n",
       "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch39_01.rs -o /tmp/ml-check-f_wslj_1/solutionch39_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch39_01.rs -o /tmp/ml-check-qt0rl93m/solutionch39_01",
       "returncode": 0,
-      "seconds": 0.044,
+      "seconds": 0.043,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-f_wslj_1/solutionch39_01",
+      "command": "/tmp/ml-check-qt0rl93m/solutionch39_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest one_token_shift ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch39_01.rs -o /tmp/ml-check-f_wslj_1/exercisech39_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch39_01.rs -o /tmp/ml-check-qt0rl93m/exercisech39_01",
       "returncode": 0,
-      "seconds": 0.042,
+      "seconds": 0.04,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-f_wslj_1/exercisech39_01",
+      "command": "/tmp/ml-check-qt0rl93m/exercisech39_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest one_token_shift ... FAILED\n\nfailures:\n\n---- one_token_shift stdout ----\n\nthread 'one_token_shift' (13601) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch39_01.rs:4:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    one_token_shift\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest one_token_shift ... FAILED\n\nfailures:\n\n---- one_token_shift stdout ----\n\nthread 'one_token_shift' (2023206) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch39_01.rs:4:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    one_token_shift\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
       "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true

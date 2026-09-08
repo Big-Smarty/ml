@@ -100,6 +100,19 @@ fn has_overlap(train: &[u8], valid: &[u8]) -> bool {
     large.windows(32).any(|window| windows.contains(window))
 }
 
+fn validate_resume_config(config: Config, large_mode: bool) -> Result<(), &'static str> {
+    if config.vocab_size != 256 {
+        return Err("byte generation requires a checkpoint vocabulary of exactly 256");
+    }
+    if config == Config::approximately_15m() && !large_mode {
+        return Err("large checkpoint requires --large and an explicit --steps budget");
+    }
+    if large_mode && config != Config::approximately_15m() {
+        return Err("--large checkpoint dimensions do not match");
+    }
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let a = args()?;
     let large = Config::approximately_15m();
@@ -154,9 +167,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let steps = a.steps.unwrap_or(40);
     let mut trainer = if let Some(path) = &a.resume {
         let loaded = Trainer::load(path)?;
-        if a.large && loaded.model.config() != large {
-            return Err("--large checkpoint dimensions do not match".into());
-        }
+        validate_resume_config(loaded.model.config(), a.large)?;
         loaded
     } else {
         let config = if a.large { large } else { default_config() };
@@ -245,6 +256,33 @@ fn main() -> Result<(), Box<dyn Error>> {
 mod tests {
     use super::*;
     use ch36::Rng;
+    #[test]
+    fn resume_requires_byte_ids_and_explicit_large_mode() {
+        for vocab_size in [128, 257] {
+            assert!(validate_resume_config(
+                Config {
+                    vocab_size,
+                    ..default_config()
+                },
+                false
+            )
+            .is_err());
+        }
+        let large = Config::approximately_15m();
+        assert!(validate_resume_config(large, false).is_err());
+        assert!(validate_resume_config(large, true).is_ok());
+        assert!(validate_resume_config(default_config(), true).is_err());
+        assert!(validate_resume_config(
+            Config {
+                context: 8,
+                width: 8,
+                ..default_config()
+            },
+            false
+        )
+        .is_ok());
+    }
+
     #[test]
     fn published_parameter_counts_are_exact() {
         let tiny = default_config();

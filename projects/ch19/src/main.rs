@@ -39,11 +39,9 @@ fn stratified_folds(rows: &[Row], k: usize, seed: u64) -> Result<Vec<usize>, &'s
     }
     let mut order: Vec<usize> = (0..rows.len()).collect();
     order.sort_by_key(|&i| (rows[i].label, mix64(rows[i].id ^ seed)));
-    let mut seen = [0usize; 2];
     let mut folds = vec![usize::MAX; rows.len()];
-    for i in order {
-        folds[i] = seen[rows[i].label as usize] % k;
-        seen[rows[i].label as usize] += 1;
+    for (position, i) in order.into_iter().enumerate() {
+        folds[i] = position % k;
     }
     Ok(folds)
 }
@@ -462,6 +460,30 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn small_classes_still_fill_and_balance_all_folds() -> Result<(), &'static str> {
+        let rows = [DEV[0], DEV[1], DEV[12], DEV[13]];
+        let folds = stratified_folds(&rows, 3, 7)?;
+        let sizes: Vec<_> = (0..3)
+            .map(|fold| folds.iter().filter(|&&f| f == fold).count())
+            .collect();
+        assert!(sizes.iter().all(|&n| n > 0));
+        assert!(sizes.iter().max().unwrap() - sizes.iter().min().unwrap() <= 1);
+        for label in [0, 1] {
+            let counts: Vec<_> = (0..3)
+                .map(|fold| {
+                    rows.iter()
+                        .zip(&folds)
+                        .filter(|(row, f)| row.label == label && **f == fold)
+                        .count()
+                })
+                .collect();
+            assert!(counts.iter().max().unwrap() - counts.iter().min().unwrap() <= 1);
+        }
+        assert!(pooled_cv_accuracy(&rows, &folds, 3, CANDIDATES[0])?.is_finite());
+        Ok(())
+    }
+
     #[test]
     fn stable_ids_and_small_feature_units_are_supported() {
         let folds = stratified_folds(&DEV, 4, 7).unwrap();

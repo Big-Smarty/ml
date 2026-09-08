@@ -1,0 +1,70 @@
+[
+  {
+    "chapter": "29",
+    "command": [
+      "cargo",
+      "test",
+      "--offline",
+      "--release",
+      "--manifest-path",
+      "projects/ch29/Cargo.toml",
+      "--",
+      "--ignored",
+      "--nocapture"
+    ],
+    "returncode": 0,
+    "seconds": 0.079,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.04s\n     Running unittests src/main.rs (projects/ch29/target/release/deps/ch29-25e289a9f3972274)\n\nrunning 1 test\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\ntest tests::gpu_matches_scalar_oracle_for_partial_workgroup ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.02s\n\n"
+  },
+  {
+    "chapter": "30",
+    "command": [
+      "cargo",
+      "test",
+      "--offline",
+      "--release",
+      "--manifest-path",
+      "projects/ch30/Cargo.toml",
+      "--",
+      "--ignored",
+      "--nocapture"
+    ],
+    "returncode": 0,
+    "seconds": 0.118,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running unittests src/lib.rs (projects/ch30/target/release/deps/ch30-f625b721aca24964)\n\nrunning 1 test\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\ntest tests::gpu_matmul_and_reduction_match_scalar_oracles ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.02s\n\n     Running unittests src/main.rs (projects/ch30/target/release/deps/ch30-731f5377bda35897)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests ch30\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+  },
+  {
+    "chapter": "31",
+    "command": [
+      "cargo",
+      "test",
+      "--offline",
+      "--release",
+      "--manifest-path",
+      "projects/ch31/Cargo.toml",
+      "--",
+      "--ignored",
+      "--nocapture"
+    ],
+    "returncode": 0,
+    "seconds": 0.141,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running unittests src/main.rs (projects/ch31/target/release/deps/ch31-14b18c405a01a0bb)\n\nrunning 1 test\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\ntest tests::gpu_training_matches_cpu_and_lowers_loss ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.10s\n\n"
+  },
+  {
+    "chapter": "32",
+    "command": [
+      "cargo",
+      "test",
+      "--offline",
+      "--release",
+      "--manifest-path",
+      "projects/ch32/Cargo.toml",
+      "--",
+      "--ignored",
+      "--nocapture"
+    ],
+    "returncode": 0,
+    "seconds": 0.076,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running unittests src/main.rs (projects/ch32/target/release/deps/ch32-8134f501efa19b00)\n\nrunning 1 test\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\noptional features: timestamp_query=true, shader_f16=true\ntest tests::separate_fused_and_mixed_paths_match ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.02s\n\n"
+  }
+]
