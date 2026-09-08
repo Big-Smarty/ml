@@ -1,5 +1,5 @@
-fn output_index(row: usize, col: usize, columns: usize) -> usize {
-    row * columns + col
+fn output_index(row: usize, col: usize, column_count: usize) -> usize {
+    row * column_count + col
 }
 
 fn main() {

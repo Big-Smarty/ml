@@ -1,5 +1,9 @@
-fn squared_distance(a: [f64; 2], b: [f64; 2]) -> f64 {
-    (a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)
+fn squared_distance(features: [f64; 2], other_features: [f64; 2]) -> f64 {
+    features
+        .into_iter()
+        .zip(other_features)
+        .map(|(value, other_value)| (value - other_value).powi(2))
+        .sum()
 }
 
 fn main() {

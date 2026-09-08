@@ -1,5 +1,5 @@
 {
-  "outcomes": ["Explain why a linear neuron cannot represent XOR", "Trace a 2-2-1 network forward by hand", "Derive and implement both layers of backpropagation", "Check hidden and output gradients with central differences"],
+  "outcomes": ["Explain why a linear neuron cannot represent XOR", "Distinguish a forward-pass cache, a probability, and a class prediction", "Derive and implement an averaged Gradient for both network layers", "Apply the Gradient as one simultaneous optimizer step", "Check all nine parameter gradients with central differences"],
   "lessons": ["The XOR limit", "Manual chain rule", "Stable objective and checking", "The Rust network", "Backward-pass practice", "Review and transfer"],
   "terms": {
     "hidden-layer": {"name":"Hidden layer","definition":"A layer whose activations are internal features rather than final predictions.","explanation":"A hidden layer receives inputs from an earlier layer and supplies transformed values to a later one. Its parameters are learned through gradients propagated from the loss. When a nonlinear activation lies between dense layers, the model can represent relationships that a single affine transformation cannot. Hidden does not mean inaccessible: during development we can inspect activations and gradients. The term only distinguishes these units from the provided inputs and requested outputs."},
@@ -11,6 +11,6 @@
     {"title":"PDP Handbook: Training Hidden Units","url":"https://web.stanford.edu/group/pdplab/pdphandbookV3/handbookch6.html","note":"Explicit XOR derivation"},
     {"title":"Perceptrons","url":"https://mitpress.mit.edu/9780262130431/perceptrons/","note":"Linear perceptron capabilities and limits"}
   ],
-  "checks": ["10,000 full-batch updates produce XOR loss below 0.02", "All four XOR labels are classified correctly", "Hidden and output weight gradients match central differences", "Nonpositive learning rates are rejected", "The actual update matches central differences for all nine parameters"],
+  "checks": ["10,000 full-batch updates on explicit XOR data produce mean binary cross-entropy below 0.02", "predict classifies all four XOR examples correctly at threshold 0.5", "The averaged Gradient matches central differences for all nine parameters", "step applies that Gradient to every matching parameter", "Empty or nonfinite data, out-of-range targets, and nonpositive learning rates are rejected"],
   "limitations": ["The exact four-row fixture does not establish noisy-data generalization", "Sigmoid hidden units can saturate", "Fixed-size arrays cover only the stated 2-2-1 architecture"]
 }

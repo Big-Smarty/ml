@@ -1,1 +1,72 @@
-{"outcomes":["Record source and license provenance for every document","Apply explicit cleaning and inspect removed content","Detect exact and near duplicates with a documented similarity rule","Assign whole documents to stable splits and audit contamination"],"lessons":["Know what each document is","Clean with explicit rules","Remove repeated documents","Split complete documents and test contamination","Produce and inspect the audit","Practice, debug, and transfer"],"terms":{"provenance":{"name":"data provenance","definition":"A record of where data came from, what terms govern it, and which transformations produced the training artifact.","explanation":"Useful provenance connects each retained document to a source, author or publisher when known, license or terms, retrieval context, identity, and processing recipe. It supports reproducibility, rights review, debugging, and removal requests. A URL or mirror license does not establish rights to the text itself. Provenance records evidence rather than guaranteeing legality or quality. Model checkpoints should refer to the exact corpus manifest and tokenizer so later results can be traced to their inputs."},"near-duplicate":{"name":"near duplicate","definition":"A document substantially overlapping another after small formatting or content changes.","explanation":"Exact hashes miss copies that add navigation, alter whitespace, or edit a few words. Near-duplicate detectors compare features such as token shingles and remove pairs above a recorded threshold. The choice balances repeated-content leakage against false removal of legitimately related documents. Deduplication order also decides which copy survives. At scale, approximate search reduces cost, while an exact small implementation can remain an oracle. Removed-to-retained links make the decision auditable."},"contamination":{"name":"evaluation contamination","definition":"Training exposure to evaluation items, answers, or close variants that weakens the meaning of held-out scores.","explanation":"Contamination can arise through exact document copies, quoted benchmark questions, solution pages, neighboring windows, or semantically close variants. Document splitting and cross-split deduplication prevent common forms, while substring or paragraph checks catch items embedded in larger pages. Every detector has false negatives and false positives, so a clean report is evidence under a stated method rather than proof of absence. Evaluation data should remain untouched while training choices are made."}},"sources":[{"title":"Documenting Large Webtext Corpora","url":"https://arxiv.org/abs/2104.08758","note":"Primary C4 audit."},{"title":"Deduplicating Training Data Makes Language Models Better","url":"https://arxiv.org/abs/2107.06499","note":"Primary LM deduplication study."},{"title":"Dolma","url":"https://arxiv.org/abs/2402.00159","note":"Open-corpus curation and provenance source."},{"title":"PALOMA","url":"https://arxiv.org/abs/2312.10523","note":"Evaluation and decontamination benchmark."},{"title":"Datasheets for Datasets","url":"https://arxiv.org/abs/1803.09010","note":"Dataset documentation framework."}],"checks":["Malformed or empty documents return errors","Near-duplicate fixture removes the intended copy","Manifest retains source and license fields","Document IDs are unique and assigned to exactly one split"],"limitations":["Quadratic pair comparison is for small corpora","FNV identity is not cryptographic authentication","The fixture does not demonstrate language or PII filtering"]}
+{
+  "outcomes": [
+    "Parse whole documents while preserving source and license provenance",
+    "Normalize document text and compute a stable derived identity",
+    "Remove exact and detected near duplicates with an auditable rule",
+    "Assign each retained whole document to one stable split without constructing token windows"
+  ],
+  "lessons": [
+    "Know what each document is",
+    "Clean with explicit rules",
+    "Remove repeated documents",
+    "Split complete documents and bound contamination claims",
+    "Produce and inspect the audit",
+    "Practice, debug, and transfer"
+  ],
+  "terms": {
+    "provenance": {
+      "name": "data provenance",
+      "definition": "A record of where data came from, what terms govern it, and which transformations produced a derived corpus artifact.",
+      "explanation": "Useful provenance connects each retained document to a source, author or publisher when known, license or terms, retrieval context, identity, and processing recipe. It supports reproducibility, rights review, debugging, and removal requests. A URL or mirror license does not establish rights to the text itself. Provenance records evidence rather than guaranteeing legality or quality. Later model checkpoints should refer to the exact corpus manifest and tokenizer so results can be traced to their inputs."
+    },
+    "near-duplicate": {
+      "name": "near duplicate",
+      "definition": "A document substantially overlapping another after small formatting or content changes.",
+      "explanation": "Exact hashes miss copies that add navigation, alter whitespace, or edit a few words. Near-duplicate detectors compare features such as token shingles and remove pairs above a recorded threshold. The choice balances repeated-content leakage against false removal of legitimately related documents. Deduplication order also decides which copy survives. At scale, approximate search reduces cost, while an exact small implementation can remain an oracle. Removed-to-retained links make the decision auditable."
+    },
+    "contamination": {
+      "name": "evaluation contamination",
+      "definition": "Training exposure to evaluation items, answers, or close variants that weakens the meaning of held-out scores.",
+      "explanation": "Contamination can arise through exact document copies, quoted benchmark questions, solution pages, neighboring windows, or semantic variants. This chapter's whole-document comparison removes exact and detected near duplicates before split assignment. It does not find embedded passages or paraphrases, and its split artifact cannot force a downstream window builder to respect document boundaries. Every detector has false negatives and false positives, so a clean report is evidence under a stated method rather than proof of absence."
+    }
+  },
+  "sources": [
+    {
+      "title": "Documenting Large Webtext Corpora",
+      "url": "https://arxiv.org/abs/2104.08758",
+      "note": "Primary C4 audit."
+    },
+    {
+      "title": "Deduplicating Training Data Makes Language Models Better",
+      "url": "https://arxiv.org/abs/2107.06499",
+      "note": "Primary LM deduplication study."
+    },
+    {
+      "title": "Dolma",
+      "url": "https://arxiv.org/abs/2402.00159",
+      "note": "Open-corpus curation and provenance source."
+    },
+    {
+      "title": "PALOMA",
+      "url": "https://arxiv.org/abs/2312.10523",
+      "note": "Evaluation and decontamination benchmark."
+    },
+    {
+      "title": "Datasheets for Datasets",
+      "url": "https://arxiv.org/abs/1803.09010",
+      "note": "Dataset documentation framework."
+    }
+  ],
+  "checks": [
+    "Parsing, cleaning, deduplication, and split assignment produce separate document artifacts",
+    "Malformed metadata, empty cleaned text, and invalid thresholds return errors",
+    "The near-duplicate fixture removes the intended copy and records its retained-document link",
+    "The manifest retains source and license fields and gives each retained document exactly one split"
+  ],
+  "limitations": [
+    "Quadratic pair comparison is for small corpora",
+    "FNV identity is not cryptographic authentication",
+    "The fixture does not demonstrate language, personal-data, substring, or semantic-overlap filtering",
+    "The project does not tokenize, construct windows, train a model, or enforce how downstream consumers traverse document boundaries"
+  ]
+}

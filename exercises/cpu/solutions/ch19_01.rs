@@ -1,6 +1,6 @@
-fn pooled_accuracy(folds: &[(usize, usize)]) -> f64 {
-    let correct: usize = folds.iter().map(|x| x.0).sum();
-    let total: usize = folds.iter().map(|x| x.1).sum();
+fn pooled_accuracy(fold_counts: &[(usize, usize)]) -> f64 {
+    let correct: usize = fold_counts.iter().map(|&(correct, _)| correct).sum();
+    let total: usize = fold_counts.iter().map(|&(_, total)| total).sum();
     correct as f64 / total as f64
 }
 

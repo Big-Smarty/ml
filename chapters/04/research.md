@@ -10,6 +10,10 @@ Model route: GPT-5.6 Sol High author with bounded GPT-5.6 Luna High primary-sour
 
 The two-class points and implementation are original course fixtures.
 
+## Consistency revision — 2026-09-08
+
+No new external claims were needed. The revision was checked against Chapters 1–3 and the local course contract. It preserves the affine weights-and-bias calculation while making the task change explicit: `logit` is an unbounded score, `probability` is sigmoid of that score, and `predict` is the class decision. Mean BCE replaces regression MSE, but `loss`, `gradient`, `loss_and_gradient`, `numerical_gradient`, `step`, and `train` keep the established argument order and ownership conventions. Parameter derivatives now use a separate `Gradient` rather than pretending to be a trained `LogisticModel`.
+
 
 ## Astra High review — 2026-09-08
 

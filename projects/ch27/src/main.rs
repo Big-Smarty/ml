@@ -7,220 +7,287 @@ struct Model {
     bias: f32,
 }
 
-fn fixture(rows: usize, features: usize) -> (Vec<f32>, Vec<f32>) {
-    let mut x = Vec::with_capacity(rows * features);
-    let mut y = Vec::with_capacity(rows);
-    for r in 0..rows {
-        let mut target = 0.25;
-        for f in 0..features {
-            let v = (((r * 17 + f * 13) % 29) as f32 - 14.0) / 14.0;
-            x.push(v);
-            target += v * (f as f32 + 1.0) * 0.3;
-        }
-        y.push(target);
-    }
-    (x, y)
+#[derive(Debug, PartialEq)]
+struct Gradient {
+    weights: Vec<f64>,
+    bias: f64,
 }
 
-fn check(x: &[f32], y: &[f32], features: usize) -> Result<usize, String> {
-    if features == 0
-        || !x.len().is_multiple_of(features)
-        || x.len() / features != y.len()
-        || y.is_empty()
-    {
-        return Err("expected nonempty x=[rows,features] and y=[rows]".into());
+fn fixture(batch: usize, in_features: usize) -> (Vec<f32>, Vec<f32>) {
+    let mut inputs = Vec::with_capacity(batch * in_features);
+    let mut targets = Vec::with_capacity(batch);
+    for row in 0..batch {
+        let mut target = 0.25;
+        for feature in 0..in_features {
+            let value = (((row * 17 + feature * 13) % 29) as f32 - 14.0) / 14.0;
+            inputs.push(value);
+            target += value * (feature as f32 + 1.0) * 0.3;
+        }
+        targets.push(target);
     }
-    if x.iter().chain(y).any(|v| !v.is_finite()) {
+    (inputs, targets)
+}
+
+fn validate_training_data(
+    inputs: &[f32],
+    targets: &[f32],
+    in_features: usize,
+) -> Result<usize, String> {
+    if in_features == 0
+        || !inputs.len().is_multiple_of(in_features)
+        || inputs.len() / in_features != targets.len()
+        || targets.is_empty()
+    {
+        return Err("expected nonempty inputs=[batch,in_features] and targets=[batch]".into());
+    }
+    if inputs.iter().chain(targets).any(|value| !value.is_finite()) {
         return Err("data must be finite".into());
     }
-    Ok(y.len())
+    Ok(targets.len())
 }
 
 impl Model {
-    fn check_input(&self, x: &[f32], features: usize) -> Result<(), String> {
-        if features == 0 || self.weights.len() != features || !x.len().is_multiple_of(features) {
+    fn validate_inputs(&self, inputs: &[f32], in_features: usize) -> Result<(), String> {
+        if in_features == 0
+            || self.weights.len() != in_features
+            || !inputs.len().is_multiple_of(in_features)
+        {
             return Err("inference shape mismatch".into());
         }
-        if !self.bias.is_finite() || self.weights.iter().chain(x).any(|v| !v.is_finite()) {
+        if !self.bias.is_finite()
+            || self
+                .weights
+                .iter()
+                .chain(inputs)
+                .any(|value| !value.is_finite())
+        {
             return Err("model and input must be finite".into());
         }
         Ok(())
     }
-    fn predict_row(&self, row: &[f32]) -> f32 {
+
+    fn predict(&self, features: &[f32]) -> f32 {
         self.bias
             + self
                 .weights
                 .iter()
-                .zip(row)
-                .map(|(w, x)| w * x)
+                .zip(features)
+                .map(|(weight, feature)| weight * feature)
                 .sum::<f32>()
     }
-    fn infer(&self, x: &[f32], features: usize) -> Result<Vec<f32>, String> {
-        self.check_input(x, features)?;
-        let out: Vec<_> = x
-            .chunks_exact(features)
-            .map(|r| self.predict_row(r))
+
+    fn predict_batch(&self, inputs: &[f32], in_features: usize) -> Result<Vec<f32>, String> {
+        self.validate_inputs(inputs, in_features)?;
+        let predictions: Vec<_> = inputs
+            .chunks_exact(in_features)
+            .map(|features| self.predict(features))
             .collect();
-        if out.iter().any(|v| !v.is_finite()) {
+        if predictions.iter().any(|value| !value.is_finite()) {
             return Err("prediction overflow; rescale the inputs".into());
         }
-        Ok(out)
+        Ok(predictions)
     }
-    fn infer_parallel(
+
+    fn predict_batch_parallel(
         &self,
-        x: &[f32],
-        features: usize,
+        inputs: &[f32],
+        in_features: usize,
         threads: usize,
     ) -> Result<Vec<f32>, String> {
-        self.check_input(x, features)?;
+        self.validate_inputs(inputs, in_features)?;
         if threads == 0 {
             return Err("inference shape or thread count is invalid".into());
         }
-        let rows = x.len() / features;
-        if rows == 0 {
+        let batch = inputs.len() / in_features;
+        if batch == 0 {
             return Ok(Vec::new());
         }
-        let shards = threads.min(rows);
-        let per = rows.div_ceil(shards);
-        let mut out = vec![0.; rows];
+        let shards = threads.min(batch);
+        let rows_per_shard = batch.div_ceil(shards);
+        let mut predictions = vec![0.; batch];
         thread::scope(|scope| {
-            let mut tail = &mut out[..];
+            let mut remaining_predictions = &mut predictions[..];
             for shard in 0..shards {
-                let start = shard * per;
-                if start >= rows {
+                let start = shard * rows_per_shard;
+                if start >= batch {
                     break;
                 }
-                let end = start.saturating_add(per).min(rows);
-                let len = end - start;
-                let (now, rest) = tail.split_at_mut(len);
-                tail = rest;
-                let input = &x[start * features..end * features];
+                let end = start.saturating_add(rows_per_shard).min(batch);
+                let shard_len = end - start;
+                let (shard_predictions, rest) = remaining_predictions.split_at_mut(shard_len);
+                remaining_predictions = rest;
+                let shard_inputs = &inputs[start * in_features..end * in_features];
                 scope.spawn(move || {
-                    for (r, dst) in input.chunks_exact(features).zip(now) {
-                        *dst = self.predict_row(r);
+                    for (features, prediction) in shard_inputs
+                        .chunks_exact(in_features)
+                        .zip(shard_predictions)
+                    {
+                        *prediction = self.predict(features);
                     }
                 });
             }
         });
-        if out.iter().any(|v| !v.is_finite()) {
+        if predictions.iter().any(|value| !value.is_finite()) {
             return Err("prediction overflow; rescale the inputs".into());
         }
-        Ok(out)
+        Ok(predictions)
     }
 }
 
-fn shard_gradient(
+fn loss_and_gradient_sum(
     model: &Model,
-    x: &[f32],
-    y: &[f32],
-    features: usize,
-    start: usize,
-    end: usize,
-) -> (f64, Vec<f64>, f64) {
-    let mut loss = 0.;
-    let mut dw = vec![0.; features];
-    let mut db = 0.;
-    for r in start..end {
-        let row = &x[r * features..(r + 1) * features];
-        let e = model.predict_row(row) as f64 - y[r] as f64;
-        loss += e * e;
-        db += 2. * e;
-        for f in 0..features {
-            dw[f] += 2. * e * row[f] as f64;
+    inputs: &[f32],
+    targets: &[f32],
+    in_features: usize,
+) -> (f64, Gradient) {
+    let mut loss_sum = 0.0;
+    let mut gradient_sum = Gradient {
+        weights: vec![0.0; in_features],
+        bias: 0.0,
+    };
+    for (features, &target) in inputs.chunks_exact(in_features).zip(targets) {
+        let error = model.predict(features) as f64 - target as f64;
+        loss_sum += error * error;
+        gradient_sum.bias += 2.0 * error;
+        for (weight_gradient, &feature) in gradient_sum.weights.iter_mut().zip(features) {
+            *weight_gradient += 2.0 * error * feature as f64;
         }
     }
-    (loss, dw, db)
+    (loss_sum, gradient_sum)
 }
 
-fn gradient_parallel(
+fn mean_loss_and_gradient(
+    loss_sum: f64,
+    mut gradient_sum: Gradient,
+    batch: usize,
+) -> Result<(f64, Gradient), String> {
+    let scale = 1.0 / batch as f64;
+    gradient_sum.bias *= scale;
+    for weight_gradient in &mut gradient_sum.weights {
+        *weight_gradient *= scale;
+    }
+    let loss = loss_sum * scale;
+    if !loss.is_finite()
+        || !gradient_sum.bias.is_finite()
+        || gradient_sum.weights.iter().any(|value| !value.is_finite())
+    {
+        return Err("gradient overflow; rescale inputs or model".into());
+    }
+    Ok((loss, gradient_sum))
+}
+
+fn loss_and_gradient(
     model: &Model,
-    x: &[f32],
-    y: &[f32],
-    features: usize,
+    inputs: &[f32],
+    targets: &[f32],
+    in_features: usize,
+) -> Result<(f64, Gradient), String> {
+    let batch = validate_training_data(inputs, targets, in_features)?;
+    model.validate_inputs(inputs, in_features)?;
+    let (loss_sum, gradient_sum) = loss_and_gradient_sum(model, inputs, targets, in_features);
+    mean_loss_and_gradient(loss_sum, gradient_sum, batch)
+}
+
+fn loss_and_gradient_parallel(
+    model: &Model,
+    inputs: &[f32],
+    targets: &[f32],
+    in_features: usize,
     threads: usize,
-) -> Result<(f64, Vec<f64>, f64), String> {
-    let rows = check(x, y, features)?;
-    model.check_input(x, features)?;
-    if model.weights.len() != features || threads == 0 {
+) -> Result<(f64, Gradient), String> {
+    let batch = validate_training_data(inputs, targets, in_features)?;
+    model.validate_inputs(inputs, in_features)?;
+    if threads == 0 {
         return Err("model shape or thread count is invalid".into());
     }
-    let shards = threads.min(rows);
-    let per = rows.div_ceil(shards);
+    let shards = threads.min(batch);
+    let rows_per_shard = batch.div_ceil(shards);
     let partials = thread::scope(|scope| {
         let mut handles = Vec::new();
         for shard in 0..shards {
-            let start = shard * per;
-            let end = start.saturating_add(per).min(rows);
+            let start = shard * rows_per_shard;
+            let end = start.saturating_add(rows_per_shard).min(batch);
             if start < end {
-                handles
-                    .push(scope.spawn(move || shard_gradient(model, x, y, features, start, end)));
+                let shard_inputs = &inputs[start * in_features..end * in_features];
+                let shard_targets = &targets[start..end];
+                handles.push(scope.spawn(move || {
+                    loss_and_gradient_sum(model, shard_inputs, shard_targets, in_features)
+                }));
             }
         }
         handles
             .into_iter()
-            .map(|h| h.join().expect("gradient worker panicked"))
+            .map(|handle| handle.join().expect("gradient worker panicked"))
             .collect::<Vec<_>>()
     });
-    let (mut loss, mut dw, mut db) = (0., vec![0.; features], 0.);
-    for (l, g, b) in partials {
-        loss += l;
-        db += b;
-        for (i, v) in g.into_iter().enumerate() {
-            dw[i] += v;
+    let mut loss_sum = 0.0;
+    let mut gradient_sum = Gradient {
+        weights: vec![0.0; in_features],
+        bias: 0.0,
+    };
+    for (shard_loss_sum, shard_gradient_sum) in partials {
+        loss_sum += shard_loss_sum;
+        gradient_sum.bias += shard_gradient_sum.bias;
+        for (total, shard) in gradient_sum
+            .weights
+            .iter_mut()
+            .zip(shard_gradient_sum.weights)
+        {
+            *total += shard;
         }
     }
-    let scale = 1. / rows as f64;
-    for v in &mut dw {
-        *v *= scale
-    }
-    if !loss.is_finite() || !db.is_finite() || dw.iter().any(|v| !v.is_finite()) {
-        return Err("gradient overflow; rescale inputs or model".into());
-    }
-    Ok((loss * scale, dw, db * scale))
+    mean_loss_and_gradient(loss_sum, gradient_sum, batch)
 }
 
 fn train_step(
     model: &mut Model,
-    x: &[f32],
-    y: &[f32],
-    features: usize,
+    inputs: &[f32],
+    targets: &[f32],
+    in_features: usize,
     threads: usize,
-    rate: f32,
+    learning_rate: f32,
 ) -> Result<f64, String> {
-    if !rate.is_finite() || rate <= 0. {
+    if !learning_rate.is_finite() || learning_rate <= 0.0 {
         return Err("learning rate must be finite and positive".into());
     }
-    let (loss, dw, db) = gradient_parallel(model, x, y, features, threads)?;
+    let (loss, gradient) =
+        loss_and_gradient_parallel(model, inputs, targets, in_features, threads)?;
     if model
         .weights
         .iter()
-        .zip(&dw)
-        .any(|(w, g)| !(w - rate * *g as f32).is_finite())
-        || !(model.bias - rate * db as f32).is_finite()
+        .zip(&gradient.weights)
+        .any(|(weight, weight_gradient)| {
+            !(weight - learning_rate * *weight_gradient as f32).is_finite()
+        })
+        || !(model.bias - learning_rate * gradient.bias as f32).is_finite()
     {
         return Err("update overflow; reduce the learning rate".into());
     }
-    for (w, g) in model.weights.iter_mut().zip(dw) {
-        *w -= rate * g as f32;
+    for (weight, weight_gradient) in model.weights.iter_mut().zip(gradient.weights) {
+        *weight -= learning_rate * weight_gradient as f32;
     }
-    model.bias -= rate * db as f32;
+    model.bias -= learning_rate * gradient.bias as f32;
     Ok(loss)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let features = 4;
-    let (x, y) = fixture(64, features);
+    let in_features = 4;
+    let (inputs, targets) = fixture(64, in_features);
     let mut model = Model {
-        weights: vec![0.; features],
+        weights: vec![0.; in_features],
         bias: 0.,
     };
-    let before = gradient_parallel(&model, &x, &y, features, 4)?.0;
-    for _ in 0..40 {
-        train_step(&mut model, &x, &y, features, 4, 0.2)?;
+    let scalar_before = loss_and_gradient(&model, &inputs, &targets, in_features)?.0;
+    let before = loss_and_gradient_parallel(&model, &inputs, &targets, in_features, 4)?.0;
+    if (before - scalar_before).abs() > 1e-6 + 1e-5 * scalar_before.abs() {
+        return Err("parallel loss disagrees with scalar loss".into());
     }
-    let after = gradient_parallel(&model, &x, &y, features, 4)?.0;
-    let predictions = model.infer_parallel(&x[..8 * features], features, 4)?;
-    let scalar_predictions = model.infer(&x[..8 * features], features)?;
+    for _ in 0..40 {
+        train_step(&mut model, &inputs, &targets, in_features, 4, 0.2)?;
+    }
+    let after = loss_and_gradient_parallel(&model, &inputs, &targets, in_features, 4)?.0;
+    let predictions = model.predict_batch_parallel(&inputs[..8 * in_features], in_features, 4)?;
+    let scalar_predictions = model.predict_batch(&inputs[..8 * in_features], in_features)?;
     if predictions != scalar_predictions {
         return Err("parallel inference disagrees with scalar inference".into());
     }
@@ -234,95 +301,117 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn close(a: f64, b: f64) -> bool {
+        (a - b).abs() <= 1e-6 + 1e-5 * b.abs()
+    }
+
     #[test]
-    fn gradient_and_update_match_nonzero_hand_example() {
+    fn loss_gradient_and_update_match_nonzero_hand_example() {
         let mut model = Model {
             weights: vec![0.5, -1.0],
             bias: 0.25,
         };
-        let x = [1.0, 2.0, 3.0, 1.0];
-        let y = [-1.0, 1.0];
-        let (loss, dw, db) = gradient_parallel(&model, &x, &y, 2, 8).unwrap();
+        let inputs = [1.0, 2.0, 3.0, 1.0];
+        let targets = [-1.0, 1.0];
+        let (loss, gradient) = loss_and_gradient_parallel(&model, &inputs, &targets, 2, 8).unwrap();
         assert!(close(loss, 0.0625));
-        assert!(close(dw[0], -1.0));
-        assert!(close(dw[1], -0.75));
-        assert!(close(db, -0.5));
-        train_step(&mut model, &x, &y, 2, 8, 0.1).unwrap();
+        assert!(close(gradient.weights[0], -1.0));
+        assert!(close(gradient.weights[1], -0.75));
+        assert!(close(gradient.bias, -0.5));
+        train_step(&mut model, &inputs, &targets, 2, 8, 0.1).unwrap();
         assert!(close(model.weights[0] as f64, 0.6));
         assert!(close(model.weights[1] as f64, -0.925));
         assert!(close(model.bias as f64, 0.3));
     }
+
     #[test]
     fn invalid_arithmetic_is_rejected_before_committing_update() {
         let mut model = Model {
             weights: vec![0.0],
             bias: 0.0,
         };
-        assert!(model.infer(&[f32::NAN], 1).is_err());
-        assert!(model.infer_parallel(&[f32::NAN], 1, 2).is_err());
+        assert!(model.predict_batch(&[f32::NAN], 1).is_err());
+        assert!(model.predict_batch_parallel(&[f32::NAN], 1, 2).is_err());
+        assert!(model.predict_batch_parallel(&[1.0], 1, 0).is_err());
+        assert!(loss_and_gradient_parallel(&model, &[1.0], &[f32::NAN], 1, 1).is_err());
+        assert!(loss_and_gradient_parallel(&model, &[1.0], &[2.0], 1, 0).is_err());
         assert!(train_step(&mut model, &[1.0], &[2.0], 1, 2, f32::MAX).is_err());
         assert_eq!(model.weights, vec![0.0]);
         assert_eq!(model.bias, 0.0);
         model.weights[0] = f32::MAX;
-        assert!(gradient_parallel(&model, &[2.0], &[0.0], 1, 1).is_err());
+        assert!(loss_and_gradient_parallel(&model, &[2.0], &[0.0], 1, 1).is_err());
     }
 
-    fn close(a: f64, b: f64) -> bool {
-        (a - b).abs() <= 1e-6 + 1e-5 * b.abs()
-    }
     #[test]
-    fn parallel_inference_and_gradients_agree_with_scalar() {
-        let f = 3;
-        let (x, y) = fixture(17, f);
-        let m = Model {
+    fn parallel_predictions_and_gradients_agree_with_scalar() {
+        let in_features = 3;
+        let (inputs, targets) = fixture(17, in_features);
+        let model = Model {
             weights: vec![0.2, -0.1, 0.4],
             bias: 0.3,
         };
-        let a = m.infer(&x, f).unwrap();
-        let b = m.infer_parallel(&x, f, 4).unwrap();
-        assert_eq!(a, b);
-        let scalar = shard_gradient(&m, &x, &y, f, 0, y.len());
-        let p = gradient_parallel(&m, &x, &y, f, 4).unwrap();
-        assert!(close(p.0, scalar.0 / y.len() as f64));
-        for (i, g) in p.1.iter().enumerate() {
-            assert!(close(*g, scalar.1[i] / y.len() as f64));
+        let scalar_predictions = model.predict_batch(&inputs, in_features).unwrap();
+        let parallel_predictions = model
+            .predict_batch_parallel(&inputs, in_features, 4)
+            .unwrap();
+        assert_eq!(scalar_predictions, parallel_predictions);
+        let scalar = loss_and_gradient(&model, &inputs, &targets, in_features).unwrap();
+        let parallel =
+            loss_and_gradient_parallel(&model, &inputs, &targets, in_features, 4).unwrap();
+        assert!(close(parallel.0, scalar.0));
+        for (parallel_weight, scalar_weight) in parallel.1.weights.iter().zip(scalar.1.weights) {
+            assert!(close(*parallel_weight, scalar_weight));
         }
-        assert!(close(p.2, scalar.2 / y.len() as f64));
+        assert!(close(parallel.1.bias, scalar.1.bias));
     }
+
     #[test]
-    fn parallel_training_reduces_loss() {
-        let f = 4;
-        let (x, y) = fixture(31, f);
-        let mut m = Model {
-            weights: vec![0.; f],
+    fn parallel_training_reduces_loss_with_unequal_shards() {
+        let in_features = 4;
+        let (inputs, targets) = fixture(31, in_features);
+        let mut model = Model {
+            weights: vec![0.; in_features],
             bias: 0.,
         };
-        let before = gradient_parallel(&m, &x, &y, f, 3).unwrap().0;
+        let before = loss_and_gradient_parallel(&model, &inputs, &targets, in_features, 3)
+            .unwrap()
+            .0;
         for _ in 0..60 {
-            train_step(&mut m, &x, &y, f, 3, 0.2).unwrap();
+            train_step(&mut model, &inputs, &targets, in_features, 3, 0.2).unwrap();
         }
-        assert!(gradient_parallel(&m, &x, &y, f, 3).unwrap().0 < before * 1e-3);
+        assert!(
+            loss_and_gradient_parallel(&model, &inputs, &targets, in_features, 3)
+                .unwrap()
+                .0
+                < before * 1e-3
+        );
     }
+
     #[test]
-    fn empty_inference_is_valid_but_empty_training_is_not() {
-        let m = Model {
+    fn empty_prediction_batch_is_valid_but_empty_training_is_not() {
+        let model = Model {
             weights: vec![1.],
             bias: 0.,
         };
-        assert!(m.infer_parallel(&[], 1, 2).unwrap().is_empty());
-        assert!(gradient_parallel(&m, &[], &[], 1, 2).is_err());
+        assert!(model.predict_batch_parallel(&[], 1, 2).unwrap().is_empty());
+        assert!(loss_and_gradient_parallel(&model, &[], &[], 1, 2).is_err());
     }
+
     #[test]
-    fn inference_handles_every_short_uneven_partition() {
-        let m = Model {
+    fn prediction_handles_every_short_uneven_partition() {
+        let model = Model {
             weights: vec![0.5, -0.25],
             bias: 0.1,
         };
-        for rows in 1..20 {
-            let (x, _) = fixture(rows, 2);
-            let scalar = m.infer(&x, 2).unwrap();
+        for batch in 1..20 {
+            let (inputs, _) = fixture(batch, 2);
+            let scalar = model.predict_batch(&inputs, 2).unwrap();
             for threads in 1..25 {
-                assert_eq!(m.infer_parallel(&x, 2, threads).unwrap(), scalar);
+                assert_eq!(
+                    model.predict_batch_parallel(&inputs, 2, threads).unwrap(),
+                    scalar
+                );
             }
         }
     }

@@ -8,11 +8,11 @@ fn next_counts(data: &[u8], current: u8) -> [usize; 256] {
     counts
 }
 fn main() {
-    println!("Count next bytes; embeddings will learn a smooth version.");
+    println!("Count next-byte class IDs; the model will learn their probabilities.");
 }
 #[test]
 fn counts_successors() {
-    let c = next_counts(b"abacab", b'a');
-    assert_eq!(c[b'b' as usize], 2);
-    assert_eq!(c[b'c' as usize], 1);
+    let counts = next_counts(b"abacab", b'a');
+    assert_eq!(counts[b'b' as usize], 2);
+    assert_eq!(counts[b'c' as usize], 1);
 }

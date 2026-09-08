@@ -50,6 +50,7 @@
     "GAN training changes both generator and discriminator parameters and yields finite samples",
     "Diffusion noise MSE falls by at least 20 percent",
     "A perfect supplied noise value maps each diffusion state to the exact previous deterministic state",
+    "Explicit alternate data changes the VAE objective, and invalid empty, nonfinite, mismatched, or diffusion-schedule inputs are rejected",
     "Default execution trains all three models and reports 512-sample distribution summaries, distinguishing VAE means from full observations"
   ],
   "limitations": [

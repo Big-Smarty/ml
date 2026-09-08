@@ -1,9 +1,51 @@
 <p class="lead">A trained weight vector is not yet a usable ML system. The same preprocessing must reach inference, requests need a contract, artifacts need identities, and operators need evidence for keeping or reversing a release. This chapter turns a tiny linear model into a complete local operational loop.</p>
 <div class="callout"><strong>Operational milestone</strong><p>The project trains a standardized model, writes a validated versioned artifact with a data fingerprint, serves that artifact through a real local HTTP endpoint, observes input drift, and selects a previous artifact when a candidate fails a canary. It is a miniature for learning contracts, not a production server.</p></div>
 
+<section id="continuity"><h2>Code and terminology carried forward</h2>
+<p><a href="/chapters/52.html">Chapter 52</a> ended with a trained computation and held-out retrieval metrics. This chapter changes the task back to scalar f64 regression so the operational boundary stays visible: one raw input produces one numerical prediction. It keeps the course meanings of <code>weight</code>, <code>bias</code>, <code>learning_rate</code>, <code>predict</code>, and training <code>data</code>. The scalar model now also owns fitted <code>mean</code> and <code>scale</code>, because inference must apply the same normalization as training. The shared naming and shape rules are on the <a href="/conventions.html">conventions page</a>.</p>
+<p><a href="/chapters/11.html">Chapter 11</a> introduced a checkpoint as validated saved state, and <a href="/chapters/38.html">Chapter 38</a> saved enough optimizer state to resume the exact next update. Chapter 53's <code>MLMODEL</code> artifact instead contains only the state and metadata needed for this model's inference; it makes no exact-resume promise. Its <code>Model::decode</code> parses checkpoint text. That operation is distinct from <a href="/chapters/34.html">Chapter 34</a>'s tokenizer <code>Bpe::decode</code>, which maps token IDs back to bytes, and from <a href="/chapters/36.html">Chapter 36</a>'s neural <code>Decoder</code>, which maps token IDs to next-token logits.</p>
+<div class="table-wrap"><table><caption>The Chapter 53 scalar contract</caption><thead><tr><th>Operation</th><th>Input → output</th><th>Reduction and errors</th></tr></thead><tbody><tr><td><code>train</code></td><td><code>data [(input,target)]</code>, version → <code>Result&lt;Model, &amp;str&gt;</code></td><td>Fits population mean/scale, then takes 300 gradient steps at learning rate 0.05. Weight and bias gradients average over all examples. Empty, constant, or nonfinite data returns an error.</td></tr><tr><td><code>Model::predict</code></td><td>raw scalar → <code>Result&lt;f64, &amp;str&gt;</code></td><td>Normalizes one input and performs no reduction. Invalid model state, out-of-range input, or a nonfinite result returns an error.</td></tr><tr><td><code>Model::encode</code> / <code>decode</code></td><td><code>encode</code> → <code>String</code>; <code>decode(text)</code> → <code>Result&lt;Model, &amp;str&gt;</code></td><td>Preserves format, model and schema versions, preprocessing, parameters, and data fingerprint; decoding validates before use.</td></tr><tr><td><code>parse_body</code></td><td>request body text → <code>Result&lt;f64, &amp;str&gt;</code></td><td>Requires one supported integer schema and one bounded finite <code>x</code>; duplicates and extra fields return an error.</td></tr><tr><td><code>Monitor::mean</code></td><td>stored accepted inputs → <code>Option&lt;f64&gt;</code></td><td>Averages over accepted requests since process start; an empty window has no mean.</td></tr></tbody></table></div>
+</section>
+
 <section id="pipeline"><h2>1. The model is one stage of a pipeline</h2>
-<p>Our five training pairs follow y = x−9 for x from 8 through 12. Training first calculates mean μ = 10 and population variance [(−2)²+(−1)²+0²+1²+2²]/5 = 2, giving scale σ = √2 ≈ 1.414. It fits ŷ = w((x−μ)/σ)+b. The learned standardized weight approaches √2 and bias approaches one, so raw input 12 produces 3.</p>
+<p>Our five training pairs follow y = x−9 for x from 8 through 12. The private <code>train(data, version)</code> function first calculates mean μ = 10 and population variance [(−2)²+(−1)²+0²+1²+2²]/5 = 2, giving scale σ = √2 ≈ 1.414. It then fits ŷ = w((x−μ)/σ)+b. The learned standardized weight approaches √2 and bias approaches one, so raw input 12 produces 3. This compact function fits preprocessing and model parameters together for the teaching fixture. A production pipeline commonly gives the scaler its own fit stage, transforms the training and serving features with that fitted state, and trains the model on the transformed training data; packaging must still bind both fitted objects to the same release.</p>
+<p>Inside <code>train</code>, the implementation names its two MSE gradient components and keeps the fixed teaching hyperparameters beside the update:</p>
+<pre><code class="language-rust" data-source="projects/ch53/src/main.rs">let mut weight = 0.0;
+let mut bias = 0.0;
+let learning_rate = 0.05;
+for _ in 0..300 {
+    let (weight_gradient, bias_gradient) =
+        data.iter()
+            .fold((0.0, 0.0), |(weight_gradient, bias_gradient), &amp;(x, y)| {
+                let normalized = (x - mean) / scale;
+                let error = weight * normalized + bias - y;
+                (
+                    weight_gradient + 2.0 * error * normalized,
+                    bias_gradient + 2.0 * error,
+                )
+            });
+    weight -= learning_rate * weight_gradient / data.len() as f64;
+    bias -= learning_rate * bias_gradient / data.len() as f64;
+}</code></pre>
 <p>If serving loads only w and b but forgets μ and σ, it applies a different function. This is <a class="term" data-term="training-serving-skew" href="/glossary/training-serving-skew.html">training-serving skew</a>. The cure in this project is plain: preprocessing statistics and weights live in one validated <a class="term" data-term="model-artifact" href="/glossary/model-artifact.html">model artifact</a>. Neither is allowed to travel alone.</p>
+<p><code>Model::predict</code> reads that stored inference state and retains the fallible boundary used for external inputs:</p>
+<pre><code class="language-rust" data-source="projects/ch53/src/main.rs">fn predict(&amp;self, raw: f64) -&gt; Result&lt;f64, &amp;'static str&gt; {
+    if self.scale &lt;= 0.0
+        || [self.mean, self.scale, self.weight, self.bias]
+            .iter()
+            .any(|value| !value.is_finite())
+    {
+        return Err("model parameters are invalid");
+    }
+    if !raw.is_finite() || !(-1000.0..=1000.0).contains(&amp;raw) {
+        return Err("x must be finite and within [-1000,1000]");
+    }
+    let prediction = self.weight * ((raw - self.mean) / self.scale) + self.bias;
+    prediction
+        .is_finite()
+        .then_some(prediction)
+        .ok_or("prediction is nonfinite")
+}</code></pre>
 <p>A real production pipeline usually has ordered dependencies: ingest data, validate a schema, calculate features, train, evaluate, package, approve, and deploy. Reproducibility requires identifying the inputs and configuration of every stage. The miniature records a deterministic 64-bit fingerprint over the exact training floats. That fingerprint is useful for detecting a changed fixture. It is not a cryptographic authenticity proof and does not replace access control or a signed artifact.</p>
 <p>Version three different things separately. The <em>format version</em> tells the loader how bytes are organized. The <em>model version</em> identifies a trained candidate. The <em>input schema version</em> defines the request shape and feature meaning. Increasing a model version does not automatically make an incompatible schema safe, and renaming a file does not migrate either contract.</p>
 </section>
@@ -11,15 +53,42 @@
 <section id="artifact"><h2>2. Validate bytes before they become predictions</h2>
 <p>The artifact is a compact text record:</p>
 <pre><code class="language-none">MLMODEL format model_version input_schema mean scale weight bias data_hash</code></pre>
-<p>The loader limits artifact text to 1,024 bytes before decoding. The decoder requires exactly nine fields including the marker. It accepts only format 1 and schema 1, parses each number, requires a positive scale, and rejects nonfinite parameters. Prediction repeats the model invariant check before using external input. That defense is intentionally redundant at a trust boundary: a malformed in-memory model must not turn into a silent NaN response.</p>
+<p>The loader limits artifact text to 1,024 bytes before decoding. <code>Model::decode</code> requires exactly nine fields including the marker. It accepts only format 1 and schema 1, parses each number, requires a positive scale, and rejects nonfinite parameters. Prediction repeats the model invariant check before using external input. That defense is intentionally redundant at a trust boundary: a malformed in-memory model must not turn into a silent NaN response.</p>
 <p>Saving uses a unique temporary file created with “must not already exist,” writes and synchronizes the content, then renames it to the requested path. The final rename prevents readers from observing a half-written artifact on filesystems that provide atomic rename within one filesystem. The temporary file is removed if an earlier step fails. This is a useful local safeguard, though complete crash durability can also require synchronizing the parent directory and understanding the target filesystem.</p>
 <div class="worked-example"><h3>Why every field participates</h3><p>Suppose model v1 stores μ=10, σ=2, w=0.75, b=−0.25. For raw x=12, normalized x′=(12−10)/2=1 and ŷ=0.75(1)−0.25=0.5. If serving accidentally uses σ=1, x′=2 and ŷ=1.25. The weight bytes are unchanged, the request is valid, and the answer is still wrong. Checkpoint parity therefore compares the complete inference state, not only learned weights.</p></div>
 <p>Training also validates its data before calculating moments. Finite inputs can still overflow a sum or variance, so μ, σ, and final parameters are checked again. These failures return errors rather than committing a corrupted artifact. Error handling that prevents an invalid model from becoming active is part of the ML algorithm's operational correctness.</p>
 </section>
 
 <section id="serving"><h2>3. Put an explicit boundary around inference</h2>
-<p>The reference uses <code>std::net::TcpListener</code> and implements a deliberately narrow HTTP/1.1 endpoint: <code>POST /predict</code>. The body is <code>schema=1&amp;x=12.0</code>. It is real serving: a separate client can open a loopback TCP connection, send the request, and receive the loaded model version and prediction.</p>
-<p>Small does not excuse ambiguous parsing. The server caps the request line at 256 bytes, each header line at 512, total headers at 2,048, and body at 128. It requires one <code>Content-Length</code>, rejects duplicates, and rejects <code>Transfer-Encoding</code> rather than guessing how two framing schemes interact. The parser accepts exactly one schema and x field, rejects duplicates and extras, and bounds finite x to [−1000,1000]. Read and write timeouts prevent one silent local client from holding the server forever.</p>
+<p>The reference uses <code>std::net::TcpListener</code> and implements a deliberately narrow HTTP/1.1 endpoint: <code>POST /predict</code>. The canonical body on the wire is <code>schema=1&amp;x=12.0</code>: the names, version, separator, and scalar value are explicit. It is real serving: a separate client can open a loopback TCP connection, send the request, and receive the loaded model version and prediction.</p>
+<p>Small does not excuse ambiguous parsing. The server caps the request line at 256 bytes, each header line at 512, total headers at 2,048, and body at 128. It requires one <code>Content-Length</code>, rejects duplicates, and rejects <code>Transfer-Encoding</code> rather than guessing how two framing schemes interact. <code>parse_body</code> accepts exactly one schema and one x field in either order, rejects duplicates and extras, and bounds finite x to [−1000,1000]. For compatibility with the implemented Rust integer parser, schema spellings such as <code>01</code> and <code>+1</code> also denote supported numeric version 1; emit the canonical <code>schema=1</code> form. Read and write timeouts prevent one silent local client from holding the server forever.</p>
+<pre><code class="language-rust" data-source="projects/ch53/src/main.rs">fn parse_body(body: &amp;str) -&gt; Result&lt;f64, &amp;'static str&gt; {
+    let mut schema = None;
+    let mut x = None;
+    for field in body.split('&amp;') {
+        let (name, value) = field.split_once('=').ok_or("fields must use name=value")?;
+        match name {
+            "schema" if schema.is_none() =&gt; {
+                schema = Some(
+                    value
+                        .parse::&lt;u32&gt;()
+                        .map_err(|_| "schema must be an integer")?,
+                )
+            }
+            "x" if x.is_none() =&gt; x = Some(value.parse::&lt;f64&gt;().map_err(|_| "x must be a number")?),
+            "schema" | "x" =&gt; return Err("duplicate request field"),
+            _ =&gt; return Err("unknown request field"),
+        }
+    }
+    if schema != Some(1) {
+        return Err("unsupported input schema");
+    }
+    let value = x.ok_or("missing x")?;
+    if !value.is_finite() || !(-1000.0..=1000.0).contains(&amp;value) {
+        return Err("x must be finite and within [-1000,1000]");
+    }
+    Ok(value)
+}</code></pre>
 <p>HTTP method semantics matter. Prediction is read-only with respect to model state, but POST is not generally idempotent by specification, so clients should not invent retry assumptions from this one handler. A larger system might use a request identifier and a documented retry contract. This project returns 200 only after validation and prediction; malformed input returns a client error response.</p>
 <div class="warning"><strong>Local teaching server ceiling</strong><p>Requests are handled sequentially. That bounds concurrency and makes shutdown and error behavior easy to inspect, but one slow request delays the next. Add a measured bounded worker pool when concurrent throughput becomes a real requirement. Do not replace it with an unbounded thread per connection.</p></div>
 <p>The server binds to <code>127.0.0.1</code> by default, so it is reachable only from the local machine. It has no TLS, authentication, authorization, rate limiting, durable log, or secret handling. Those omissions are explicit limits. Binding it to a public address would change the threat model and requires the missing controls.</p>
@@ -41,11 +110,18 @@ cargo test --manifest-path projects/ch53/Cargo.toml</code></pre>
 cargo run --manifest-path projects/ch53/Cargo.toml -- serve 127.0.0.1:7878 /tmp/ch53.model
 curl -i -X POST --data 'schema=1&amp;x=12.0' http://127.0.0.1:7878/predict</code></pre>
 <p>The response body includes <code>version=1 prediction=3.000000</code>. The ordinary test suite checks artifact and parser logic without sockets. A loopback integration test is marked ignored because some sandboxes forbid binding; on a host that permits local sockets, run <code>cargo test --manifest-path projects/ch53/Cargo.toml -- --ignored</code>.</p>
-<p>The starter runs the prior checkpoint by applying stored preprocessing and model values. Its test reaches an intentional request-parser TODO. Run it with <code>cargo run --manifest-path projects/ch53/starter/Cargo.toml</code>, then <code>cargo test --manifest-path projects/ch53/starter/Cargo.toml</code>. The tiny exercise is <a href="/code/exercises/cpu/exercises/ch53_01.rs">ch53_01.rs</a>.</p>
-<div class="exercise"><h3>Practice</h3><ol><li>Accept exactly <code>schema=1&amp;x=&lt;finite number&gt;</code> in the starter; reject missing, duplicate, or extra fields.</li><li>Debug a deployment that passes weight parity but changes every score. Compare mean, scale, input schema, and feature order.</li><li>Debug clients that sometimes hang. Check request-size caps, read timeouts, and whether the declared content length matches bytes sent.</li><li>Independent variation: add a two-window variance statistic and an output-score mean. Define separate thresholds and print which one caused the alert.</li></ol>
+<p>The starter constructs supplied inference state and uses the same stored-field <code>Model::predict(raw) -&gt; Result</code> interface. With mean 10, scale 2, weight 0.75, and bias −0.25, its supplied validation confirms that raw input 12 predicts 0.5. A separate test reaches the intentional <code>parse_body</code> TODO and records the reference parser's accepted numeric schema spellings. Run it with <code>cargo run --manifest-path projects/ch53/starter/Cargo.toml</code>, then <code>cargo test --manifest-path projects/ch53/starter/Cargo.toml</code>.</p>
+<p>The tiny <a href="/code/exercises/cpu/exercises/ch53_01.rs">ch53_01.rs</a> exercise deliberately isolates the canonical serialized field: unlike the full parser, its literal match accepts only <code>schema=1</code> and rejects alternate spellings. The solved operation is:</p>
+<pre><code class="language-rust" data-source="exercises/cpu/solutions/ch53_01.rs">fn parse_schema(field: &amp;str) -&gt; Result&lt;u32, &amp;'static str&gt; {
+    match field {
+        "schema=1" =&gt; Ok(1),
+        _ =&gt; Err("unsupported schema"),
+    }
+}</code></pre>
+<div class="exercise"><h3>Practice</h3><ol><li>Accept exactly one supported integer schema field and one finite <code>x</code> field in the starter; reject missing, duplicate, or extra fields, and emit <code>schema=1&amp;x=&lt;scalar&gt;</code> as the canonical form.</li><li>Debug a deployment that passes weight parity but changes every prediction. Compare mean, scale, input schema, and feature order.</li><li>Debug clients that sometimes hang. Check request-size caps, read timeouts, and whether the declared content length matches bytes sent.</li><li>Independent variation: add a two-window variance statistic and an output-prediction mean. Define separate thresholds and print which one caused the alert.</li></ol>
 <details><summary>Hint 1: validation order</summary><p>Validate structure first, parse types second, check supported schema and numeric bounds third, then call the model.</p></details>
 <details><summary>Hint 2: rollback</summary><p>Keep v1 immutable. Let canary evaluation return the artifact to load; do not overwrite the last known good file with candidate bytes.</p></details>
-<details><summary>Worked answer</summary><p>Split the starter body on <code>&amp;</code>, split fields once on <code>=</code>, fill one optional schema and x slot, reject a second assignment or unknown name, require schema one, then require finite x. A preprocessing mismatch explains global score movement despite equal weights. For the variance extension, record count, sum, and sum of squares with finite checks and label every reference window.</p></details></div>
+<details><summary>Worked answer</summary><p>Split the starter body on <code>&amp;</code>, split fields once on <code>=</code>, fill one optional schema and x slot, reject a second assignment or unknown name, require schema one, then require finite x. A preprocessing mismatch explains global prediction movement despite equal weights. For the variance extension, record count, sum, and sum of squares with finite checks and label every reference window.</p></details></div>
 </section>
 
 <section id="review"><h2>Review and transfer</h2><p>From memory: Which versions does the artifact store? Why is a data hash not authentication? What HTTP ambiguity is rejected? What does a mean-drift alert establish? What action completes this project's rollback? Why must preprocessing travel with weights?</p><details><summary>Check your answers</summary><p>Format, model, and input-schema versions are separate. The simple hash detects fixture change but is not cryptographically authenticated. Duplicate content length and transfer encoding are rejected. Mean drift establishes a thresholded distribution statistic, not accuracy loss. Rollback loads the previous artifact through a restart or explicit reload and checks health. Preprocessing defines the function the learned weights expect.</p></details><p>Retrieve checkpoints from <a href="/chapters/38.html">Chapter 38</a> and evaluation splits from <a href="/chapters/05.html">Chapter 5</a>. Chapter 54 broadens evaluation to risks that accuracy and uptime cannot summarize.</p></section>

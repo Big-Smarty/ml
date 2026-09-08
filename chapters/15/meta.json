@@ -14,6 +14,6 @@
     {"title":"Friedman: Greedy Function Approximation","url":"https://doi.org/10.1214/aos/1013203451","note":"Original gradient boosting formulation."},
     {"title":"scikit-learn Ensembles","url":"https://scikit-learn.org/stable/modules/ensemble.html","note":"Official bagging, forest, OOB, and gradient-boosting documentation."}
   ],
-  "checks": ["Baseline tree finds a Gini-reducing threshold", "Forest bootstraps rows and samples a candidate feature at every recursive node", "Boosting fits mean residuals and converges on the tiny regression fixture", "Starter and Rustlings exercises verify Gini arithmetic"],
+  "checks": ["Baseline tree minimizes row-count-weighted child Gini impurity", "Forest bootstraps rows, samples a candidate feature at every recursive node, and predicts by majority vote", "Boosting stumps minimize residual SSE and the ensemble converges on the tiny regression fixture", "Starter verifies weighted impurity; Rustlings verifies the Gini primitive"],
   "limitations": ["Classification trees are binary and use two numeric features", "Tree fitting allocates partitions and scans observed thresholds", "Forest omits out-of-bag bookkeeping", "Boosting implements squared-error regression rather than classification loss"]
 }

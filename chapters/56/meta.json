@@ -21,11 +21,6 @@
       "definition": "The full-softmax probability retained when one expert is selected for a token.",
       "explanation": "The router scores every expert, chooses the largest probability, and multiplies that expert output by its original softmax probability. The selected index is treated as locally constant away from ties, while the probability remains differentiable. Normalizing a sole selected probability by itself would produce one and remove the task-loss gradient into the router. Experts and the rest of the decoder could still learn, so router gradients and actual parameter changes need separate checks."
     },
-    "moe-balancing-objective": {
-      "name": "MoE balancing objective",
-      "definition": "An auxiliary objective relating hard expert frequencies to mean router probabilities.",
-      "explanation": "For each expert, the project multiplies its attempted assignment fraction by its mean full-softmax probability, sums across experts, and multiplies by expert count and a coefficient. Hard assignment frequencies are held fixed during differentiation; mean probabilities provide the differentiable path. Counts include tokens later dropped by capacity. This objective encourages distributed use of experts but does not guarantee useful specialization. Evaluation reports task cross-entropy separately so balance cannot masquerade as improved prediction."
-    },
     "active-parameter-budget": {
       "name": "Active parameter budget",
       "definition": "A convention counting shared parameters plus the expert parameters selected for a token.",
@@ -69,7 +64,8 @@
     "Future-token perturbation and prefix shortening preserve earlier inference logits",
     "All small-model parameter derivatives pass f64 finite differences away from ties",
     "Router task gradients are nonzero with auxiliary coefficient zero; unselected expert task gradients are zero",
-    "Capacity counts attempted and accepted routes and residual-only drops correctly",
+    "Capacity counts attempted and accepted routes; dropped tokens keep task loss and shared gradients but have no expert gradient",
+    "Public parameter span labels, order, ranges and the 3,303/2,879 total/active counts remain exact",
     "Checkpoint next update resumes exactly and rejects malformed or changed training state",
     "Fragmented requests yield complete 200 or 400 responses with correct byte length",
     "Default 160-step run updates router, all experts, embeddings, attention and normalization",

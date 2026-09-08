@@ -2,18 +2,20 @@
 
 #[derive(Clone, Copy, Debug)]
 struct Point {
-    x: [f64; 2],
-    y: f64,
+    features: [f64; 2],
+    label: f64,
 }
 
 fn validate(data: &[Point]) -> Result<(), &'static str> {
     if data.is_empty() {
         return Err("training requires at least one point");
     }
-    if data
-        .iter()
-        .any(|p| !p.x[0].is_finite() || !p.x[1].is_finite() || !p.y.is_finite() || p.y.abs() != 1.0)
-    {
+    if data.iter().any(|point| {
+        !point.features[0].is_finite()
+            || !point.features[1].is_finite()
+            || !point.label.is_finite()
+            || point.label.abs() != 1.0
+    }) {
         return Err("features must be finite and labels must be -1 or +1");
     }
     Ok(())
@@ -21,61 +23,77 @@ fn validate(data: &[Point]) -> Result<(), &'static str> {
 
 #[derive(Clone, Copy, Debug)]
 struct LinearSvm {
-    w: [f64; 2],
-    b: f64,
+    weights: [f64; 2],
+    bias: f64,
+}
+
+fn hinge_loss(score: f64, label: f64) -> f64 {
+    (1.0 - label * score).max(0.0)
 }
 
 impl LinearSvm {
-    fn score(self, x: [f64; 2]) -> f64 {
-        self.w[0] * x[0] + self.w[1] * x[1] + self.b
+    fn score(&self, features: [f64; 2]) -> f64 {
+        self.weights[0] * features[0] + self.weights[1] * features[1] + self.bias
     }
 
-    fn predict(self, x: [f64; 2]) -> f64 {
-        if self.score(x) >= 0.0 {
+    fn predict(&self, features: [f64; 2]) -> f64 {
+        if self.score(features) >= 0.0 {
             1.0
         } else {
             -1.0
         }
     }
 
-    fn objective(self, data: &[Point], lambda: f64) -> Result<f64, &'static str> {
+    fn objective(&self, data: &[Point], lambda: f64) -> Result<f64, &'static str> {
         validate(data)?;
         if !lambda.is_finite() || lambda < 0.0 {
             return Err("lambda must be finite and non-negative");
         }
-        if self.w.iter().any(|v| !v.is_finite()) || !self.b.is_finite() {
+        if self.weights.iter().any(|weight| !weight.is_finite()) || !self.bias.is_finite() {
             return Err("model parameters must be finite");
         }
         let hinge = data
             .iter()
-            .map(|p| (1.0 - p.y * self.score(p.x)).max(0.0))
+            .map(|point| hinge_loss(self.score(point.features), point.label))
             .sum::<f64>()
             / data.len() as f64;
-        let loss = 0.5 * lambda * (self.w[0] * self.w[0] + self.w[1] * self.w[1]) + hinge;
-        if !loss.is_finite() {
-            return Err("objective overflow; rescale data or reduce the rate");
+        let objective =
+            0.5 * lambda * (self.weights[0] * self.weights[0] + self.weights[1] * self.weights[1])
+                + hinge;
+        if !objective.is_finite() {
+            return Err("objective overflow; rescale data or reduce the learning rate");
         }
-        Ok(loss)
+        Ok(objective)
     }
 
-    fn fit(data: &[Point], epochs: usize, rate: f64, lambda: f64) -> Result<Self, &'static str> {
+    fn fit(
+        data: &[Point],
+        epochs: usize,
+        learning_rate: f64,
+        lambda: f64,
+    ) -> Result<Self, &'static str> {
         validate(data)?;
-        if epochs == 0 || !rate.is_finite() || rate <= 0.0 || !lambda.is_finite() || lambda < 0.0 {
-            return Err("epochs and finite non-negative training settings are required");
+        if epochs == 0
+            || !learning_rate.is_finite()
+            || learning_rate <= 0.0
+            || !lambda.is_finite()
+            || lambda < 0.0
+        {
+            return Err("epochs must be positive, learning rate must be finite and positive, and lambda must be finite and non-negative");
         }
         let mut model = Self {
-            w: [0.0; 2],
-            b: 0.0,
+            weights: [0.0; 2],
+            bias: 0.0,
         };
         for _ in 0..epochs {
-            for p in data {
-                let margin = p.y * model.score(p.x);
-                model.w[0] *= 1.0 - rate * lambda;
-                model.w[1] *= 1.0 - rate * lambda;
+            for point in data {
+                let margin = point.label * model.score(point.features);
+                model.weights[0] *= 1.0 - learning_rate * lambda;
+                model.weights[1] *= 1.0 - learning_rate * lambda;
                 if margin < 1.0 {
-                    model.w[0] += rate * p.y * p.x[0];
-                    model.w[1] += rate * p.y * p.x[1];
-                    model.b += rate * p.y;
+                    model.weights[0] += learning_rate * point.label * point.features[0];
+                    model.weights[1] += learning_rate * point.label * point.features[1];
+                    model.bias += learning_rate * point.label;
                 }
             }
         }
@@ -84,8 +102,12 @@ impl LinearSvm {
     }
 }
 
-fn squared_distance(a: [f64; 2], b: [f64; 2]) -> f64 {
-    (a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)
+fn squared_distance(features: [f64; 2], other_features: [f64; 2]) -> f64 {
+    features
+        .into_iter()
+        .zip(other_features)
+        .map(|(value, other_value)| (value - other_value).powi(2))
+        .sum()
 }
 
 fn rbf(a: [f64; 2], b: [f64; 2], gamma: f64) -> f64 {
@@ -111,7 +133,7 @@ impl<'a> KernelClassifier<'a> {
         };
         for _ in 0..epochs {
             for (i, point) in data.iter().enumerate() {
-                if point.y * model.score(point.x) <= 0.0 {
+                if point.label * model.score(point.features) <= 0.0 {
                     model.alpha[i] += 1.0;
                 }
             }
@@ -119,16 +141,16 @@ impl<'a> KernelClassifier<'a> {
         Ok(model)
     }
 
-    fn score(&self, x: [f64; 2]) -> f64 {
+    fn score(&self, features: [f64; 2]) -> f64 {
         self.data
             .iter()
             .zip(&self.alpha)
-            .map(|(p, &a)| a * p.y * rbf(p.x, x, self.gamma))
+            .map(|(point, &alpha)| alpha * point.label * rbf(point.features, features, self.gamma))
             .sum()
     }
 
-    fn predict(&self, x: [f64; 2]) -> f64 {
-        if self.score(x) >= 0.0 {
+    fn predict(&self, features: [f64; 2]) -> f64 {
+        if self.score(features) >= 0.0 {
             1.0
         } else {
             -1.0
@@ -141,85 +163,88 @@ impl<'a> KernelClassifier<'a> {
 }
 
 fn accuracy(data: &[Point], predict: impl Fn([f64; 2]) -> f64) -> f64 {
-    data.iter().filter(|p| predict(p.x) == p.y).count() as f64 / data.len() as f64
+    data.iter()
+        .filter(|point| predict(point.features) == point.label)
+        .count() as f64
+        / data.len() as f64
 }
 
 const LINEAR: [Point; 8] = [
     Point {
-        x: [-2.0, -1.0],
-        y: -1.0,
+        features: [-2.0, -1.0],
+        label: -1.0,
     },
     Point {
-        x: [-1.5, 0.0],
-        y: -1.0,
+        features: [-1.5, 0.0],
+        label: -1.0,
     },
     Point {
-        x: [-1.0, -0.5],
-        y: -1.0,
+        features: [-1.0, -0.5],
+        label: -1.0,
     },
     Point {
-        x: [-0.5, -1.5],
-        y: -1.0,
+        features: [-0.5, -1.5],
+        label: -1.0,
     },
     Point {
-        x: [0.5, 1.5],
-        y: 1.0,
+        features: [0.5, 1.5],
+        label: 1.0,
     },
     Point {
-        x: [1.0, 0.5],
-        y: 1.0,
+        features: [1.0, 0.5],
+        label: 1.0,
     },
     Point {
-        x: [1.5, 0.0],
-        y: 1.0,
+        features: [1.5, 0.0],
+        label: 1.0,
     },
     Point {
-        x: [2.0, 1.0],
-        y: 1.0,
+        features: [2.0, 1.0],
+        label: 1.0,
     },
 ];
 
 const XOR: [Point; 8] = [
     Point {
-        x: [-1.2, -0.8],
-        y: 1.0,
+        features: [-1.2, -0.8],
+        label: 1.0,
     },
     Point {
-        x: [-0.8, -1.2],
-        y: 1.0,
+        features: [-0.8, -1.2],
+        label: 1.0,
     },
     Point {
-        x: [0.8, 1.2],
-        y: 1.0,
+        features: [0.8, 1.2],
+        label: 1.0,
     },
     Point {
-        x: [1.2, 0.8],
-        y: 1.0,
+        features: [1.2, 0.8],
+        label: 1.0,
     },
     Point {
-        x: [-1.2, 0.8],
-        y: -1.0,
+        features: [-1.2, 0.8],
+        label: -1.0,
     },
     Point {
-        x: [-0.8, 1.2],
-        y: -1.0,
+        features: [-0.8, 1.2],
+        label: -1.0,
     },
     Point {
-        x: [0.8, -1.2],
-        y: -1.0,
+        features: [0.8, -1.2],
+        label: -1.0,
     },
     Point {
-        x: [1.2, -0.8],
-        y: -1.0,
+        features: [1.2, -0.8],
+        label: -1.0,
     },
 ];
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let linear = LinearSvm::fit(&LINEAR, 80, 0.05, 0.01)?;
-    println!("linear SVM: w={:?}, b={:.3}", linear.w, linear.b);
+    println!("linear SVM: w={:?}, b={:.3}", linear.weights, linear.bias);
     println!(
         "linear fixture accuracy: {:.1}%",
-        100.0 * accuracy(&LINEAR, |x| linear.predict(x))
+        100.0 * accuracy(&LINEAR, |features| linear.predict(features))
     );
     println!(
         "hinge-plus-penalty objective: {:.4}",
@@ -230,11 +255,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let kernel = KernelClassifier::fit(&XOR, 12, 1.0)?;
     println!(
         "linear accuracy on curved/XOR fixture: {:.1}%",
-        100.0 * accuracy(&XOR, |x| straight_on_xor.predict(x))
+        100.0 * accuracy(&XOR, |features| straight_on_xor.predict(features))
     );
     println!(
         "RBF kernel accuracy: {:.1}% ({} support points)",
-        100.0 * accuracy(&XOR, |x| kernel.predict(x)),
+        100.0 * accuracy(&XOR, |features| kernel.predict(features)),
         kernel.support_count()
     );
     println!("Synthetic fixtures verify mechanics; they do not estimate real-world accuracy.");
@@ -247,8 +272,8 @@ mod tests {
     #[test]
     fn rejects_divergent_finite_settings() {
         let data = [Point {
-            x: [2.0, 1.0],
-            y: 1.0,
+            features: [2.0, 1.0],
+            label: 1.0,
         }];
         assert!(LinearSvm::fit(&data, 2, f64::MAX, 1.0).is_err());
     }
@@ -256,21 +281,34 @@ mod tests {
     #[test]
     fn hinge_and_linear_fit_match_hand_checks() -> Result<(), &'static str> {
         let zero = LinearSvm {
-            w: [0.0; 2],
-            b: 0.0,
+            weights: [0.0; 2],
+            bias: 0.0,
         };
         assert!((zero.objective(&LINEAR, 0.01)? - 1.0).abs() < 1e-12);
+
+        let hand_model = LinearSvm {
+            weights: [0.5, 1.0],
+            bias: -0.5,
+        };
+        let hand_point = [Point {
+            features: [2.0, 1.0],
+            label: 1.0,
+        }];
+        assert_eq!(hand_model.score(hand_point[0].features), 1.5);
+        assert_eq!(hand_model.predict(hand_point[0].features), 1.0);
+        assert!((hand_model.objective(&hand_point, 0.1)? - 0.0625).abs() < 1e-12);
+
         let model = LinearSvm::fit(&LINEAR, 80, 0.05, 0.01)?;
-        assert_eq!(accuracy(&LINEAR, |x| model.predict(x)), 1.0);
+        assert_eq!(accuracy(&LINEAR, |features| model.predict(features)), 1.0);
         Ok(())
     }
 
     #[test]
     fn kernel_handles_xor_where_a_line_does_not() -> Result<(), &'static str> {
         let linear = LinearSvm::fit(&XOR, 80, 0.05, 0.01)?;
-        assert!(accuracy(&XOR, |x| linear.predict(x)) <= 0.75);
+        assert!(accuracy(&XOR, |features| linear.predict(features)) <= 0.75);
         let kernel = KernelClassifier::fit(&XOR, 12, 1.0)?;
-        assert_eq!(accuracy(&XOR, |x| kernel.predict(x)), 1.0);
+        assert_eq!(accuracy(&XOR, |features| kernel.predict(features)), 1.0);
         assert!(kernel.support_count() > 0);
         Ok(())
     }
@@ -278,6 +316,16 @@ mod tests {
     #[test]
     fn invalid_inputs_are_rejected() {
         assert!(LinearSvm::fit(&[], 1, 0.1, 0.0).is_err());
+        assert!(LinearSvm::fit(
+            &[Point {
+                features: [0.0, 0.0],
+                label: 0.0,
+            }],
+            1,
+            0.1,
+            0.0
+        )
+        .is_err());
         assert!(KernelClassifier::fit(&LINEAR, 1, 0.0).is_err());
     }
 }

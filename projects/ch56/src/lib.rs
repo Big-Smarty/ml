@@ -129,6 +129,11 @@ fn take(cursor: &mut usize, len: usize) -> Range<usize> {
     start..*cursor
 }
 
+fn capacity(tokens: usize, experts: usize, factor: f64) -> usize {
+    assert!(experts > 0 && factor.is_finite() && factor > 0.0);
+    (((tokens as f64 / experts as f64) * factor).ceil() as usize).max(1)
+}
+
 impl Layout {
     fn new(c: Config) -> Self {
         let (v, d, f, e) = (c.vocab_size, c.width, c.ff_width, c.experts);
@@ -178,7 +183,7 @@ impl Layout {
 pub struct Model {
     config: Config,
     layout: Layout,
-    params: Vec<f64>,
+    parameters: Vec<f64>,
 }
 
 #[derive(Clone, Debug)]
@@ -227,26 +232,26 @@ impl Model {
         config.validate()?;
         let layout = Layout::new(config);
         let mut rng = Rng::new(seed);
-        let mut params = vec![0.0; layout.total];
-        for p in &mut params {
-            *p = (rng.next_f64() * 2.0 - 1.0) * 0.05;
+        let mut parameters = vec![0.0; layout.total];
+        for parameter in &mut parameters {
+            *parameter = (rng.next_f64() * 2.0 - 1.0) * 0.05;
         }
         for range in [&layout.norm1, &layout.norm2, &layout.norm_final] {
-            params[range.start..range.start + config.width].fill(1.0);
-            params[range.start + config.width..range.end].fill(0.0);
+            parameters[range.start..range.start + config.width].fill(1.0);
+            parameters[range.start + config.width..range.end].fill(0.0);
         }
-        params[layout.qkv_b.clone()].fill(0.0);
-        params[layout.attention_b.clone()].fill(0.0);
-        params[layout.router_b.clone()].fill(0.0);
-        params[layout.output_b.clone()].fill(0.0);
+        parameters[layout.qkv_b.clone()].fill(0.0);
+        parameters[layout.attention_b.clone()].fill(0.0);
+        parameters[layout.router_b.clone()].fill(0.0);
+        parameters[layout.output_b.clone()].fill(0.0);
         for expert in &layout.experts {
-            params[expert.b1.clone()].fill(0.0);
-            params[expert.b2.clone()].fill(0.0);
+            parameters[expert.b1.clone()].fill(0.0);
+            parameters[expert.b2.clone()].fill(0.0);
         }
         Ok(Self {
             config,
             layout,
-            params,
+            parameters,
         })
     }
 
@@ -255,21 +260,21 @@ impl Model {
     }
 
     pub fn parameters(&self) -> &[f64] {
-        &self.params
+        &self.parameters
     }
 
     pub fn parameters_mut(&mut self) -> &mut [f64] {
-        &mut self.params
+        &mut self.parameters
     }
 
     pub fn total_parameters(&self) -> usize {
-        self.params.len()
+        self.parameters.len()
     }
 
     pub fn active_parameters_per_token(&self) -> usize {
         let c = self.config;
         let one_expert = c.width * c.ff_width + c.ff_width + c.ff_width * c.width + c.width;
-        self.params.len() - (c.experts - 1) * one_expert
+        self.parameters.len() - (c.experts - 1) * one_expert
     }
 
     pub fn parameter_spans(&self) -> Vec<(String, Range<usize>)> {
@@ -324,16 +329,16 @@ impl Model {
         let mut x = vec![0.0; t * d];
         for i in 0..t {
             for j in 0..d {
-                x[i * d + j] = self.params[self.layout.token.start + tokens[i] * d + j]
-                    + self.params[self.layout.position.start + i * d + j];
+                x[i * d + j] = self.parameters[self.layout.token.start + tokens[i] * d + j]
+                    + self.parameters[self.layout.position.start + i * d + j];
             }
         }
-        let norm1 = layer_norm(&x, &self.params[self.layout.norm1.clone()], d);
+        let norm1 = layer_norm(&x, &self.parameters[self.layout.norm1.clone()], d);
         let mut qkv = vec![0.0; t * 3 * d];
         matmul_bias(
             &norm1.output,
-            &self.params[self.layout.qkv_w.clone()],
-            &self.params[self.layout.qkv_b.clone()],
+            &self.parameters[self.layout.qkv_w.clone()],
+            &self.parameters[self.layout.qkv_b.clone()],
             &mut qkv,
             t,
             d,
@@ -361,15 +366,15 @@ impl Model {
         let mut attention = vec![0.0; t * d];
         matmul_bias(
             &context,
-            &self.params[self.layout.attention_w.clone()],
-            &self.params[self.layout.attention_b.clone()],
+            &self.parameters[self.layout.attention_w.clone()],
+            &self.parameters[self.layout.attention_b.clone()],
             &mut attention,
             t,
             d,
             d,
         );
         let residual: Vec<_> = x.iter().zip(attention).map(|(a, b)| a + b).collect();
-        let norm2 = layer_norm(&residual, &self.params[self.layout.norm2.clone()], d);
+        let norm2 = layer_norm(&residual, &self.parameters[self.layout.norm2.clone()], d);
         let mut router_probs = vec![0.0; t * e];
         let mut routes = vec![0; t];
         let mut attempted = vec![0; e];
@@ -381,11 +386,11 @@ impl Model {
                 continue;
             }
             for (expert, probability) in row.iter_mut().enumerate() {
-                *probability = self.params[self.layout.router_b.start + expert]
+                *probability = self.parameters[self.layout.router_b.start + expert]
                     + (0..d)
                         .map(|j| {
                             norm2.output[i * d + j]
-                                * self.params[self.layout.router_w.start + j * e + expert]
+                                * self.parameters[self.layout.router_w.start + j * e + expert]
                         })
                         .sum::<f64>();
             }
@@ -395,7 +400,7 @@ impl Model {
         }
         // ponytail: deterministic first-come capacity; batch-priority routing is the upgrade path.
         let capacity = if capped {
-            (((t as f64 / e as f64) * c.capacity_factor).ceil() as usize).max(1)
+            capacity(t, e, c.capacity_factor)
         } else {
             t
         };
@@ -414,17 +419,19 @@ impl Model {
             accepted_mask[i] = true;
             let expert = &self.layout.experts[expert_id];
             for h in 0..f {
-                let pre = self.params[expert.b1.start + h]
+                let pre = self.parameters[expert.b1.start + h]
                     + (0..d)
-                        .map(|j| norm2.output[i * d + j] * self.params[expert.w1.start + j * f + h])
+                        .map(|j| {
+                            norm2.output[i * d + j] * self.parameters[expert.w1.start + j * f + h]
+                        })
                         .sum::<f64>();
                 hidden_pre[i * f + h] = pre;
                 hidden[i * f + h] = gelu(pre);
             }
             for j in 0..d {
-                expert_output[i * d + j] = self.params[expert.b2.start + j]
+                expert_output[i * d + j] = self.parameters[expert.b2.start + j]
                     + (0..f)
-                        .map(|h| hidden[i * f + h] * self.params[expert.w2.start + h * d + j])
+                        .map(|h| hidden[i * f + h] * self.parameters[expert.w2.start + h * d + j])
                         .sum::<f64>();
                 block_output[i * d + j] +=
                     router_probs[i * e + expert_id] * expert_output[i * d + j];
@@ -432,14 +439,14 @@ impl Model {
         }
         let norm_final = layer_norm(
             &block_output,
-            &self.params[self.layout.norm_final.clone()],
+            &self.parameters[self.layout.norm_final.clone()],
             d,
         );
         let mut logits = vec![0.0; t * v];
         matmul_bias(
             &norm_final.output,
-            &self.params[self.layout.output_w.clone()],
-            &self.params[self.layout.output_b.clone()],
+            &self.parameters[self.layout.output_w.clone()],
+            &self.parameters[self.layout.output_b.clone()],
             &mut logits,
             t,
             d,
@@ -505,12 +512,16 @@ impl Model {
 
     pub fn loss(&self, input: &[usize], targets: &[usize]) -> Result<f64, ModelError> {
         let cache = self.forward_cached(input, true)?;
-        let (task_loss, _) =
-            cross_entropy(&cache.logits, targets, input.len(), self.config.vocab_size)?;
+        let (task_loss, _) = cross_entropy_with_gradient_from_logits(
+            &cache.logits,
+            targets,
+            input.len(),
+            self.config.vocab_size,
+        )?;
         Ok(task_loss + cache.auxiliary_loss)
     }
 
-    pub fn loss_and_grad(
+    pub fn loss_and_gradient(
         &self,
         input: &[usize],
         targets: &[usize],
@@ -518,26 +529,27 @@ impl Model {
         let cache = self.forward_cached(input, true)?;
         let c = self.config;
         let (t, d, f, e, v) = (input.len(), c.width, c.ff_width, c.experts, c.vocab_size);
-        let (task_loss, dlogits) = cross_entropy(&cache.logits, targets, t, v)?;
-        let mut grads = vec![0.0; self.params.len()];
+        let (task_loss, dlogits) =
+            cross_entropy_with_gradient_from_logits(&cache.logits, targets, t, v)?;
+        let mut grads = vec![0.0; self.parameters.len()];
         let mut dblock = vec![0.0; t * d];
         for i in 0..t {
             for j in 0..d {
                 for k in 0..v {
                     grads[self.layout.output_w.start + j * v + k] +=
                         cache.norm_final.output[i * d + j] * dlogits[i * v + k];
-                    dblock[i * d + j] +=
-                        dlogits[i * v + k] * self.params[self.layout.output_w.start + j * v + k];
+                    dblock[i * d + j] += dlogits[i * v + k]
+                        * self.parameters[self.layout.output_w.start + j * v + k];
                 }
             }
             for k in 0..v {
                 grads[self.layout.output_b.start + k] += dlogits[i * v + k];
             }
         }
-        let dblock = norm_backward(
+        let dblock = layer_norm_backward(
             &cache.norm_final,
             &dblock,
-            &self.params,
+            &self.parameters,
             &self.layout.norm_final,
             &mut grads,
             d,
@@ -559,7 +571,7 @@ impl Model {
                 grads[expert.b2.start + j] += dexpert;
                 for h in 0..f {
                     grads[expert.w2.start + h * d + j] += cache.hidden[i * f + h] * dexpert;
-                    dhidden[h] += dexpert * self.params[expert.w2.start + h * d + j];
+                    dhidden[h] += dexpert * self.parameters[expert.w2.start + h * d + j];
                 }
             }
             for h in 0..f {
@@ -567,7 +579,7 @@ impl Model {
                 grads[expert.b1.start + h] += dpre;
                 for j in 0..d {
                     grads[expert.w1.start + j * f + h] += cache.norm2.output[i * d + j] * dpre;
-                    dnorm2[i * d + j] += dpre * self.params[expert.w1.start + j * f + h];
+                    dnorm2[i * d + j] += dpre * self.parameters[expert.w1.start + j * f + h];
                 }
             }
         }
@@ -590,14 +602,14 @@ impl Model {
                     grads[self.layout.router_w.start + j * e + expert] +=
                         cache.norm2.output[i * d + j] * dz;
                     dnorm2[i * d + j] +=
-                        dz * self.params[self.layout.router_w.start + j * e + expert];
+                        dz * self.parameters[self.layout.router_w.start + j * e + expert];
                 }
             }
         }
-        let mut dresidual = norm_backward(
+        let mut dresidual = layer_norm_backward(
             &cache.norm2,
             &dnorm2,
-            &self.params,
+            &self.parameters,
             &self.layout.norm2,
             &mut grads,
             d,
@@ -613,7 +625,7 @@ impl Model {
                     grads[self.layout.attention_w.start + j * d + k] +=
                         cache.context[i * d + j] * dresidual[i * d + k];
                     dcontext[i * d + j] += dresidual[i * d + k]
-                        * self.params[self.layout.attention_w.start + j * d + k];
+                        * self.parameters[self.layout.attention_w.start + j * d + k];
                 }
             }
             for k in 0..d {
@@ -647,18 +659,18 @@ impl Model {
                 for k in 0..3 * d {
                     grads[self.layout.qkv_w.start + j * 3 * d + k] +=
                         cache.norm1.output[i * d + j] * dqkv[i * 3 * d + k];
-                    dnorm1[i * d + j] +=
-                        dqkv[i * 3 * d + k] * self.params[self.layout.qkv_w.start + j * 3 * d + k];
+                    dnorm1[i * d + j] += dqkv[i * 3 * d + k]
+                        * self.parameters[self.layout.qkv_w.start + j * 3 * d + k];
                 }
             }
             for k in 0..3 * d {
                 grads[self.layout.qkv_b.start + k] += dqkv[i * 3 * d + k];
             }
         }
-        let mut dx = norm_backward(
+        let mut dx = layer_norm_backward(
             &cache.norm1,
             &dnorm1,
-            &self.params,
+            &self.parameters,
             &self.layout.norm1,
             &mut grads,
             d,
@@ -687,24 +699,28 @@ impl Model {
         })
     }
 
-    pub fn apply_sgd(&mut self, gradients: &Gradients, rate: f64) -> Result<(), ModelError> {
-        if gradients.values.len() != self.params.len()
-            || !rate.is_finite()
-            || rate <= 0.0
+    pub fn apply_sgd(
+        &mut self,
+        gradients: &Gradients,
+        learning_rate: f64,
+    ) -> Result<(), ModelError> {
+        if gradients.values.len() != self.parameters.len()
+            || !learning_rate.is_finite()
+            || learning_rate <= 0.0
             || gradients.values.iter().any(|x| !x.is_finite())
         {
             return Err(ModelError("invalid gradient or learning rate"));
         }
         if self
-            .params
+            .parameters
             .iter()
             .zip(&gradients.values)
-            .any(|(p, g)| !(*p - rate * g).is_finite())
+            .any(|(p, g)| !(*p - learning_rate * g).is_finite())
         {
             return Err(ModelError("SGD update would be nonfinite"));
         }
-        for (parameter, gradient) in self.params.iter_mut().zip(&gradients.values) {
-            *parameter -= rate * gradient;
+        for (parameter, gradient) in self.parameters.iter_mut().zip(&gradients.values) {
+            *parameter -= learning_rate * gradient;
         }
         Ok(())
     }
@@ -762,7 +778,7 @@ fn layer_norm(x: &[f64], parameters: &[f64], width: usize) -> NormCache {
     }
 }
 
-fn norm_backward(
+fn layer_norm_backward(
     cache: &NormCache,
     dy: &[f64],
     parameters: &[f64],
@@ -841,7 +857,7 @@ fn argmax(values: &[f64]) -> usize {
         .map_or(0, |(index, _)| index)
 }
 
-fn cross_entropy(
+fn cross_entropy_with_gradient_from_logits(
     logits: &[f64],
     targets: &[usize],
     rows: usize,
@@ -915,7 +931,7 @@ struct TrainingIdentity {
     fingerprint: u64,
     length: usize,
     sequence: usize,
-    rate: f64,
+    learning_rate: f64,
 }
 fn fingerprint(data: &[u8]) -> u64 {
     // FNV-1a detects accidental corpus changes; this is not a cryptographic authenticity check.
@@ -939,7 +955,7 @@ impl Trainer {
         &mut self,
         data: &[u8],
         sequence: usize,
-        rate: f64,
+        learning_rate: f64,
     ) -> Result<Gradients, ModelError> {
         if data.len() < 2 || sequence == 0 || sequence > self.model.config.context {
             return Err(ModelError("training data and sequence length are invalid"));
@@ -949,14 +965,14 @@ impl Trainer {
                 "invalid training cursor or exhausted step counter",
             ));
         }
-        if !rate.is_finite() || rate <= 0.0 {
+        if !learning_rate.is_finite() || learning_rate <= 0.0 {
             return Err(ModelError("invalid learning rate"));
         }
         let identity = TrainingIdentity {
             fingerprint: fingerprint(data),
             length: data.len(),
             sequence,
-            rate,
+            learning_rate,
         };
         if self.training.is_some_and(|saved| saved != identity) {
             return Err(ModelError(
@@ -969,8 +985,8 @@ impl Trainer {
             input.push(data[(self.cursor + offset) % data.len()] as usize);
             targets.push(data[(self.cursor + offset + 1) % data.len()] as usize);
         }
-        let gradients = self.model.loss_and_grad(&input, &targets)?;
-        self.model.apply_sgd(&gradients, rate)?;
+        let gradients = self.model.loss_and_gradient(&input, &targets)?;
+        self.model.apply_sgd(&gradients, learning_rate)?;
         self.training = Some(identity);
         self.cursor = (self.cursor + sequence) % data.len();
         self.step = self
@@ -997,14 +1013,19 @@ impl Trainer {
                 .map(|&x| x as usize)
                 .collect();
             let logits = self.model.forward(&input)?;
-            total += cross_entropy(&logits, &targets, length, self.model.config.vocab_size)?.0
-                * length as f64;
+            total += cross_entropy_with_gradient_from_logits(
+                &logits,
+                &targets,
+                length,
+                self.model.config.vocab_size,
+            )?
+            .0 * length as f64;
         }
         Ok(total / (data.len() - 1) as f64)
     }
 
     pub fn save(&self, path: &Path) -> Result<(), Box<dyn Error>> {
-        if self.model.params.iter().any(|x| !x.is_finite()) {
+        if self.model.parameters.iter().any(|x| !x.is_finite()) {
             return Err("cannot save nonfinite parameters".into());
         }
         self.model.config.validate()?;
@@ -1015,8 +1036,8 @@ impl Trainer {
                     && identity.length >= 2
                     && identity.sequence > 0
                     && identity.sequence <= self.model.config.context
-                    && identity.rate.is_finite()
-                    && identity.rate > 0.0
+                    && identity.learning_rate.is_finite()
+                    && identity.learning_rate > 0.0
                     && self.cursor
                         == ((self.step as u128 * identity.sequence as u128)
                             % identity.length as u128) as usize => {}
@@ -1036,7 +1057,7 @@ impl Trainer {
             fingerprint: 0,
             length: 0,
             sequence: 0,
-            rate: 0.0,
+            learning_rate: 0.0,
         });
         for value in [
             identity.fingerprint,
@@ -1045,9 +1066,9 @@ impl Trainer {
         ] {
             bytes.extend_from_slice(&value.to_le_bytes());
         }
-        bytes.extend_from_slice(&identity.rate.to_le_bytes());
-        bytes.extend_from_slice(&u64::try_from(self.model.params.len())?.to_le_bytes());
-        for parameter in &self.model.params {
+        bytes.extend_from_slice(&identity.learning_rate.to_le_bytes());
+        bytes.extend_from_slice(&u64::try_from(self.model.parameters.len())?.to_le_bytes());
+        for parameter in &self.model.parameters {
             bytes.extend_from_slice(&parameter.to_le_bytes());
         }
         let temporary = path.with_extension(format!("tmp-{}-{}", std::process::id(), self.step));
@@ -1106,7 +1127,7 @@ impl Trainer {
             fingerprint: reader.u64()?,
             length: reader.usize()?,
             sequence: reader.usize()?,
-            rate: reader.f64()?,
+            learning_rate: reader.f64()?,
         };
         let training = if step == 0 {
             if cursor != 0
@@ -1115,7 +1136,7 @@ impl Trainer {
                         fingerprint: 0,
                         length: 0,
                         sequence: 0,
-                        rate: 0.0,
+                        learning_rate: 0.0,
                     })
             {
                 return Err("invalid untrained checkpoint state".into());
@@ -1126,8 +1147,8 @@ impl Trainer {
                 || cursor >= identity.length
                 || identity.sequence == 0
                 || identity.sequence > config.context
-                || !identity.rate.is_finite()
-                || identity.rate <= 0.0
+                || !identity.learning_rate.is_finite()
+                || identity.learning_rate <= 0.0
             {
                 return Err("invalid training identity".into());
             }
@@ -1147,10 +1168,10 @@ impl Trainer {
             return Err("checkpoint length does not match model shape".into());
         }
         let mut model = Model::new(config, 1)?;
-        for parameter in &mut model.params {
+        for parameter in &mut model.parameters {
             *parameter = reader.f64()?;
         }
-        if model.params.iter().any(|x| !x.is_finite()) {
+        if model.parameters.iter().any(|x| !x.is_finite()) {
             return Err("checkpoint contains nonfinite parameters".into());
         }
         Ok(Self {
@@ -1348,7 +1369,7 @@ mod tests {
         assert_eq!(stats.mean_selected_gate, 1.0);
         assert_eq!(
             model.loss(&[1, 2], &[2, 3]).unwrap(),
-            model.loss_and_grad(&[1, 2], &[2, 3]).unwrap().task_loss
+            model.loss_and_gradient(&[1, 2], &[2, 3]).unwrap().task_loss
         );
     }
 
@@ -1366,21 +1387,21 @@ mod tests {
         let targets = [11, 13, 17];
         // Push expert 0 away from an argmax tie so the local finite difference keeps routes fixed.
         let router_bias = span(&model, "router_bias");
-        model.params[router_bias.start] += 0.7;
-        let analytic = model.loss_and_grad(&input, &targets).unwrap();
+        model.parameters[router_bias.start] += 0.7;
+        let analytic = model.loss_and_gradient(&input, &targets).unwrap();
         let expert = analytic.routes[0];
         let checks = [
             router_bias.start,
             span(&model, &format!("expert.{expert}.ff1_weight")).start,
         ];
         for index in checks {
-            let original = model.params[index];
+            let original = model.parameters[index];
             let epsilon = 1e-5;
-            model.params[index] = original + epsilon;
+            model.parameters[index] = original + epsilon;
             let plus = model.loss(&input, &targets).unwrap();
-            model.params[index] = original - epsilon;
+            model.parameters[index] = original - epsilon;
             let minus = model.loss(&input, &targets).unwrap();
-            model.params[index] = original;
+            model.parameters[index] = original;
             let numerical = (plus - minus) / (2.0 * epsilon);
             let tolerance = 1e-6 + 1e-4 * numerical.abs().max(analytic.values[index].abs());
             assert!(
@@ -1402,15 +1423,75 @@ mod tests {
         )
         .unwrap();
         let router_weight = span(&model, "router_weight");
-        model.params[router_weight].fill(0.0);
+        model.parameters[router_weight].fill(0.0);
         let router_bias = span(&model, "router_bias");
-        model.params[router_bias.start] = 1.0;
-        model.params[router_bias.start + 1] = 0.0;
+        model.parameters[router_bias.start] = 1.0;
+        model.parameters[router_bias.start + 1] = 0.0;
         let stats = model.routing_stats(&[1, 2, 3, 4]).unwrap();
         assert_eq!(stats.capacity, 1);
         assert_eq!(stats.attempted, [4, 0]);
         assert_eq!(stats.accepted, [1, 0]);
         assert_eq!(stats.dropped, 3);
+    }
+
+    #[test]
+    fn capacity_rounds_after_division() {
+        assert_eq!(capacity(7, 3, 1.25), 3);
+        assert_eq!(capacity(8, 3, 1.25), 4);
+        assert_eq!(capacity(1, 8, 0.5), 1);
+    }
+
+    #[test]
+    fn parameter_span_abi_is_stable() {
+        let model = Model::new(
+            Config {
+                vocab_size: 3,
+                context: 2,
+                width: 2,
+                ff_width: 3,
+                experts: 2,
+                capacity_factor: 1.25,
+                balance_weight: 0.01,
+            },
+            1,
+        )
+        .unwrap();
+        let expected = [
+            ("norm1", 10, 14),
+            ("norm2", 14, 18),
+            ("norm_final", 18, 22),
+            ("token_embedding", 0, 6),
+            ("position_embedding", 6, 10),
+            ("qkv_weight", 22, 34),
+            ("qkv_bias", 34, 40),
+            ("attention_output_weight", 40, 44),
+            ("attention_output_bias", 44, 46),
+            ("router_weight", 46, 50),
+            ("router_bias", 50, 52),
+            ("expert.0.ff1_weight", 52, 58),
+            ("expert.0.ff1_bias", 58, 61),
+            ("expert.0.ff2_weight", 61, 67),
+            ("expert.0.ff2_bias", 67, 69),
+            ("expert.1.ff1_weight", 69, 75),
+            ("expert.1.ff1_bias", 75, 78),
+            ("expert.1.ff2_weight", 78, 84),
+            ("expert.1.ff2_bias", 84, 86),
+            ("output_weight", 86, 92),
+            ("output_bias", 92, 95),
+        ];
+        let spans = model.parameter_spans();
+        assert_eq!(spans.len(), expected.len());
+        for ((name, range), &(expected_name, start, end)) in spans.iter().zip(&expected) {
+            assert_eq!(
+                (name.as_str(), range.start, range.end),
+                (expected_name, start, end)
+            );
+        }
+        assert_eq!(model.total_parameters(), 95);
+        assert_eq!(model.active_parameters_per_token(), 78);
+        let tiny = Model::new(Config::tiny(3), 1).unwrap();
+        assert_eq!(tiny.total_parameters(), 3_303);
+        assert_eq!(tiny.active_parameters_per_token(), 2_879);
     }
 
     #[test]
@@ -1423,14 +1504,14 @@ mod tests {
         original.save(&path).unwrap();
         let mut restored = Trainer::load(&path).unwrap();
         fs::remove_file(path).unwrap();
-        assert_eq!(original.model.params, restored.model.params);
+        assert_eq!(original.model.parameters, restored.model.parameters);
         assert_eq!(
             (original.step, original.cursor, original.rng),
             (restored.step, restored.cursor, restored.rng)
         );
         original.train_step(DATA, 8, 0.05).unwrap();
         restored.train_step(DATA, 8, 0.05).unwrap();
-        assert_eq!(original.model.params, restored.model.params);
+        assert_eq!(original.model.parameters, restored.model.parameters);
     }
 
     #[test]
@@ -1446,7 +1527,7 @@ mod tests {
             .unwrap(),
             6,
         );
-        let before = trainer.model.params.clone();
+        let before = trainer.model.parameters.clone();
         let gradients = trainer.train_step(DATA, 12, 0.05).unwrap();
         for name in [
             "token_embedding",
@@ -1460,11 +1541,11 @@ mod tests {
             "router_weight",
         ] {
             let range = span(&trainer.model, name);
-            assert_ne!(&before[range.clone()], &trainer.model.params[range]);
+            assert_ne!(&before[range.clone()], &trainer.model.parameters[range]);
         }
         let selected = gradients.routes[0];
         let range = span(&trainer.model, &format!("expert.{selected}.ff1_weight"));
-        assert_ne!(&before[range.clone()], &trainer.model.params[range]);
+        assert_ne!(&before[range.clone()], &trainer.model.parameters[range]);
     }
 
     #[test]

@@ -1,17 +1,38 @@
-fn brier(probabilities: &[f64], labels: &[u8]) -> f64 {
-    assert!(!probabilities.is_empty() && probabilities.len() == labels.len());
-    probabilities
-        .iter()
-        .zip(labels)
-        .map(|(p, y)| (p - *y as f64).powi(2))
+#[derive(Clone, Copy)]
+struct Prediction {
+    probability: f64,
+    label: u8,
+}
+const DATA: [Prediction; 2] = [
+    Prediction {
+        probability: 0.2,
+        label: 0,
+    },
+    Prediction {
+        probability: 0.8,
+        label: 1,
+    },
+];
+
+fn brier(data: &[Prediction]) -> f64 {
+    assert!(!data.is_empty());
+    data.iter()
+        .map(|prediction| (prediction.probability - prediction.label as f64).powi(2))
         .sum::<f64>()
-        / probabilities.len() as f64
+        / data.len() as f64
 }
 fn main() {
-    println!("{}", brier(&[0.2, 0.8], &[0, 1]));
+    println!("{}", brier(&DATA));
 }
 #[test]
 fn score() {
-    assert!((brier(&[0.2, 0.8], &[0, 1]) - 0.04).abs() < 1e-12);
-    assert!((brier(&[0.2], &[1]) - 0.64).abs() < 1e-12);
+    assert!((brier(&DATA) - 0.04).abs() < 1e-12);
+    assert!(
+        (brier(&[Prediction {
+            probability: 0.2,
+            label: 1,
+        }]) - 0.64)
+            .abs()
+            < 1e-12
+    );
 }

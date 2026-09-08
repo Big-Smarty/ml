@@ -1,6 +1,6 @@
-fn causal_allowed(query: usize, key: usize) -> bool {
+fn causal_allowed(query_position: usize, key_position: usize) -> bool {
     // TODO: a query may read its own and earlier keys.
-    let _ = (query, key);
+    let _ = (query_position, key_position);
     todo!()
 }
 fn main() {

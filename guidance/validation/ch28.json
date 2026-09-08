@@ -5,76 +5,78 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch28/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.025,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch28/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.036,
+      "seconds": 0.042,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch28/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.026,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch28/target/debug/deps/ch28-e213e8fae16a91a5)\n\nrunning 5 tests\ntest tests::auto_kernel_handles_odd_length ... ok\ntest tests::rejects_length_mismatch ... ok\ntest tests::last_element_is_never_lost_at_a_vector_boundary ... ok\ntest tests::dispatch_handles_empty_short_and_odd_vectors ... ok\ntest tests::every_supported_backend_matches_the_oracle ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.032,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch28/target/debug/deps/ch28-e213e8fae16a91a5)\n\nrunning 5 tests\ntest tests::auto_kernel_handles_odd_length ... ok\ntest tests::last_element_is_never_lost_at_a_vector_boundary ... ok\ntest tests::rejects_length_mismatch ... ok\ntest tests::dispatch_handles_empty_short_and_odd_vectors ... ok\ntest tests::every_supported_backend_matches_the_oracle ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch28/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.014,
-      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch28/target/release/ch28`\ndot length=1031, backend=avx2+fma, result=96.462524; f32; threads=1; architecture=x86_64 OS=linux\ntiming includes runtime feature dispatch, shape validation, and result handling\nwarmups=3 samples=15 median=110ns range=110ns..160ns\nauto-vectorization candidate checksum=1030.742188; verify generated code before claiming vectorization\n"
+      "seconds": 0.017,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch28/target/release/ch28`\ndot length=1031, backend=avx2+fma, result=96.462524; f32; threads=1; architecture=x86_64 OS=linux\ntiming includes runtime feature dispatch, shape validation, and result handling\nwarmups=3 samples=15 median=110ns range=110ns..180ns\nauto-vectorization candidate checksum=1030.742188; verify generated code before claiming vectorization\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch28/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.023,
+      "seconds": 0.027,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch28/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.035,
+      "seconds": 0.041,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch28/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.025,
+      "seconds": 0.032,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch28/starter/target/debug/ch28-starter`\nprior scalar dot=3.5\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch28/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.015,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch28/starter/target/debug/deps/ch28_starter-9bd61f95fc7c1bc1)\n\nrunning 1 test\ntest tests::dispatch_preserves_scalar_answer ... FAILED\n\nfailures:\n\n---- tests::dispatch_preserves_scalar_answer stdout ----\n\nthread 'tests::dispatch_preserves_scalar_answer' (6647) panicked at src/main.rs:11:5:\nnot yet implemented: implement portable dispatch\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::dispatch_preserves_scalar_answer\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch28-starter`\n",
+      "seconds": 0.019,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch28/starter/target/debug/deps/ch28_starter-9bd61f95fc7c1bc1)\n\nrunning 2 tests\ntest tests::dispatch_rejects_unequal_lengths ... ok\ntest tests::dispatch_preserves_scalar_answer ... FAILED\n\nfailures:\n\n---- tests::dispatch_preserves_scalar_answer stdout ----\n\nthread 'tests::dispatch_preserves_scalar_answer' (9687) panicked at src/main.rs:11:5:\nnot yet implemented: implement portable dispatch\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::dispatch_preserves_scalar_answer\n\ntest result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch28-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch28_01.rs -o /tmp/ml-check-06sx31ws/solutionch28_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch28_01.rs -o /tmp/ml-check-j_t5kmfb/solutionch28_01",
       "returncode": 0,
-      "seconds": 0.044,
+      "seconds": 0.051,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-06sx31ws/solutionch28_01",
+      "command": "/tmp/ml-check-j_t5kmfb/solutionch28_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest tests::handles_empty_and_nonempty_tails ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch28_01.rs -o /tmp/ml-check-06sx31ws/exercisech28_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch28_01.rs -o /tmp/ml-check-j_t5kmfb/exercisech28_01",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.048,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-06sx31ws/exercisech28_01",
+      "command": "/tmp/ml-check-j_t5kmfb/exercisech28_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest tests::handles_empty_and_nonempty_tails ... FAILED\n\nfailures:\n\n---- tests::handles_empty_and_nonempty_tails stdout ----\n\nthread 'tests::handles_empty_and_nonempty_tails' (6719) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch28_01.rs:4:5:\nnot yet implemented: finish the tail without reading past either slice\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::handles_empty_and_nonempty_tails\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest tests::handles_empty_and_nonempty_tails ... FAILED\n\nfailures:\n\n---- tests::handles_empty_and_nonempty_tails stdout ----\n\nthread 'tests::handles_empty_and_nonempty_tails' (9760) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch28_01.rs:5:5:\nnot yet implemented: finish the tail without reading past either slice\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::handles_empty_and_nonempty_tails\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

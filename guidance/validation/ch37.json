@@ -5,20 +5,20 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch37/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch37/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.041,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch37/Cargo.toml",
       "returncode": 0,
       "seconds": 0.028,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch37/target/debug/deps/ch37-7b14f99ab5764cb1)\n\nrunning 4 tests\ntest tests::manifest_keeps_provenance ... ok\ntest tests::rejects_empty_metadata_and_invalid_threshold ... ok\ntest tests::cleaning_and_dedup_are_document_level ... ok\ntest tests::windows_newlines_and_removed_provenance_are_preserved ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch37/target/debug/deps/ch37-7b14f99ab5764cb1)\n\nrunning 4 tests\ntest tests::rejects_empty_metadata_and_invalid_threshold ... ok\ntest tests::manifest_keeps_provenance ... ok\ntest tests::cleaning_and_dedup_are_document_level ... ok\ntest tests::windows_newlines_and_removed_provenance_are_preserved ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch37/Cargo.toml",
@@ -29,52 +29,54 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch37/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch37/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.04,
+      "seconds": 0.039,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch37/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.026,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch37/starter/target/debug/ch37_starter`\ncleaned: \"a small document\"\ncleaned: \"another document\"\nComplete document-level split, then run cargo test.\n"
+      "seconds": 0.027,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch37/starter/target/debug/ch37_starter`\ncleaned: \"a small document\"\ncleaned: \"another document\"\nComplete whole-document splits, then run cargo test; windowing comes later.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch37/starter/Cargo.toml",
       "returncode": 101,
       "seconds": 0.016,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch37/starter/target/debug/deps/ch37_starter-003a077c4efd1333)\n\nrunning 1 test\ntest split_is_stable_and_disjoint ... FAILED\n\nfailures:\n\n---- split_is_stable_and_disjoint stdout ----\n\nthread 'split_is_stable_and_disjoint' (13326) panicked at src/main.rs:6:5:\nnot yet implemented: guided repair: assign the document split\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    split_is_stable_and_disjoint\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch37_starter`\n",
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch37/starter/target/debug/deps/ch37_starter-003a077c4efd1333)\n\nrunning 1 test\ntest whole_document_split_is_stable ... FAILED\n\nfailures:\n\n---- whole_document_split_is_stable stdout ----\n\nthread 'whole_document_split_is_stable' (11977) panicked at src/main.rs:6:5:\nnot yet implemented: guided repair: assign the document split\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    whole_document_split_is_stable\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch37_starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch37_01.rs -o /tmp/ml-check-_s3l44fv/solutionch37_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch37_01.rs -o /tmp/ml-check-iqeod9r3/solutionch37_01",
       "returncode": 0,
       "seconds": 0.041,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-_s3l44fv/solutionch37_01",
+      "command": "/tmp/ml-check-iqeod9r3/solutionch37_01",
       "returncode": 0,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest stable_split ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "output": "\nrunning 1 test\ntest whole_document_split_is_stable ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch37_01.rs -o /tmp/ml-check-_s3l44fv/exercisech37_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch37_01.rs -o /tmp/ml-check-iqeod9r3/exercisech37_01",
       "returncode": 0,
-      "seconds": 0.041,
+      "seconds": 0.042,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-_s3l44fv/exercisech37_01",
+      "command": "/tmp/ml-check-iqeod9r3/exercisech37_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest stable_split ... FAILED\n\nfailures:\n\n---- stable_split stdout ----\n\nthread 'stable_split' (13398) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch37_01.rs:4:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    stable_split\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest whole_document_split_is_stable ... FAILED\n\nfailures:\n\n---- whole_document_split_is_stable stdout ----\n\nthread 'whole_document_split_is_stable' (12049) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch37_01.rs:4:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    whole_document_split_is_stable\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

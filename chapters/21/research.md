@@ -9,6 +9,10 @@ Route: chapter authored by the assigned high-reasoning author after bounded sour
 
 The validation perturbations are deterministic and disjoint from training arrays, but the set remains a functional smoke test rather than a performance estimate.
 
+## Consistency revision, 2026-09-08
+
+The chapter-local interface was aligned with the preceding dense and convolutional classifiers without changing the experiment: `loss_grad` became `loss_and_gradient`, `rate` became `learning_rate`, and the stable objective is named `cross_entropy_from_logits(logits, target)`. `ForwardCache`, `ResidualBlockCache`, and `Gradient` now name their roles. Layer derivatives use `output_gradient` and `input_gradient`; the array passed from block two into block one is `first_block_output_gradient`. The normalization mean, variance, and backward sums all reduce over the 36 pixels of one image. The identity-shortcut exercise now maps explicitly to the addition inside `ResidualNet::residual_block_forward`.
+
 
 ## Independent Astra review, 2026-09-08
 

@@ -8,3 +8,7 @@ Route: GPT-5.6 Sol High author with a bounded GPT-5.6 Luna High primary-source r
 GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (08–14). Implemented the documented zero-epoch evaluation path: an existing checkpoint is required and its bytes remain unchanged. Train and held-out image shapes must match, not just their products. Corrected common-offset cross-entropy cancellation in both reference and working starter. Reject overflowing loss/gradients and optimizer moments. Regression tests cover evaluation, state overflow, and two-step starter momentum. Prior lead-measured MNIST smoke results were preserved and were not rerun.
 
 See [the per-chapter review and validation record](../../guidance/astra-review-01-14.md) for evidence, gate results, and limitations.
+
+## Consistency revision — 2026-09-08
+
+The Chapter 10 data and multiclass-loss contract now carries through directly: stored arrays are `images` and `labels`, the stable primitive is `cross_entropy_from_logits(logits, target)`, and batch loss and gradient both average over examples. Chapter 11 adds a hidden-activation forward cache, a named W1/b1/W2/b2 packing map, and stateful optimizer steps. These are local terminology and interface changes; no new external research, dataset, numerical formula, CLI mode, or checkpoint field was introduced.

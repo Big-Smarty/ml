@@ -18,63 +18,65 @@
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch49/Cargo.toml",
       "returncode": 0,
       "seconds": 0.027,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch49/target/debug/deps/ch49-a14b2d18bc2a7177)\n\nrunning 4 tests\ntest tests::invalid_sequence_shapes_are_rejected ... ok\ntest tests::associative_scan_matches_recurrence ... ok\ntest tests::linear_attention_recurrence_matches_naive_prefixes ... ok\ntest tests::transition_composition_is_associative ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch49/target/debug/deps/ch49-a14b2d18bc2a7177)\n\nrunning 4 tests\ntest tests::associative_scan_matches_recurrence ... ok\ntest tests::transition_composition_is_associative ... ok\ntest tests::invalid_sequence_shapes_are_rejected ... ok\ntest tests::linear_attention_recurrence_matches_scalar_oracle ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch49/Cargo.toml",
       "returncode": 0,
       "seconds": 0.015,
-      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch49/target/release/ch49`\nlength=4096, release=true\nSSM recurrence=8.939\u00b5s, sequential scan schedule=43.379\u00b5s, final=0.583772\nlinear-attention recurrence=19.809\u00b5s, final=-0.035155\ndirect-prefix oracle for first 256 tokens=17.5\u00b5s\nFixed selective coefficients are illustrative, not a trained Mamba layer.\nThe scan schedule exposes parallel structure but this scalar program executes it sequentially.\n"
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch49/target/release/ch49`\nlength=4096, release=true\nSSM recurrence=9.28\u00b5s, sequential scan schedule=41.46\u00b5s, final=0.583772\nlinear-attention recurrence=19.6\u00b5s, final=-0.035155\ndirect scalar oracle for first 256 tokens=21.311\u00b5s\nFixed selective coefficients are illustrative, not a trained Mamba layer.\nThe scan schedule exposes parallel structure but this scalar program executes it sequentially.\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch49/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.025,
+      "seconds": 0.024,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch49/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.037,
+      "seconds": 0.038,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch49/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.079,
-      "output": "   Compiling ch49-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch49/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s\n     Running `projects/ch49/starter/target/debug/ch49-starter`\nsequential states: [1.5, -0.19999999999999996]\nNow run cargo test and implement compose.\n"
+      "seconds": 0.027,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch49/starter/target/debug/ch49-starter`\nsequential states: [1.5, -0.19999999999999996]\nNow run cargo test and implement Transition::after.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch49/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.015,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch49/starter/target/debug/deps/ch49_starter-1137edaba2559e0d)\n\nrunning 1 test\ntest tests::composed_transition_matches_two_steps ... FAILED\n\nfailures:\n\n---- tests::composed_transition_matches_two_steps stdout ----\n\nthread 'tests::composed_transition_matches_two_steps' (16753) panicked at src/main.rs:22:5:\nnot yet implemented: compose the two affine state transitions\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::composed_transition_matches_two_steps\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch49-starter`\n",
+      "seconds": 0.016,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch49/starter/target/debug/deps/ch49_starter-1137edaba2559e0d)\n\nrunning 1 test\ntest tests::composed_transition_matches_two_steps ... FAILED\n\nfailures:\n\n---- tests::composed_transition_matches_two_steps stdout ----\n\nthread 'tests::composed_transition_matches_two_steps' (16819) panicked at src/main.rs:14:9:\nnot yet implemented: compose the two affine state transitions\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::composed_transition_matches_two_steps\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch49-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch49_01.rs -o /tmp/ml-check-ylu_kzel/solutionch49_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch49_01.rs -o /tmp/ml-check-otrbyd0t/solutionch49_01",
       "returncode": 0,
-      "seconds": 0.042,
+      "seconds": 0.049,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-ylu_kzel/solutionch49_01",
+      "command": "/tmp/ml-check-otrbyd0t/solutionch49_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest tests::composition_matches_two_steps ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch49_01.rs -o /tmp/ml-check-ylu_kzel/exercisech49_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch49_01.rs -o /tmp/ml-check-otrbyd0t/exercisech49_01",
       "returncode": 0,
-      "seconds": 0.042,
+      "seconds": 0.049,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-ylu_kzel/exercisech49_01",
+      "command": "/tmp/ml-check-otrbyd0t/exercisech49_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest tests::composition_matches_two_steps ... FAILED\n\nfailures:\n\n---- tests::composition_matches_two_steps stdout ----\n\nthread 'tests::composition_matches_two_steps' (16825) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch49_01.rs:10:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::composition_matches_two_steps\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest tests::composition_matches_two_steps ... FAILED\n\nfailures:\n\n---- tests::composition_matches_two_steps stdout ----\n\nthread 'tests::composition_matches_two_steps' (16891) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch49_01.rs:11:9:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::composition_matches_two_steps\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

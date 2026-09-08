@@ -7,7 +7,7 @@ Route: Sol High author with bounded GPT-5.6 Luna High research. Primary sources 
 - Vaswani et al., [Attention Is All You Need](https://arxiv.org/abs/1706.03762): scaled dot-product equation and O(n²d) dense self-attention complexity.
 - Ainslie et al., [GQA](https://aclanthology.org/2023.emnlp-main.298.pdf): each KV head serves a group of query heads; MHA and MQA are endpoint cases. Decoder-only implications are presented as mechanism, not copied empirical quality.
 
-The project compares against its own full two-pass causal oracle. Tiling changes f32 accumulation order, so the acceptance check uses tolerance rather than bitwise equality.
+The project compares `causal_attention_tiled` against its own two-pass `causal_attention_scalar` oracle. Both accept direct projected `f32` arrays with grouped-query shapes: Q [positions,query_heads,head_width] and K/V [positions,kv_heads,head_width]. The scalar oracle allocates one causal score row, not a complete quadratic tensor. Tiling changes accumulation order, so the acceptance check uses tolerance rather than bitwise equality.
 
 ## Independent Astra implementation review — 2026-09-08
 

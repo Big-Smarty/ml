@@ -2,13 +2,14 @@
     "outcomes": [
         "Quantize weight rows to signed int8 and int4",
         "Pack and sign-extend two int4 values per byte",
-        "Run dequantized matrix-vector multiplication",
-        "Separate storage, numerical error, decoder quality, and measured runtime"
+        "Compare dequantized matrix-vector multiplication with a scalar f32 reference",
+        "Separate storage, quantization error, decoder loss, and measured runtime"
     ],
     "lessons": [
+        "Code and terminology carried forward",
         "Map real weights onto a finite grid",
         "Put two int4 weights in one byte",
-        "Evaluate error and model behavior separately",
+        "Evaluate quantization error and model loss separately",
         "Storage savings do not promise speed",
         "Run, debug, and extend",
         "Before you move on"
@@ -17,7 +18,7 @@
         "weight-quantization": {
             "name": "weight quantization",
             "definition": "Representing model weights on a lower-precision numerical grid.",
-            "explanation": "Quantization maps each floating-point weight to an integer code plus metadata such as a scale and possibly a zero point. Reconstruction is approximate because many real values share one code. Finer groups or per-channel scales can reduce error at the cost of metadata and more complex kernels. Storage reduction, task quality, and runtime are separate outcomes and must be measured separately."
+            "explanation": "Quantization maps each floating-point weight to an integer code plus metadata such as a scale and possibly a zero point. Reconstruction is approximate because many real values share one code. Finer groups or per-channel scales can reduce quantization error at the cost of metadata and more complex kernels. Storage reduction, task quality, and runtime are separate outcomes and must be measured separately."
         },
         "weight-only-quantization": {
             "name": "weight-only quantization",
@@ -61,7 +62,7 @@
         "Packed int4 round-trips signed values including an odd tail",
         "Int8 and int4 matvec errors stay within fixture tolerances",
         "Int4 storage is smaller than int8 including scales",
-        "Decoder comparison reports logits, loss, and token decision",
+        "Decoder comparison preserves the Chapter 36 [D,V] output-weight layout and reports logits, loss, and token decision",
         "Benchmark reports warmed median samples and checksums"
     ],
     "limitations": [

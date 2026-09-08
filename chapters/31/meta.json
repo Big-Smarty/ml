@@ -1,10 +1,10 @@
 {
   "outcomes": [
     "Map a nonlinear network's forward, backward, and update equations to separate GPU kernels",
-    "Keep inputs, activations, gradients, losses, and weights in device buffers across training steps",
+    "Keep inputs, activations, gradients, losses, and parameters in device buffers across training steps",
     "Compute stable binary cross-entropy directly from logits",
     "Check selected analytical gradients with central differences",
-    "Verify GPU training against a scalar oracle and a falling-loss criterion"
+    "Verify GPU training against the same scalar model operations and a falling-loss criterion"
   ],
   "lessons": [
     "Why repeated host transfers stop being training",
@@ -18,27 +18,22 @@
     "device-residency": {
       "name": "device residency",
       "definition": "Keeping tensors in GPU-accessible memory across a sequence of dependent operations.",
-      "explanation": "Device residency avoids copying weights, activations, and gradients through the CPU after every kernel. In the reference project, inputs and weights are uploaded once; forward writes logits and hidden activations, backward consumes them and writes gradients, and update changes the same weight buffer. Only final weights and a loss history are read back. Residency is necessary for efficient GPU training, though this tiny demonstration still uses a serial gradient kernel and host-recorded steps."
+      "explanation": "Device residency avoids copying parameters, activations, and gradients through the CPU after every kernel. In the reference project, inputs and parameters are uploaded once; forward writes logits and hidden activations, backward consumes them and writes gradients, and update changes the same parameter buffer. Only final parameters and a loss history are read back. Residency is necessary for efficient GPU training, though this tiny demonstration still uses a serial gradient kernel and host-recorded steps."
     },
     "forward-kernel": {
       "name": "forward kernel",
       "definition": "A GPU compute stage that evaluates activations and logits from inputs and current parameters.",
-      "explanation": "Each forward invocation owns one training example. It reads two input features, evaluates four tanh hidden units, stores those activations for backward, and computes one output logit. The kernel does not update weights. Keeping forward separate makes its data dependencies visible: backward must see complete activations from the same parameter version, so the host records a pass boundary before launching backward."
+      "explanation": "Each forward invocation owns one training example. It reads two input features, evaluates four tanh hidden units, stores those activations for backward, and computes one output logit. The kernel does not update parameters. It mirrors the scalar model's forward operation, while probability applies sigmoid for the task output. Keeping forward separate makes its data dependencies visible: backward must see complete activations from the same parameter version, so the host records a pass boundary before launching backward."
     },
     "backward-kernel": {
       "name": "backward kernel",
       "definition": "A GPU compute stage that applies the chain rule to produce parameter gradients.",
-      "explanation": "The backward kernel starts from the output derivative p − y, propagates it through output weights and tanh derivatives, accumulates all seventeen parameter gradients, and divides by the eight-example batch size. The teaching implementation uses one invocation so the summation is deterministic and easy to compare with the CPU oracle. A scalable version would assign examples or parameter tiles to many invocations and reduce partial gradients."
-    },
-    "logit-loss": {
-      "name": "logit-space loss",
-      "definition": "A numerically stable loss computed from pre-sigmoid scores instead of rounded probabilities.",
-      "explanation": "Binary cross-entropy can be written as max(z,0) − zy + log(1 + exp(−|z|)), where z is the logit and y is zero or one. This form remains finite for logits such as ±1000 and has derivative sigmoid(z) − y. Clamping probabilities while retaining that derivative would define one loss but differentiate another near the clamp. The CPU and WGSL implementations therefore store and score logits directly."
+      "explanation": "The backward kernel starts from the output derivative p − y, propagates it through output weights and tanh derivatives, and accumulates all seventeen parameter gradients. It also accumulates the same stable binary cross-entropy as the scalar model. Both loss and gradient divide by the full eight-example batch size. The teaching implementation uses one invocation so the summation is deterministic and easy to compare with the CPU oracle. A scalable version would reduce private partial gradients."
     },
     "kernel-ordering": {
       "name": "kernel ordering",
       "definition": "The command sequence that ensures a consumer stage sees a producer stage's completed writes.",
-      "explanation": "A workgroup barrier orders lanes only within one workgroup and one dispatch. It cannot order the forward kernel against backward or update. The host records these as separate compute passes in one command encoder: forward, then backward, then update. The queue executes that submitted command buffer in order. Reversing update and backward would mutate weights before gradients using the old forward activations were complete, breaking the derived algorithm."
+      "explanation": "A workgroup barrier orders lanes only within one workgroup and one dispatch. It cannot order the forward kernel against backward or update. The host records these as separate compute passes in one command encoder: forward, then backward, then update. The queue executes that submitted command buffer in order. Reversing update and backward would mutate parameters before gradients using the old forward activations were complete, breaking the derived algorithm."
     }
   },
   "sources": [
@@ -49,15 +44,15 @@
   ],
   "checks": [
     "CPU analytical gradients match central differences for input, hidden, output, and bias parameters",
-    "Stable logit loss remains finite for logits of magnitude 1000",
+    "Stable binary cross-entropy remains finite for logits of magnitude 1000",
     "CPU training reduces nonlinear XOR loss by at least seventy percent",
-    "The ignored hardware test checks GPU loss decrease and all weights against the CPU oracle",
+    "The ignored hardware test checks GPU loss decrease and all parameters against the CPU oracle",
     "No training tensor is mapped between forward, backward, and update steps"
   ],
   "limitations": [
     "Backward accumulation uses one GPU invocation and is designed for clarity rather than throughput",
     "The model is a fixed 2-4-1 tanh network on eight course-authored points",
-    "The host records each epoch; optimizer state is only plain gradient descent",
+    "The host records each full-batch step, which is also one epoch for this fixed data; optimizer state is only plain gradient descent",
     "Hardware validation is opt-in; the bundled ignored test was verified on the course RX 6950 XT"
   ]
 }

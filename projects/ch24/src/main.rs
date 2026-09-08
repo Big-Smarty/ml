@@ -3,7 +3,18 @@ const USERS: usize = 4;
 const ITEMS: usize = 6;
 const FACTORS: usize = 2;
 
-const TRAIN_POS: [[usize; 2]; USERS] = [[0, 1], [0, 2], [3, 4], [3, 5]];
+// Each triple is (user ID, preferred item ID, less-preferred item ID).
+type TrainingTriple = (usize, usize, usize);
+const TRAIN_DATA: [TrainingTriple; 8] = [
+    (0, 0, 3),
+    (0, 1, 4),
+    (1, 0, 3),
+    (1, 2, 4),
+    (2, 3, 0),
+    (2, 4, 1),
+    (3, 3, 0),
+    (3, 5, 1),
+];
 const HELD_OUT: [usize; USERS] = [2, 1, 5, 4];
 const EXPLICIT_NEG: [[usize; 3]; USERS] = [[3, 4, 5], [3, 4, 5], [0, 1, 2], [0, 1, 2]];
 
@@ -27,6 +38,20 @@ fn sigmoid(x: f64) -> f64 {
 struct MatrixFactorization {
     users: [[f64; FACTORS]; USERS],
     items: [[f64; FACTORS]; ITEMS],
+}
+
+fn validate_data(data: &[TrainingTriple]) {
+    assert!(
+        !data.is_empty(),
+        "pairwise data must contain at least one triple"
+    );
+    assert!(
+        data.iter().all(|&(user, positive, negative)| user < USERS
+            && positive < ITEMS
+            && negative < ITEMS
+            && positive != negative),
+        "triples require valid user/item IDs and distinct positive/negative items"
+    );
 }
 
 impl MatrixFactorization {
@@ -68,37 +93,44 @@ impl MatrixFactorization {
             .sum::<f64>();
         softplus(-margin) + regularization * penalty
     }
-    fn train(&mut self, epochs: usize, rate: f64, regularization: f64) {
+    fn train(
+        &mut self,
+        data: &[TrainingTriple],
+        epochs: usize,
+        learning_rate: f64,
+        regularization: f64,
+    ) {
+        validate_data(data);
         for _ in 0..epochs {
-            for user in 0..USERS {
-                for (p_at, &positive) in TRAIN_POS[user].iter().enumerate() {
-                    let negative = EXPLICIT_NEG[user][p_at % EXPLICIT_NEG[user].len()];
-                    let old_u = self.users[user];
-                    let old_p = self.items[positive];
-                    let old_n = self.items[negative];
-                    let q = sigmoid(-(self.score(user, positive) - self.score(user, negative)));
-                    for f in 0..FACTORS {
-                        let gu = -q * (old_p[f] - old_n[f]) + 2.0 * regularization * old_u[f];
-                        let gp = -q * old_u[f] + 2.0 * regularization * old_p[f];
-                        let gn = q * old_u[f] + 2.0 * regularization * old_n[f];
-                        self.users[user][f] -= rate * gu;
-                        self.items[positive][f] -= rate * gp;
-                        self.items[negative][f] -= rate * gn;
-                    }
+            for &(user, positive, negative) in data {
+                let old_user = self.users[user];
+                let old_positive = self.items[positive];
+                let old_negative = self.items[negative];
+                let ordering_signal =
+                    sigmoid(-(self.score(user, positive) - self.score(user, negative)));
+                for factor in 0..FACTORS {
+                    let user_gradient = -ordering_signal
+                        * (old_positive[factor] - old_negative[factor])
+                        + 2.0 * regularization * old_user[factor];
+                    let positive_gradient = -ordering_signal * old_user[factor]
+                        + 2.0 * regularization * old_positive[factor];
+                    let negative_gradient = ordering_signal * old_user[factor]
+                        + 2.0 * regularization * old_negative[factor];
+                    self.users[user][factor] -= learning_rate * user_gradient;
+                    self.items[positive][factor] -= learning_rate * positive_gradient;
+                    self.items[negative][factor] -= learning_rate * negative_gradient;
                 }
             }
         }
     }
-    fn mean_training_loss(&self, regularization: f64) -> f64 {
-        let mut total = 0.0;
-        let mut n = 0;
-        for user in 0..USERS {
-            for (p_at, &positive) in TRAIN_POS[user].iter().enumerate() {
-                total += self.triple_loss(user, positive, EXPLICIT_NEG[user][p_at], regularization);
-                n += 1;
-            }
-        }
-        total / n as f64
+    fn loss(&self, data: &[TrainingTriple], regularization: f64) -> f64 {
+        validate_data(data);
+        data.iter()
+            .map(|&(user, positive, negative)| {
+                self.triple_loss(user, positive, negative, regularization)
+            })
+            .sum::<f64>()
+            / data.len() as f64
     }
     fn ranked_candidates(&self, user: usize) -> Vec<usize> {
         let mut candidates = vec![HELD_OUT[user]];
@@ -114,9 +146,9 @@ impl MatrixFactorization {
 
 fn ranking_metrics(model: &MatrixFactorization, k: usize) -> (f64, f64, f64) {
     let k = k.min(1 + EXPLICIT_NEG[0].len());
-    let mut recall = 0.0;
-    let mut precision = 0.0;
-    let mut ndcg = 0.0;
+    let mut recall_at_k = 0.0;
+    let mut precision_at_k = 0.0;
+    let mut ndcg_at_k = 0.0;
     for (user, &held_out) in HELD_OUT.iter().enumerate() {
         let rank = model
             .ranked_candidates(user)
@@ -124,26 +156,27 @@ fn ranking_metrics(model: &MatrixFactorization, k: usize) -> (f64, f64, f64) {
             .position(|&i| i == held_out)
             .unwrap();
         if rank < k {
-            recall += 1.0;
-            precision += 1.0 / k as f64;
-            ndcg += 1.0 / (rank as f64 + 2.0).log2();
+            // Each query has exactly one relevant item, so Recall@k equals HitRate@k here.
+            recall_at_k += 1.0;
+            precision_at_k += 1.0 / k as f64;
+            ndcg_at_k += 1.0 / (rank as f64 + 2.0).log2();
         }
     }
     (
-        recall / USERS as f64,
-        precision / USERS as f64,
-        ndcg / USERS as f64,
+        recall_at_k / USERS as f64,
+        precision_at_k / USERS as f64,
+        ndcg_at_k / USERS as f64,
     )
 }
 
 fn main() {
     let mut model = MatrixFactorization::new();
-    let before_loss = model.mean_training_loss(0.002);
+    let before_loss = model.loss(&TRAIN_DATA, 0.002);
     let before = ranking_metrics(&model, 2);
-    model.train(800, 0.04, 0.002);
-    let after_loss = model.mean_training_loss(0.002);
+    model.train(&TRAIN_DATA, 800, 0.04, 0.002);
+    let after_loss = model.loss(&TRAIN_DATA, 0.002);
     let after = ranking_metrics(&model, 2);
-    println!("pairwise training loss {before_loss:.5} -> {after_loss:.5}");
+    println!("regularized pairwise training loss {before_loss:.5} -> {after_loss:.5}");
     println!(
         "held-out Recall@2 {:.1}% -> {:.1}%, Precision@2 {:.1}% -> {:.1}%, nDCG@2 {:.1}% -> {:.1}%",
         before.0 * 100.0,
@@ -169,8 +202,9 @@ mod tests {
     fn pairwise_gradient_matches_central_difference() {
         let mut model = MatrixFactorization::new();
         let (u, p, n, reg) = (0, 0, 3, 0.002);
-        let q = sigmoid(-(model.score(u, p) - model.score(u, n)));
-        let analytic = -q * (model.items[p][0] - model.items[n][0]) + 2.0 * reg * model.users[u][0];
+        let ordering_signal = sigmoid(-(model.score(u, p) - model.score(u, n)));
+        let analytic = -ordering_signal * (model.items[p][0] - model.items[n][0])
+            + 2.0 * reg * model.users[u][0];
         let h = 1e-5;
         model.users[u][0] += h;
         let plus = model.triple_loss(u, p, n, reg);
@@ -182,11 +216,22 @@ mod tests {
     #[test]
     fn training_improves_loss_and_held_out_ranking() {
         let mut model = MatrixFactorization::new();
-        let before_loss = model.mean_training_loss(0.002);
-        model.train(800, 0.04, 0.002);
+        let before_loss = model.loss(&TRAIN_DATA, 0.002);
+        model.train(&TRAIN_DATA, 800, 0.04, 0.002);
         let metrics = ranking_metrics(&model, 2);
-        assert!(model.mean_training_loss(0.002) < before_loss * 0.25);
+        assert!(model.loss(&TRAIN_DATA, 0.002) < before_loss * 0.25);
         assert!(metrics.0 >= 0.75 && metrics.2 >= 0.75, "{metrics:?}");
+    }
+    #[test]
+    fn training_and_loss_use_the_supplied_triples() {
+        let mut model = MatrixFactorization::new();
+        let data = [(1, 0, 3)];
+        let untouched_user = model.users[0];
+        let trained_user = model.users[1];
+        assert_eq!(model.loss(&data, 0.002), model.triple_loss(1, 0, 3, 0.002));
+        model.train(&data, 1, 0.04, 0.002);
+        assert_eq!(model.users[0], untouched_user);
+        assert_ne!(model.users[1], trained_user);
     }
     #[test]
     fn stable_softplus_handles_extreme_values() {

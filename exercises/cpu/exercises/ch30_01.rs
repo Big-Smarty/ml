@@ -1,6 +1,6 @@
-fn output_index(row: usize, col: usize, columns: usize) -> usize {
+fn output_index(row: usize, col: usize, column_count: usize) -> usize {
     // TODO: map a row and column to contiguous row-major storage.
-    let _ = (row, col, columns);
+    let _ = (row, col, column_count);
     todo!("compute row-major offset")
 }
 

@@ -1,6 +1,6 @@
-fn squared_distance(a: [f64; 2], b: [f64; 2]) -> f64 {
+fn squared_distance(features: [f64; 2], other_features: [f64; 2]) -> f64 {
     // TODO: sum the squared coordinate differences. No square root is needed.
-    let _ = (a, b);
+    let _ = (features, other_features);
     todo!("compute squared Euclidean distance")
 }
 

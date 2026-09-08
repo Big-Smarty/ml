@@ -44,8 +44,9 @@
   "checks": [
     "Data-parallel steps match serial steps within 1e-12 for batch sizes 1, 3, and 5",
     "Tensor-parallel prediction and parameter update match the serial reference within 1e-12",
-    "Two-stage pipeline backward updates both stages and matches one serial update within 1e-12",
-    "A restored two-minibatch run equals the uninterrupted local run",
+    "Two-stage pipeline backward matches serial and finite-difference gradients for three- and four-example data slices",
+    "Empty or nonfinite pipeline data, invalid learning rates, and nonfinite updates are rejected",
+    "CH50v1 parameter order and cursor bytes remain stable, and a restored two-minibatch run equals the uninterrupted local run",
     "Malformed and nonfinite checkpoints are rejected"
   ],
   "limitations": [

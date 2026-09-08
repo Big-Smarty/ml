@@ -21,9 +21,12 @@ fn output_span(model: &Decoder) -> Range<usize> {
     s.start..s.end
 }
 fn average_loss(model: &Decoder, data: &[([usize; 3], [usize; 3])]) -> Result<f32, Box<dyn Error>> {
+    if data.is_empty() {
+        return Err("loss requires nonempty data".into());
+    }
     Ok(data
         .iter()
-        .map(|(x, y)| model.loss_and_grad(x, y).map(|g| g.loss))
+        .map(|(input, targets)| model.loss(input, targets))
         .collect::<Result<Vec<_>, _>>()?
         .iter()
         .sum::<f32>()
@@ -33,12 +36,12 @@ fn sft(
     model: &mut Decoder,
     data: &[([usize; 3], [usize; 3])],
     steps: usize,
-    rate: f32,
+    learning_rate: f32,
 ) -> Result<(), Box<dyn Error>> {
     for step in 0..steps {
-        let (x, y) = &data[step % data.len()];
-        let g = model.loss_and_grad(x, y)?;
-        model.apply_sgd(&g, rate)?;
+        let (input, targets) = &data[step % data.len()];
+        let gradients = model.loss_and_gradient(input, targets)?;
+        model.apply_sgd(&gradients, learning_rate)?;
     }
     Ok(())
 }
@@ -48,6 +51,26 @@ fn pretrained_base() -> Result<Decoder, Box<dyn Error>> {
     let generic = [([0, 1, 2], [1, 2, 3]), ([4, 5, 6], [5, 6, 7])];
     sft(&mut model, &generic, 60, 0.06)?;
     Ok(model)
+}
+
+fn low_rank_delta(
+    a: &[f32],
+    b: &[f32],
+    input_features: usize,
+    rank: usize,
+    output_features: usize,
+) -> Vec<f32> {
+    assert_eq!(a.len(), input_features * rank);
+    assert_eq!(b.len(), rank * output_features);
+    (0..input_features * output_features)
+        .map(|index| {
+            let row = index / output_features;
+            let col = index % output_features;
+            (0..rank)
+                .map(|inner| a[row * rank + inner] * b[inner * output_features + col])
+                .sum::<f32>()
+        })
+        .collect()
 }
 
 #[derive(Clone)]
@@ -78,15 +101,9 @@ impl Lora {
     }
     fn delta(&self) -> Vec<f32> {
         let scale = self.alpha / self.rank as f32;
-        (0..self.width * self.vocab)
-            .map(|ij| {
-                let i = ij / self.vocab;
-                let j = ij % self.vocab;
-                (0..self.rank)
-                    .map(|r| self.a[i * self.rank + r] * self.b[r * self.vocab + j])
-                    .sum::<f32>()
-                    * scale
-            })
+        low_rank_delta(&self.a, &self.b, self.width, self.rank, self.vocab)
+            .into_iter()
+            .map(|value| value * scale)
             .collect()
     }
     fn adapted(&self, base: &Decoder) -> Decoder {
@@ -102,13 +119,13 @@ impl Lora {
         base: &Decoder,
         input: &[usize],
         targets: &[usize],
-        rate: f32,
+        learning_rate: f32,
     ) -> Result<f32, Box<dyn Error>> {
-        if !rate.is_finite() || rate <= 0.0 {
-            return Err("LoRA rate must be finite and positive".into());
+        if !learning_rate.is_finite() || learning_rate <= 0.0 {
+            return Err("LoRA learning rate must be finite and positive".into());
         }
         let effective = self.adapted(base);
-        let gradients = effective.loss_and_grad(input, targets)?;
+        let gradients = effective.loss_and_gradient(input, targets)?;
         let dw = &gradients.values[output_span(&effective)];
         let scale = self.alpha / self.rank as f32;
         let mut da = vec![0.0; self.a.len()];
@@ -130,10 +147,10 @@ impl Lora {
             }
         }
         for (x, g) in self.a.iter_mut().zip(da) {
-            *x -= rate * g;
+            *x -= learning_rate * g;
         }
         for (x, g) in self.b.iter_mut().zip(db) {
-            *x -= rate * g;
+            *x -= learning_rate * g;
         }
         Ok(gradients.loss)
     }
@@ -155,21 +172,23 @@ fn last_logits(model: &Decoder, token: usize) -> Result<Vec<f32>, Box<dyn Error>
 fn distill_gradient(
     student: &Decoder,
     token: usize,
-    teacher_p: &[f32],
+    teacher_probabilities: &[f32],
 ) -> Result<Gradients, Box<dyn Error>> {
-    if teacher_p.len() != student.config().vocab_size
-        || teacher_p.iter().any(|p| !p.is_finite() || *p < 0.0)
-        || (teacher_p.iter().sum::<f32>() - 1.0).abs() > 1e-5
+    if teacher_probabilities.len() != student.config().vocab_size
+        || teacher_probabilities
+            .iter()
+            .any(|probability| !probability.is_finite() || *probability < 0.0)
+        || (teacher_probabilities.iter().sum::<f32>() - 1.0).abs() > 1e-5
     {
         return Err("teacher probabilities must match the vocabulary and sum to one".into());
     }
     // ponytail: V hard-target backwards are transparent for V=8; add a soft-target backward for a larger vocabulary.
     let mut values = vec![0.0; student.parameter_count()];
     let mut loss = 0.0;
-    for (class, &weight) in teacher_p.iter().enumerate() {
-        let g = student.loss_and_grad(&[token], &[class])?;
-        loss += weight * g.loss;
-        for (dst, src) in values.iter_mut().zip(g.values) {
+    for (target, &weight) in teacher_probabilities.iter().enumerate() {
+        let gradients = student.loss_and_gradient(&[token], &[target])?;
+        loss += weight * gradients.loss;
+        for (dst, src) in values.iter_mut().zip(gradients.values) {
             *dst += weight * src;
         }
     }
@@ -237,15 +256,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("LoRA zero-init max change={zero_error:.1}; loss {lora_before:.4} -> {lora_after:.4}; trained {} of {} base parameters",lora.a.len()+lora.b.len(),base.parameter_count());
     let mut student = Decoder::new(config(4), 7)?;
     let transfer = [1, 2, 3, 5];
+    let learning_rate = 0.12;
     let kl_before = mean_teacher_kl(&tuned, &student, &transfer, 1.0)?;
     for step in 0..160 {
         let token = transfer[step % transfer.len()];
-        let p = softmax(&last_logits(&tuned, token)?, 1.0);
-        let g = distill_gradient(&student, token, &p)?;
-        student.apply_sgd(&g, 0.12)?;
+        let teacher_probabilities = softmax(&last_logits(&tuned, token)?, 1.0);
+        let gradients = distill_gradient(&student, token, &teacher_probabilities)?;
+        student.apply_sgd(&gradients, learning_rate)?;
     }
     let kl_after = mean_teacher_kl(&tuned, &student, &transfer, 1.0)?;
-    println!("distillation mean KL at T=1: {kl_before:.5} -> {kl_after:.5}");
+    println!("distillation mean KL at tau=1: {kl_before:.5} -> {kl_after:.5}");
     Ok(())
 }
 
@@ -255,8 +275,8 @@ mod tests {
     #[test]
     fn soft_target_gradient_and_kl_are_consistent() {
         let student = Decoder::new(config(4), 7).unwrap();
-        let teacher_p = [0.4, 0.1, 0.05, 0.15, 0.1, 0.05, 0.1, 0.05];
-        let g = distill_gradient(&student, 1, &teacher_p).unwrap();
+        let teacher_probabilities = [0.4, 0.1, 0.05, 0.15, 0.1, 0.05, 0.1, 0.05];
+        let gradients = distill_gradient(&student, 1, &teacher_probabilities).unwrap();
         let parameter = output_span(&student).start;
         let h = 1e-3;
         let mut plus = student.clone();
@@ -264,14 +284,14 @@ mod tests {
         plus.parameters_mut()[parameter] += h;
         minus.parameters_mut()[parameter] -= h;
         let loss = |model: &Decoder| {
-            teacher_p
+            teacher_probabilities
                 .iter()
                 .zip(log_softmax(&last_logits(model, 1).unwrap(), 1.0))
                 .map(|(&p, log_q)| -p * log_q)
                 .sum::<f32>()
         };
         let numeric = (loss(&plus) - loss(&minus)) / (2.0 * h);
-        assert!((numeric - g.values[parameter]).abs() < 3e-4 + 1e-3 * numeric.abs());
+        assert!((numeric - gradients.values[parameter]).abs() < 3e-4 + 1e-3 * numeric.abs());
         assert!((kl_from_logits(&[0.0, -1000.0], &[-1000.0, 0.0], 1.0) - 1000.0).abs() < 1e-4);
         assert!(distill_gradient(&student, 1, &[0.5, 0.5]).is_err());
     }
@@ -301,11 +321,12 @@ mod tests {
         let mut student = Decoder::new(config(4), 7).unwrap();
         let xs = [1, 2, 3];
         let a = mean_teacher_kl(&tuned, &student, &xs, 1.0).unwrap();
+        let learning_rate = 0.12;
         for i in 0..120 {
             let t = xs[i % xs.len()];
-            let p = softmax(&last_logits(&tuned, t).unwrap(), 1.0);
-            let g = distill_gradient(&student, t, &p).unwrap();
-            student.apply_sgd(&g, 0.12).unwrap();
+            let teacher_probabilities = softmax(&last_logits(&tuned, t).unwrap(), 1.0);
+            let gradients = distill_gradient(&student, t, &teacher_probabilities).unwrap();
+            student.apply_sgd(&gradients, learning_rate).unwrap();
         }
         assert!(mean_teacher_kl(&tuned, &student, &xs, 1.0).unwrap() < a);
     }
@@ -321,7 +342,7 @@ mod tests {
         minus.a[0] -= h;
         let loss = |x: &Lora| {
             x.adapted(&base)
-                .loss_and_grad(&[1, 2], &[2, 3])
+                .loss_and_gradient(&[1, 2], &[2, 3])
                 .unwrap()
                 .loss
         };

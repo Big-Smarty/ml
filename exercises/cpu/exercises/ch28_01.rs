@@ -1,4 +1,5 @@
 fn scalar_tail(a: &[f32], b: &[f32], consumed: usize) -> f32 {
+    // The dispatcher already proved equal lengths and consumed <= a.len().
     // TODO: multiply every element after the complete SIMD-width prefix.
     let _ = (a, b, consumed);
     todo!("finish the tail without reading past either slice")

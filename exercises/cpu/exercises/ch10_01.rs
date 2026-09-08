@@ -1,6 +1,6 @@
 // TODO: compute stable log-sum-exp.
-fn log_sum_exp(xs: &[f64]) -> f64 {
-    let _ = xs;
+fn log_sum_exp(logits: &[f64]) -> f64 {
+    let _ = logits;
     todo!("subtract the maximum before exponentiating")
 }
 fn main() {

@@ -11,7 +11,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .iter()
         .map(|&b| b as usize)
         .collect::<Vec<_>>();
-    let model = Decoder::new(Config::tiny(), 39)?;
+    let model = Decoder::new(
+        Config {
+            vocab_size: 256,
+            context: 12,
+            width: 16,
+            heads: 2,
+            layers: 1,
+            ff_width: 32,
+        },
+        39,
+    )?;
     let trainer = Trainer::new(model, TrainConfig::default(), 3)?;
     println!(
         "Ready to train {} parameters on {} bytes.",

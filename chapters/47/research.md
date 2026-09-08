@@ -18,6 +18,8 @@ Bell and Garland analyze why sparse matrix-vector performance depends on memory 
 
 The dense oracle multiplies the masked matrix, and CSR is built from exactly that mask. Their tolerance check establishes representation parity. A separate RMSE against the unpruned output quantifies how much pruning changed this one calculation. The timed loops reuse output buffers; pruning, sorting, conversion, and allocation are outside the kernel intervals. Each path is warmed once, then run 31 times with median and full range reported.
 
+The consistency revision retains Chapter 41's `dense_matvec_reference(weights, out_features, in_features, input)` name, argument order, and row-major [out_features,in_features] operation. Chapter 47 deliberately uses f64 and returns `Result<Vec<f64>, &'static str>` so its existing shape and finite-value checks remain at the boundary; Chapter 41's f32 oracle returns an unchecked `Vec<f32>`. CSR rows are output features and columns are input features. The allocating dense/CSR methods serve correctness checks, while the timed kernels write to separate caller-owned buffers.
+
 No speedup threshold is asserted. The default matrix and scalar Rust loops are pedagogical, and results depend on release mode and machine. The project contains no SIMD, batching, GPU sparse library, task dataset, or sparse retraining.
 
 ## Astra High review and correction — 2026-09-08

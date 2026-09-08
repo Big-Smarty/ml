@@ -5,76 +5,78 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch38/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.028,
+      "seconds": 0.029,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch38/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.046,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n"
+      "seconds": 0.173,
+      "output": "    Checking ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n    Checking ch38 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch38/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.052,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s\n     Running unittests src/lib.rs (projects/ch38/target/debug/deps/ch38-04885dba8487bebb)\n\nrunning 5 tests\ntest tests::schedule_includes_first_warmup_and_decay_end ... ok\ntest tests::first_adamw_step_matches_hand_calculation ... ok\ntest tests::malformed_checkpoint_is_rejected_before_allocation ... ok\ntest tests::accumulation_equals_explicit_average ... ok\ntest tests::resume_reproduces_the_next_step ... ok\n\ntest result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running unittests src/main.rs (projects/ch38/target/debug/deps/ch38-a3e36c7e67578d16)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests ch38\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.244,
+      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch38 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.21s\n     Running unittests src/lib.rs (projects/ch38/target/debug/deps/ch38-04885dba8487bebb)\n\nrunning 6 tests\ntest tests::clipping_uses_f64_norm_and_rejects_invalid_values ... ok\ntest tests::schedule_includes_first_warmup_and_decay_end ... ok\ntest tests::first_adamw_step_matches_hand_calculation ... ok\ntest tests::malformed_checkpoint_is_rejected_before_allocation ... ok\ntest tests::accumulation_equals_explicit_average ... ok\ntest tests::resume_reproduces_the_next_step ... ok\n\ntest result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running unittests src/main.rs (projects/ch38/target/debug/deps/ch38-a3e36c7e67578d16)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests ch38\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch38/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.027,
-      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `projects/ch38/target/release/ch38`\naccumulated-loss 5.561 -> 4.228; step 26\nmodel + Adam moments use 129984 bytes\nrestored step 26, cursor 0, RNG 10277060560449999710\n"
+      "seconds": 0.579,
+      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch38 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38)\n    Finished `release` profile [optimized] target(s) in 0.56s\n     Running `projects/ch38/target/release/ch38`\naccumulated-loss 5.561 -> 4.228; step 26\nmodel + Adam moments use 129984 bytes\nrestored step 26, cursor 0, RNG 10277060560449999710\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch38/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.024,
+      "seconds": 0.027,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch38/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.037,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+      "seconds": 0.113,
+      "output": "    Checking ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n    Checking ch38_starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.09s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch38/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.063,
-      "output": "   Compiling ch38_starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s\n     Running `projects/ch38/starter/target/debug/ch38_starter`\nDecoder has 10960 parameters; complete global clipping, then test.\n"
+      "seconds": 0.165,
+      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch38_starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s\n     Running `projects/ch38/starter/target/debug/ch38_starter`\nDecoder has 10832 parameters; complete global clipping, then test.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch38/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.016,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch38/starter/target/debug/deps/ch38_starter-6c10c9c84308cb0e)\n\nrunning 1 test\ntest clips_global_norm ... FAILED\n\nfailures:\n\n---- clips_global_norm stdout ----\n\nthread 'clips_global_norm' (13598) panicked at src/main.rs:6:9:\nnot yet implemented: guided repair: scale the complete gradient\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    clips_global_norm\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch38_starter`\n",
+      "seconds": 0.058,
+      "output": "   Compiling ch38_starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch38/starter)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\n     Running unittests src/main.rs (projects/ch38/starter/target/debug/deps/ch38_starter-6c10c9c84308cb0e)\n\nrunning 1 test\ntest clips_global_norm ... FAILED\n\nfailures:\n\n---- clips_global_norm stdout ----\n\nthread 'clips_global_norm' (12734) panicked at src/main.rs:16:9:\nnot yet implemented: guided repair: scale the complete gradient\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    clips_global_norm\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch38_starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch38_01.rs -o /tmp/ml-check-jlesots8/solutionch38_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch38_01.rs -o /tmp/ml-check-z579jf38/solutionch38_01",
       "returncode": 0,
-      "seconds": 0.04,
+      "seconds": 0.047,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-jlesots8/solutionch38_01",
+      "command": "/tmp/ml-check-z579jf38/solutionch38_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest clips_norm ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch38_01.rs -o /tmp/ml-check-jlesots8/exercisech38_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch38_01.rs -o /tmp/ml-check-z579jf38/exercisech38_01",
       "returncode": 0,
-      "seconds": 0.04,
+      "seconds": 0.046,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-jlesots8/exercisech38_01",
+      "command": "/tmp/ml-check-z579jf38/exercisech38_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest clips_norm ... FAILED\n\nfailures:\n\n---- clips_norm stdout ----\n\nthread 'clips_norm' (13670) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch38_01.rs:5:9:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    clips_norm\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest clips_norm ... FAILED\n\nfailures:\n\n---- clips_norm stdout ----\n\nthread 'clips_norm' (12806) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch38_01.rs:15:9:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    clips_norm\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

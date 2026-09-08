@@ -3,7 +3,7 @@
     "Unroll a recurrent state over time",
     "Derive and check BPTT gradients through shared recurrent weights",
     "Trace LSTM input, forget, output, and candidate paths",
-    "Evaluate one-step forecasts on a later contiguous segment"
+    "Distinguish teacher-forced one-step evaluation from free-running inference on a later contiguous segment"
   ],
   "lessons": [
     "Order changes the prediction problem",
@@ -31,8 +31,8 @@
     },
     "teacher-forcing": {
       "name": "teacher forcing",
-      "definition": "Using the observed previous value as the next recurrent input during sequence training or evaluation.",
-      "explanation": "In one-step forecasting, teacher forcing feeds the actual value at time t to predict time t+1. It isolates conditional next-step quality and keeps errors from feeding back into future inputs. A free-running forecast instead feeds each prediction back into the model, so errors can accumulate. Results from the two settings answer different questions and should be labeled. This chapter reports teacher-forced one-step MSE; it does not claim multi-step rollout quality."
+      "definition": "Supplying true previous sequence values as model inputs during training or explicitly teacher-forced evaluation.",
+      "explanation": "Teacher forcing supplies the true previous value or token to predict the next one. It is standard during sequence training and may also be chosen explicitly for one-step evaluation, where it isolates conditional next-step quality and prevents model errors from becoming later inputs. Free-running inference instead feeds each generated output back as the next input, so errors can accumulate. Results from these settings answer different questions and must be labeled. This chapter reports explicitly teacher-forced one-step MSE; it does not claim free-running forecast quality."
     }
   },
   "sources": [
@@ -68,7 +68,7 @@
     }
   ],
   "checks": [
-    "Analytic RNN recurrent-weight and LSTM candidate-weight BPTT match central differences",
+    "RNN and LSTM loss_and_gradient parameter derivatives match central differences",
     "Both RNN and LSTM reduce later one-step validation MSE",
     "Training targets all precede validation targets",
     "Stable sigmoid avoids overflow for large negative inputs"
@@ -76,7 +76,7 @@
   "limitations": [
     "The signal is deterministic and course-authored",
     "Models have one hidden scalar and use full-sequence gradient descent",
-    "Evaluation is teacher-forced one-step forecasting",
+    "Evaluation is explicitly teacher-forced one-step forecasting, not free-running inference",
     "One temporal split does not quantify variability across origins"
   ]
 }

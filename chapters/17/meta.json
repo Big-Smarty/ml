@@ -2,7 +2,7 @@
   "outcomes": [
     "Center a two-feature dataset and compute sample covariance",
     "Find a leading eigenvector with checked power iteration",
-    "Project and reconstruct rows with one principal component",
+    "Fit PCA state, transform rows into projection scores, and reconstruct them",
     "Interpret explained variance, eigengaps, and covariance conditioning"
   ],
   "lessons": [
@@ -17,7 +17,7 @@
     "pca": {
       "name": "principal component analysis",
       "definition": "A linear method that represents centered data along orthogonal directions of decreasing variance.",
-      "explanation": "PCA finds covariance eigenvectors and orders them by eigenvalue. Keeping the first k directions compresses each d-feature row into k scores, and multiplying those scores by the directions reconstructs an approximation. PCA is unsupervised: it preserves variation, which need not be the variation useful for prediction. Centering is required, and feature scaling changes the question the method answers. Discarded directions cannot be recovered from the compressed scores."
+      "explanation": "PCA finds covariance eigenvectors and orders them by eigenvalue. Fitting estimates and stores the mean, covariance, components, and eigenvalues from training rows. Transforming later rows uses that stored state without refitting. Keeping the first k directions compresses each d-feature row into k projection scores, and multiplying those scores by the directions reconstructs an approximation. PCA is unsupervised: it preserves variation, which need not be useful for prediction. Discarded directions cannot be recovered from the compressed scores."
     },
     "covariance": {
       "name": "covariance",
@@ -31,8 +31,8 @@
     },
     "projection": {
       "name": "projection",
-      "definition": "The dot-product score of a centered row along a unit component direction.",
-      "explanation": "For component q and stored mean mu, the score is q transpose times x minus mu. A one-component reconstruction adds the mean to q times that score. Forgetting to center forces the approximation through the origin and breaks translation invariance. Projection reduces dimension, but discarded orthogonal directions cannot be recovered from the retained score. Unit components make score magnitudes comparable to distances along their axes."
+      "definition": "The dot-product coordinate of a centered row along a unit component direction.",
+      "explanation": "For component q and stored mean mu, the projection score is q transpose times x minus mu. It is a geometric coordinate, distinct from a classifier score that measures evidence before a class decision. A one-component reconstruction adds the mean to q times that projection score. Forgetting to center forces the approximation through the origin and breaks translation invariance. Projection reduces dimension, but discarded orthogonal directions cannot be recovered from the retained coordinate."
     },
     "power-iteration": {
       "name": "power iteration",
@@ -57,12 +57,14 @@
     "The returned component has unit norm and a small eigenpair residual",
     "Translating all rows preserves eigenvalues, directions, and reconstruction error",
     "Rank-one data reconstructs with negligible one-component error",
+    "Mean squared reconstruction norm divides summed squared row norms by the number of rows",
     "Too few or nonfinite rows are rejected"
   ],
   "limitations": [
     "The reference supports two features and one retained component",
     "Two fixed independent starts are not a general eigensolver",
     "Explicit covariance can lose accuracy on badly conditioned data",
+    "The reported reconstruction statistic averages squared Euclidean norms per row rather than squared residuals per coordinate",
     "The Wine extension requires a user-prepared attributed dataset"
   ]
 }

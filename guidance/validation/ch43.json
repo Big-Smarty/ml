@@ -5,76 +5,78 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch43/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.028,
+      "seconds": 0.027,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch43/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.133,
-      "output": "    Checking ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n    Checking ch43 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.11s\n"
+      "seconds": 0.147,
+      "output": "    Checking ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n    Checking ch43 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.12s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch43/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.214,
-      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch43 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.16s\n     Running unittests src/main.rs (projects/ch43/target/debug/deps/ch43-7621c3596cf0fdf3)\n\nrunning 4 tests\ntest tests::soft_target_gradient_and_kl_are_consistent ... ok\ntest tests::zero_initialized_adapter_preserves_base ... ok\ntest tests::adapter_gradient_matches_finite_difference ... ok\ntest tests::sft_lora_and_distillation_improve_their_objectives ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n"
+      "seconds": 0.322,
+      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch43 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.27s\n     Running unittests src/main.rs (projects/ch43/target/debug/deps/ch43-7621c3596cf0fdf3)\n\nrunning 4 tests\ntest tests::soft_target_gradient_and_kl_are_consistent ... ok\ntest tests::zero_initialized_adapter_preserves_base ... ok\ntest tests::adapter_gradient_matches_finite_difference ... ok\ntest tests::sft_lora_and_distillation_improve_their_objectives ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch43/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.678,
-      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch43 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43)\n    Finished `release` profile [optimized] target(s) in 0.66s\n     Running `projects/ch43/target/release/ch43`\nSFT loss: 1.3315 -> 0.0147\nLoRA zero-init max change=0.0; loss 1.3315 -> 0.0016; trained 32 of 784 base parameters\ndistillation mean KL at T=1: 1.79547 -> 0.01147\n"
+      "seconds": 0.689,
+      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch43 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43)\n    Finished `release` profile [optimized] target(s) in 0.67s\n     Running `projects/ch43/target/release/ch43`\nSFT loss: 1.3315 -> 0.0147\nLoRA zero-init max change=0.0; loss 1.3315 -> 0.0016; trained 32 of 784 base parameters\ndistillation mean KL at tau=1: 1.79547 -> 0.01147\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch43/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch43/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.111,
-      "output": "    Checking ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n    Checking ch43-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.09s\n"
+      "seconds": 0.106,
+      "output": "    Checking ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n    Checking ch43-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.08s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch43/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.158,
-      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch43-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s\n     Running `projects/ch43/starter/target/debug/ch43-starter`\ncheckpoint pretrained decoder loss: 2.0722 -> 0.1766\n"
+      "seconds": 0.164,
+      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch43-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.15s\n     Running `projects/ch43/starter/target/debug/ch43-starter`\ndecoder training loss: 2.0722 -> 0.1766\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch43/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.053,
-      "output": "   Compiling ch43-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43/starter)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\n     Running unittests src/main.rs (projects/ch43/starter/target/debug/deps/ch43_starter-2bdfe17c6cc77ada)\n\nrunning 1 test\ntest tests::rank_one_product ... FAILED\n\nfailures:\n\n---- tests::rank_one_product stdout ----\n\nthread 'tests::rank_one_product' (15279) panicked at src/main.rs:18:5:\nnot yet implemented: implement the LoRA product\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::rank_one_product\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch43-starter`\n",
+      "seconds": 0.057,
+      "output": "   Compiling ch43-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch43/starter)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\n     Running unittests src/main.rs (projects/ch43/starter/target/debug/deps/ch43_starter-2bdfe17c6cc77ada)\n\nrunning 1 test\ntest tests::rank_one_product ... FAILED\n\nfailures:\n\n---- tests::rank_one_product stdout ----\n\nthread 'tests::rank_one_product' (15492) panicked at src/main.rs:24:5:\nnot yet implemented: implement the LoRA product\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::rank_one_product\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch43-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch43_01.rs -o /tmp/ml-check-9qubb1s6/solutionch43_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch43_01.rs -o /tmp/ml-check-zkrkujb_/solutionch43_01",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.04,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-9qubb1s6/solutionch43_01",
+      "command": "/tmp/ml-check-zkrkujb_/solutionch43_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest tests::counts_both_factors ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch43_01.rs -o /tmp/ml-check-9qubb1s6/exercisech43_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch43_01.rs -o /tmp/ml-check-zkrkujb_/exercisech43_01",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.043,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-9qubb1s6/exercisech43_01",
+      "command": "/tmp/ml-check-zkrkujb_/exercisech43_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest tests::counts_both_factors ... FAILED\n\nfailures:\n\n---- tests::counts_both_factors stdout ----\n\nthread 'tests::counts_both_factors' (15351) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch43_01.rs:3:5:\nnot yet implemented: count LoRA parameters\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::counts_both_factors\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest tests::counts_both_factors ... FAILED\n\nfailures:\n\n---- tests::counts_both_factors stdout ----\n\nthread 'tests::counts_both_factors' (15564) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch43_01.rs:3:5:\nnot yet implemented: count LoRA parameters\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::counts_both_factors\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

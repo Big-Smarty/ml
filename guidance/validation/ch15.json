@@ -5,76 +5,78 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch15/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.027,
+      "seconds": 0.029,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch15/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.036,
+      "seconds": 0.041,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch15/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.027,
+      "seconds": 0.035,
       "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch15/target/debug/deps/ch15-a554b10c49f53338)\n\nrunning 1 test\ntest tests::all_three_ensembles_work ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch15/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.014,
+      "seconds": 0.018,
       "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch15/target/release/ch15`\ntree class 1, forest class 1\nboosted regression prediction 3.949\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch15/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.024,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch15/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.035,
+      "seconds": 0.043,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch15/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.025,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch15/starter/target/debug/ch15_starter`\nmajority class: 0\n"
+      "seconds": 0.034,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch15/starter/target/debug/ch15_starter`\nparent Gini impurity: 0.444\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch15/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.015,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch15/starter/target/debug/deps/ch15_starter-c63189fea946cfc5)\n\nrunning 1 test\ntest pure_and_mixed ... FAILED\n\nfailures:\n\n---- pure_and_mixed stdout ----\n\nthread 'pure_and_mixed' (149) panicked at src/main.rs:4:5:\nnot yet implemented: compute 2p(1-p)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    pure_and_mixed\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch15_starter`\n",
+      "seconds": 0.02,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch15/starter/target/debug/deps/ch15_starter-c63189fea946cfc5)\n\nrunning 1 test\ntest weighted_impurity_matches_examples ... FAILED\n\nfailures:\n\n---- weighted_impurity_matches_examples stdout ----\n\nthread 'weighted_impurity_matches_examples' (3234) panicked at src/main.rs:9:5:\nnot yet implemented: compute weighted child impurity\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    weighted_impurity_matches_examples\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch15_starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch15_01.rs -o /tmp/ml-check-zxhz__rr/solutionch15_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch15_01.rs -o /tmp/ml-check-mtdy_42s/solutionch15_01",
       "returncode": 0,
-      "seconds": 0.04,
+      "seconds": 0.049,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-zxhz__rr/solutionch15_01",
+      "command": "/tmp/ml-check-mtdy_42s/solutionch15_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest impurity ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch15_01.rs -o /tmp/ml-check-zxhz__rr/exercisech15_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch15_01.rs -o /tmp/ml-check-mtdy_42s/exercisech15_01",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.047,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-zxhz__rr/exercisech15_01",
+      "command": "/tmp/ml-check-mtdy_42s/exercisech15_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest impurity ... FAILED\n\nfailures:\n\n---- impurity stdout ----\n\nthread 'impurity' (221) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch15_01.rs:4:5:\nnot yet implemented: compute class impurity 2p(1-p)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    impurity\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest impurity ... FAILED\n\nfailures:\n\n---- impurity stdout ----\n\nthread 'impurity' (3306) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch15_01.rs:4:5:\nnot yet implemented: compute class impurity 2p(1-p)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    impurity\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

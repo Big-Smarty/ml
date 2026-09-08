@@ -9,11 +9,11 @@ Model route: GPT-5.6 Sol High author with bounded GPT-5.6 Luna High primary-sour
 - Fawcett (2006) supports ROC interpretation: https://doi.org/10.1016/j.patrec.2005.10.010
 - Saito and Rehmsmeier (2015) supports preferring precision-recall analysis for imbalanced data: https://doi.org/10.1371/journal.pone.0118432
 
-The scored examples, audit design, prose, and code are original.
+The saved probability/target examples, audit design, prose, and code are original.
 
 
 ## Astra High review — 2026-09-08
 
-GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (01–07). Printed the model and baseline confusion counts already promised by the lesson. Threshold selection remains validation-only with unchanged metric conventions.
+GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (01–07). Printed the candidate and baseline confusion counts already promised by the lesson. Threshold selection remains validation-only with unchanged metric conventions.
 
 See [the per-chapter review and validation record](../../guidance/astra-review-01-14.md) for evidence, gate results, and limitations.

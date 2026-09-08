@@ -1,24 +1,38 @@
-fn residual(input: &[f32], update: &[f32]) -> Vec<f32> {
-    // TODO: add the update to the matching input element.
-    let _ = (input, update);
-    todo!("guided repair: add the residual paths")
+fn residual_add(input: &[f32], residual_branch: &[f32]) -> Vec<f32> {
+    // TODO: add the residual_branch to the matching input element.
+    let _ = (input, residual_branch);
+    todo!("guided repair: complete the residual connection")
 }
 
-fn causal_scalar_attention(scores: &[f32], values: &[f32]) -> f32 {
-    let max = scores.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-    let weights: Vec<f32> = scores.iter().map(|x| (*x - max).exp()).collect();
-    let sum = weights.iter().sum::<f32>();
-    weights.iter().zip(values).map(|(w, v)| w / sum * v).sum()
+fn causal_softmax(scores: &[f32], query_position: usize, positions: usize) -> Vec<f32> {
+    let mut probabilities = vec![0.0; positions];
+    let allowed =
+        &scores[query_position * positions..query_position * positions + query_position + 1];
+    let max = allowed.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+    let sum = allowed.iter().map(|x| (x - max).exp()).sum::<f32>();
+    for key_position in 0..=query_position {
+        probabilities[key_position] =
+            (scores[query_position * positions + key_position] - max).exp() / sum;
+    }
+    probabilities
+}
+fn weighted_value(probabilities: &[f32], values: &[f32]) -> f32 {
+    probabilities
+        .iter()
+        .zip(values)
+        .map(|(probability, value)| probability * value)
+        .sum()
 }
 
 fn main() {
-    let _exercise = residual as fn(&[f32], &[f32]) -> Vec<f32>;
-    let attended = causal_scalar_attention(&[1.0, 2.0], &[3.0, 7.0]);
+    let _exercise = residual_add as fn(&[f32], &[f32]) -> Vec<f32>;
+    let probabilities = causal_softmax(&[0.0, 0.0, 1.0, 2.0], 1, 2);
+    let attended = weighted_value(&probabilities, &[3.0, 7.0]);
     println!("Chapter 35 causal attention output: {attended:.3}");
-    println!("Complete residual(), then run cargo test.");
+    println!("Complete residual_add(), then run cargo test.");
 }
 
 #[test]
-fn residual_path_preserves_and_updates() {
-    assert_eq!(residual(&[1.0, -2.0], &[0.5, 3.0]), vec![1.5, 1.0]);
+fn residual_connection_adds_identity_and_update() {
+    assert_eq!(residual_add(&[1.0, -2.0], &[0.5, 3.0]), vec![1.5, 1.0]);
 }

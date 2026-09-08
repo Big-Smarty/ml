@@ -5,76 +5,78 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch47/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.03,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch47/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.041,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch47/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.03,
       "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch47/target/debug/deps/ch47-29466cd92d861c8c)\n\nrunning 3 tests\ntest tests::invalid_shapes_are_rejected ... ok\ntest tests::csr_matches_masked_dense_including_empty_rows ... ok\ntest tests::pruning_keeps_requested_largest_magnitudes ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch47/Cargo.toml",
       "returncode": 0,
       "seconds": 0.02,
-      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch47/target/release/ch47`\nscalar CPU, f64, 192x192, release=true\ndensity=0.995, nnz=36689, output RMSE=0.00000, dense-kernel median/range=9.459\u00b5s/9.439\u00b5s..10.83\u00b5s, CSR-kernel median/range=12.929\u00b5s/12.899\u00b5s..15.54\u00b5s\ndensity=0.500, nnz=18432, output RMSE=0.88402, dense-kernel median/range=9.44\u00b5s/9.429\u00b5s..9.95\u00b5s, CSR-kernel median/range=6.06\u00b5s/6.049\u00b5s..6.11\u00b5s\ndensity=0.200, nnz=7373, output RMSE=1.22074, dense-kernel median/range=9.44\u00b5s/9.43\u00b5s..9.45\u00b5s, CSR-kernel median/range=2.6\u00b5s/2.59\u00b5s..2.82\u00b5s\ndensity=0.050, nnz=1843, output RMSE=1.20249, dense-kernel median/range=9.45\u00b5s/9.44\u00b5s..11.43\u00b5s, CSR-kernel median/range=690ns/680ns..1.04\u00b5s\nThese timings describe this scalar fixture and machine only.\n"
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch47/target/release/ch47`\nscalar CPU, f64, 192x192, release=true\ndensity=0.995, nnz=36689, output RMSE=0.00000, dense-kernel median/range=9.45\u00b5s/9.44\u00b5s..9.5\u00b5s, CSR-kernel median/range=14.62\u00b5s/14.62\u00b5s..14.71\u00b5s\ndensity=0.500, nnz=18432, output RMSE=0.88402, dense-kernel median/range=9.441\u00b5s/9.44\u00b5s..11.74\u00b5s, CSR-kernel median/range=7.52\u00b5s/7.52\u00b5s..8.73\u00b5s\ndensity=0.200, nnz=7373, output RMSE=1.22074, dense-kernel median/range=9.45\u00b5s/9.44\u00b5s..10.79\u00b5s, CSR-kernel median/range=3.26\u00b5s/3.26\u00b5s..4.36\u00b5s\ndensity=0.050, nnz=1843, output RMSE=1.20249, dense-kernel median/range=9.45\u00b5s/9.43\u00b5s..11.36\u00b5s, CSR-kernel median/range=800ns/760ns..1.2\u00b5s\nThese timings describe this scalar fixture and machine only.\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch47/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.025,
+      "seconds": 0.026,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch47/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.037,
+      "seconds": 0.039,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch47/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.081,
-      "output": "   Compiling ch47-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch47/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.07s\n     Running `projects/ch47/starter/target/debug/ch47-starter`\ndense oracle output: [4.0, 0.0, 9.0]\nNow run cargo test and implement dense_to_csr_values.\n"
+      "seconds": 0.029,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch47/starter/target/debug/ch47-starter`\ndense oracle output: [4.0, 0.0, 9.0]\nNow run cargo test and implement CsrMatrix::from_dense.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch47/starter/Cargo.toml",
       "returncode": 101,
       "seconds": 0.016,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch47/starter/target/debug/deps/ch47_starter-157e2c95f9782926)\n\nrunning 1 test\ntest tests::sparse_values_skip_structural_zeros ... FAILED\n\nfailures:\n\n---- tests::sparse_values_skip_structural_zeros stdout ----\n\nthread 'tests::sparse_values_skip_structural_zeros' (16215) panicked at src/main.rs:13:5:\nnot yet implemented: collect only nonzero values in row-major order\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::sparse_values_skip_structural_zeros\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch47-starter`\n",
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch47/starter/target/debug/deps/ch47_starter-157e2c95f9782926)\n\nrunning 1 test\ntest tests::conversion_preserves_csr_coordinates_and_empty_rows ... FAILED\n\nfailures:\n\n---- tests::conversion_preserves_csr_coordinates_and_empty_rows stdout ----\n\nthread 'tests::conversion_preserves_csr_coordinates_and_empty_rows' (16376) panicked at src/main.rs:25:9:\nnot yet implemented: convert row-major weights to CSR\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::conversion_preserves_csr_coordinates_and_empty_rows\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch47-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch47_01.rs -o /tmp/ml-check-25b7xvmr/solutionch47_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch47_01.rs -o /tmp/ml-check-1kiqivzb/solutionch47_01",
       "returncode": 0,
-      "seconds": 0.045,
+      "seconds": 0.055,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-25b7xvmr/solutionch47_01",
+      "command": "/tmp/ml-check-1kiqivzb/solutionch47_01",
       "returncode": 0,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest tests::empty_rows_keep_the_same_offset ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "output": "\nrunning 1 test\ntest tests::conversion_preserves_coordinates_and_empty_rows ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch47_01.rs -o /tmp/ml-check-25b7xvmr/exercisech47_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch47_01.rs -o /tmp/ml-check-1kiqivzb/exercisech47_01",
       "returncode": 0,
-      "seconds": 0.043,
+      "seconds": 0.05,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-25b7xvmr/exercisech47_01",
+      "command": "/tmp/ml-check-1kiqivzb/exercisech47_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest tests::empty_rows_keep_the_same_offset ... FAILED\n\nfailures:\n\n---- tests::empty_rows_keep_the_same_offset stdout ----\n\nthread 'tests::empty_rows_keep_the_same_offset' (16287) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch47_01.rs:4:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::empty_rows_keep_the_same_offset\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest tests::conversion_preserves_coordinates_and_empty_rows ... FAILED\n\nfailures:\n\n---- tests::conversion_preserves_coordinates_and_empty_rows stdout ----\n\nthread 'tests::conversion_preserves_coordinates_and_empty_rows' (16448) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch47_01.rs:19:9:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::conversion_preserves_coordinates_and_empty_rows\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

@@ -2,18 +2,22 @@
 
 type Point = [f64; 2];
 
-fn validate(data: &[Point]) -> Result<(), &'static str> {
-    if data.len() < 2 {
+fn validate(points: &[Point]) -> Result<(), &'static str> {
+    if points.len() < 2 {
         return Err("clustering requires at least two points");
     }
-    if data.iter().flatten().any(|x| !x.is_finite()) {
+    if points.iter().flatten().any(|feature| !feature.is_finite()) {
         return Err("all features must be finite");
     }
     Ok(())
 }
 
-fn distance2(a: Point, b: Point) -> f64 {
-    (a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)
+fn squared_distance(features: Point, other_features: Point) -> f64 {
+    features
+        .into_iter()
+        .zip(other_features)
+        .map(|(value, other_value)| (value - other_value).powi(2))
+        .sum()
 }
 
 #[derive(Debug)]
@@ -24,29 +28,31 @@ struct KMeans {
 }
 
 impl KMeans {
-    fn fit(data: &[Point], k: usize, steps: usize) -> Result<Self, &'static str> {
-        validate(data)?;
-        if k == 0 || k > data.len() || steps == 0 {
+    fn fit(points: &[Point], k: usize, steps: usize) -> Result<Self, &'static str> {
+        validate(points)?;
+        if k == 0 || k > points.len() || steps == 0 {
             return Err("k and steps must be in range");
         }
         let mut centers: Vec<_> = (0..k)
-            .map(|j| data[j * (data.len() - 1) / (k - 1).max(1)])
+            .map(|j| points[j * (points.len() - 1) / (k - 1).max(1)])
             .collect();
-        let mut assignments = vec![0; data.len()];
+        let mut assignments = vec![0; points.len()];
         for _ in 0..steps {
-            for (i, &x) in data.iter().enumerate() {
+            for (i, &features) in points.iter().enumerate() {
                 assignments[i] = centers
                     .iter()
                     .enumerate()
-                    .min_by(|(_, a), (_, b)| distance2(x, **a).total_cmp(&distance2(x, **b)))
+                    .min_by(|(_, a), (_, b)| {
+                        squared_distance(features, **a).total_cmp(&squared_distance(features, **b))
+                    })
                     .map(|(j, _)| j)
                     .unwrap();
             }
             let mut sums = vec![[0.0; 2]; k];
             let mut counts = vec![0usize; k];
-            for (&x, &j) in data.iter().zip(&assignments) {
-                sums[j][0] += x[0];
-                sums[j][1] += x[1];
+            for (&features, &j) in points.iter().zip(&assignments) {
+                sums[j][0] += features[0];
+                sums[j][1] += features[1];
                 counts[j] += 1;
             }
             for j in 0..k {
@@ -56,18 +62,20 @@ impl KMeans {
                 // ponytail: retain an empty center; add farthest-point reseeding for adversarial starts.
             }
         }
-        for (i, &x) in data.iter().enumerate() {
+        for (i, &features) in points.iter().enumerate() {
             assignments[i] = centers
                 .iter()
                 .enumerate()
-                .min_by(|(_, a), (_, b)| distance2(x, **a).total_cmp(&distance2(x, **b)))
+                .min_by(|(_, a), (_, b)| {
+                    squared_distance(features, **a).total_cmp(&squared_distance(features, **b))
+                })
                 .map(|(j, _)| j)
                 .unwrap();
         }
-        let inertia: f64 = data
+        let inertia: f64 = points
             .iter()
             .zip(&assignments)
-            .map(|(&x, &j)| distance2(x, centers[j]))
+            .map(|(&features, &j)| squared_distance(features, centers[j]))
             .sum();
         if !inertia.is_finite() || centers.iter().flatten().any(|x| !x.is_finite()) {
             return Err("clustering overflow; rescale the input coordinates");
@@ -92,12 +100,12 @@ struct GaussianMixture {
     components: Vec<Component>,
 }
 
-fn log_gaussian(x: Point, c: Component) -> f64 {
+fn log_gaussian(features: Point, component: Component) -> f64 {
     let mut log_prob = 0.0;
-    for (d, value) in x.iter().enumerate() {
+    for (d, value) in features.iter().enumerate() {
         log_prob += (2.0 * std::f64::consts::PI).ln()
-            + c.variance[d].ln()
-            + (*value - c.mean[d]).powi(2) / c.variance[d];
+            + component.variance[d].ln()
+            + (*value - component.mean[d]).powi(2) / component.variance[d];
     }
     -0.5 * log_prob
 }
@@ -109,21 +117,21 @@ fn log_sum_exp(values: &[f64]) -> f64 {
 
 impl GaussianMixture {
     fn fit(
-        data: &[Point],
+        points: &[Point],
         k: usize,
         steps: usize,
         variance_floor: f64,
     ) -> Result<Self, &'static str> {
-        validate(data)?;
+        validate(points)?;
         if k == 0
-            || k > data.len()
+            || k > points.len()
             || steps == 0
             || !variance_floor.is_finite()
             || variance_floor <= 0.0
         {
             return Err("valid k, steps, and positive variance floor are required");
         }
-        let seeds = KMeans::fit(data, k, 8)?;
+        let seeds = KMeans::fit(points, k, 8)?;
         let mut model = Self {
             components: seeds
                 .centers
@@ -136,8 +144,10 @@ impl GaussianMixture {
                 .collect(),
         };
         for _ in 0..steps {
-            let responsibilities: Vec<Vec<f64>> =
-                data.iter().map(|&x| model.responsibilities(x)).collect();
+            let responsibilities: Vec<Vec<f64>> = points
+                .iter()
+                .map(|&features| model.responsibilities(features))
+                .collect();
             if responsibilities.iter().flatten().any(|r| !r.is_finite()) {
                 return Err("non-finite responsibilities; rescale the inputs");
             }
@@ -148,21 +158,21 @@ impl GaussianMixture {
                     continue;
                 }
                 let mut mean = [0.0; 2];
-                for (&x, r) in data.iter().zip(&responsibilities) {
-                    mean[0] += r[j] * x[0];
-                    mean[1] += r[j] * x[1];
+                for (&features, r) in points.iter().zip(&responsibilities) {
+                    mean[0] += r[j] * features[0];
+                    mean[1] += r[j] * features[1];
                 }
                 mean[0] /= mass;
                 mean[1] /= mass;
                 let mut variance = [0.0; 2];
-                for (&x, r) in data.iter().zip(&responsibilities) {
-                    variance[0] += r[j] * (x[0] - mean[0]).powi(2);
-                    variance[1] += r[j] * (x[1] - mean[1]).powi(2);
+                for (&features, r) in points.iter().zip(&responsibilities) {
+                    variance[0] += r[j] * (features[0] - mean[0]).powi(2);
+                    variance[1] += r[j] * (features[1] - mean[1]).powi(2);
                 }
                 variance[0] = (variance[0] / mass).max(variance_floor);
                 variance[1] = (variance[1] / mass).max(variance_floor);
                 model.components[j] = Component {
-                    weight: mass / data.len() as f64,
+                    weight: mass / points.len() as f64,
                     mean,
                     variance,
                 };
@@ -184,35 +194,38 @@ impl GaussianMixture {
         Ok(model)
     }
 
-    fn log_terms(&self, x: Point) -> Vec<f64> {
+    fn log_terms(&self, features: Point) -> Vec<f64> {
         self.components
             .iter()
-            .map(|&c| c.weight.ln() + log_gaussian(x, c))
+            .map(|&component| component.weight.ln() + log_gaussian(features, component))
             .collect()
     }
 
-    fn log_density(&self, x: Point) -> f64 {
-        log_sum_exp(&self.log_terms(x))
+    fn log_density(&self, features: Point) -> f64 {
+        log_sum_exp(&self.log_terms(features))
     }
 
-    fn responsibilities(&self, x: Point) -> Vec<f64> {
-        let terms = self.log_terms(x);
+    fn responsibilities(&self, features: Point) -> Vec<f64> {
+        let terms = self.log_terms(features);
         let max = terms.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-        let weights: Vec<_> = terms.iter().map(|v| (v - max).exp()).collect();
-        let total: f64 = weights.iter().sum();
-        weights.iter().map(|w| w / total).collect()
+        let relative_masses: Vec<_> = terms.iter().map(|v| (v - max).exp()).collect();
+        let total: f64 = relative_masses.iter().sum();
+        relative_masses.iter().map(|mass| mass / total).collect()
     }
 
-    fn anomaly_score(&self, x: Point) -> f64 {
-        -self.log_density(x)
+    fn anomaly_score(&self, features: Point) -> f64 {
+        -self.log_density(features)
     }
 
-    fn log_likelihood(&self, data: &[Point]) -> f64 {
-        data.iter().map(|&x| self.log_density(x)).sum()
+    fn log_likelihood_sum(&self, points: &[Point]) -> f64 {
+        points
+            .iter()
+            .map(|&features| self.log_density(features))
+            .sum()
     }
 }
 
-const DATA: [Point; 12] = [
+const FEATURE_POINTS: [Point; 12] = [
     [-2.3, -1.8],
     [-2.0, -2.1],
     [-1.8, -2.2],
@@ -228,23 +241,23 @@ const DATA: [Point; 12] = [
 ];
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let kmeans = KMeans::fit(&DATA, 2, 12)?;
+    let kmeans = KMeans::fit(&FEATURE_POINTS, 2, 12)?;
     println!("k-means centers: {:?}", kmeans.centers);
     println!(
         "assignments: {:?}; inertia: {:.3}",
         kmeans.assignments, kmeans.inertia
     );
-    let mixture = GaussianMixture::fit(&DATA, 2, 20, 1e-3)?;
+    let mixture = GaussianMixture::fit(&FEATURE_POINTS, 2, 20, 1e-3)?;
     println!("GMM components: {:?}", mixture.components);
     println!(
-        "training log likelihood: {:.3}",
-        mixture.log_likelihood(&DATA)
+        "training log-likelihood sum: {:.3}",
+        mixture.log_likelihood_sum(&FEATURE_POINTS)
     );
-    for x in [[-2.0, -2.0], [0.0, 0.0], [8.0, 8.0]] {
+    for features in [[-2.0, -2.0], [0.0, 0.0], [8.0, 8.0]] {
         println!(
-            "point {x:?}: responsibilities {:?}, anomaly score {:.3}",
-            mixture.responsibilities(x),
-            mixture.anomaly_score(x)
+            "point {features:?}: responsibilities {:?}, anomaly score {:.3}",
+            mixture.responsibilities(features),
+            mixture.anomaly_score(features)
         );
     }
     println!("Thresholds require held-out normal data; these scores are demonstrations only.");
@@ -268,16 +281,16 @@ mod tests {
     }
     #[test]
     fn assignments_use_final_centers_and_overflow_is_rejected() {
-        let rows = [[0.0, 0.0], [4.0, 0.0], [5.0, 0.0], [5.1, 0.0], [10.0, 0.0]];
-        let model = KMeans::fit(&rows, 2, 1).unwrap();
+        let points = [[0.0, 0.0], [4.0, 0.0], [5.0, 0.0], [5.1, 0.0], [10.0, 0.0]];
+        let model = KMeans::fit(&points, 2, 1).unwrap();
         assert_eq!(model.assignments[3], 0);
         assert!(KMeans::fit(&[[f64::MAX, 0.0], [-f64::MAX, 0.0]], 1, 1).is_err());
     }
 
     #[test]
     fn kmeans_finds_two_fixture_groups() -> Result<(), &'static str> {
-        let first = KMeans::fit(&DATA, 2, 1)?;
-        let model = KMeans::fit(&DATA, 2, 12)?;
+        let first = KMeans::fit(&FEATURE_POINTS, 2, 1)?;
+        let model = KMeans::fit(&FEATURE_POINTS, 2, 12)?;
         assert!(model.centers.iter().any(|c| c[0] < -1.5));
         assert!(model.centers.iter().any(|c| c[0] > 1.5));
         assert!(model.inertia < 3.0);
@@ -286,24 +299,27 @@ mod tests {
     }
 
     #[test]
-    fn em_probabilities_normalize_and_outlier_scores_higher() -> Result<(), &'static str> {
-        let first = GaussianMixture::fit(&DATA, 2, 1, 1e-3)?;
-        let model = GaussianMixture::fit(&DATA, 2, 20, 1e-3)?;
-        let r = model.responsibilities([0.0, 0.0]);
-        assert!((r.iter().sum::<f64>() - 1.0).abs() < 1e-12);
+    fn em_responsibilities_normalize_and_outlier_scores_higher() -> Result<(), &'static str> {
+        let first = GaussianMixture::fit(&FEATURE_POINTS, 2, 1, 1e-3)?;
+        let model = GaussianMixture::fit(&FEATURE_POINTS, 2, 20, 1e-3)?;
+        let responsibilities = model.responsibilities([0.0, 0.0]);
+        assert!((responsibilities.iter().sum::<f64>() - 1.0).abs() < 1e-12);
         assert!(model.anomaly_score([8.0, 8.0]) > model.anomaly_score([-2.0, -2.0]));
         assert!(model
             .components
             .iter()
             .all(|c| c.variance.iter().all(|&v| v >= 1e-3)));
         assert!((model.components.iter().map(|c| c.weight).sum::<f64>() - 1.0).abs() < 1e-12);
-        assert!(model.log_likelihood(&DATA) + 1e-10 >= first.log_likelihood(&DATA));
+        assert!(
+            model.log_likelihood_sum(&FEATURE_POINTS) + 1e-10
+                >= first.log_likelihood_sum(&FEATURE_POINTS)
+        );
         Ok(())
     }
 
     #[test]
     fn invalid_settings_are_rejected() {
         assert!(KMeans::fit(&[], 2, 2).is_err());
-        assert!(GaussianMixture::fit(&DATA, 2, 2, 0.0).is_err());
+        assert!(GaussianMixture::fit(&FEATURE_POINTS, 2, 2, 0.0).is_err());
     }
 }

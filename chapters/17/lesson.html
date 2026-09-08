@@ -1,30 +1,81 @@
 <p class="lead">A table may contain twenty columns without containing twenty independent pieces of information. If two sensors rise together, much of their variation lies along one direction. Principal component analysis finds that direction, projects rows onto it, and shows both the promise and the numerical hazards of linear algebra on data.</p>
 <div class="callout"><strong>Your milestone</strong><p>You will center two correlated measurements, build their covariance matrix, find its leading eigenvector with power iteration, compress each row to one number, reconstruct it, and interpret the condition number.</p></div>
 
+<section id="continuity"><h2>Code and terminology carried forward</h2>
+<p><a href="/chapters/16.html">Chapter 16</a> used <code>score(features)</code> for a classifier's signed evidence and <code>predict(features)</code> for its class decision. PCA has no class labels or prediction decision. Its scalar is a <em>projection score</em>: a coordinate locating one centered row along a component. This geometric score does not have the classifier meaning from Chapter 16. The <a href="/conventions.html">course conventions</a> continue to reserve <code>fit</code> for estimating stored state and <code>transform</code> for applying that fitted state without changing it.</p>
+<div class="table-wrap"><table><caption>Chapter 17's fitted interface and reductions</caption><thead><tr><th>Operation</th><th>Input → output</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>Pca1::fit</code></td><td>rows [n,2] → <code>Result&lt;Pca1, _&gt;</code></td><td>Estimates and stores <code>mean [2]</code>, <code>covariance [2, 2]</code>, <code>component [2]</code>, and a scalar <code>eigenvalue</code>. Sample covariance divides by <code>n−1</code>.</td></tr>
+<tr><td><code>Pca1::transform</code></td><td>one raw feature row <code>[2]</code> → one scalar projection score</td><td>Subtracts the fitted mean, then takes the dot product with the fitted component. It does not refit.</td></tr>
+<tr><td><code>Pca1::reconstruct</code></td><td>one projection score → one approximate row <code>[2]</code></td><td>Multiplies the score by the component and adds the fitted mean.</td></tr>
+<tr><td><code>mean_squared_reconstruction_norm</code></td><td>rows <code>[n, 2]</code> → one scalar</td><td>Averages <code>||features−reconstruction||₂²</code> over rows, so its denominator is <code>n</code>, not <code>2n</code>.</td></tr>
+</tbody></table></div>
+<p>The storage aliases are concrete: <code>Vec2 = [f64; 2]</code> is one feature row or direction, and row-major <code>Mat2 = [[f64; 2]; 2]</code> is the covariance matrix. The Rustlings primitive <code>projection_score(centered, component)</code> receives an already-centered row; the fitted <code>transform(features)</code> method first centers a raw row with its stored mean and then performs that same dot product. The starter's <code>power_step</code> is one normalized loop body inside the reference's repeated <code>power_iteration_from</code>.</p>
+</section>
+
 <section id="covariance"><h2>1. Turn correlated columns into a matrix</h2>
-<p><a href="/chapters/16.html">Chapter 16</a> used a weight vector to choose a separating direction. Here there are no labels. We seek a direction that preserves as much variation in the feature rows as possible. Begin with n rows xᵢ, each containing d features. Their mean vector μ contains one mean per feature: <span class="equation">μ = (1/n)Σᵢxᵢ</span>. The centered row is zᵢ = xᵢ − μ.</p>
+<p>Chapter 16 used a weight vector to choose a separating direction. Here there are no labels. We seek a direction that preserves as much variation in the feature rows as possible. Begin with n rows xᵢ, each containing d features. Their mean vector μ contains one mean per feature: <span class="equation">μ = (1/n)Σᵢxᵢ</span>. The centered row is zᵢ = xᵢ − μ.</p>
 <p>Centering matters because principal component analysis, or <a class="term" data-term="pca" href="/glossary/pca.html">PCA</a>, describes variation around the dataset's center. Without subtraction, a large offset from the origin can dominate the direction even when every row shares that offset. Fit the mean from training data, store it, and subtract that same mean from later rows.</p>
 <p>The sample <a class="term" data-term="covariance" href="/glossary/covariance.html">covariance</a> matrix is</p>
 <div class="equation">C = (1/(n−1)) ZᵀZ</div>
 <p>Z is the n-by-d matrix whose rows are centered examples. C is d-by-d. Entry C<sub>jj</sub> is the sample variance of feature j. Entry C<sub>jk</sub> measures whether features j and k vary together. A positive off-diagonal value means above-average values tend to coincide; a negative value means one tends to rise while the other falls. Dividing by n instead would give population covariance. It scales every eigenvalue by the same factor and leaves eigenvector directions unchanged, but reported variances would differ. The project consistently uses n−1.</p>
 <div class="worked-example"><h3>Build covariance by hand</h3><p>Use three already-centered rows [√2,0], [0,√2], and [−√2,−√2]. Their column means are zero. Multiplying ZᵀZ sums outer products and gives [[4,2],[2,4]]. Divide by n−1 = 2 to obtain C = [[2,1],[1,2]]. The diagonal says both features have variance two; the positive ones off the diagonal say they rise together.</p></div>
 <p>Rust stores each teaching row as <code>[f64; 2]</code> and the covariance as <code>[[f64; 2]; 2]</code>. The nested loops state which row and feature pair contribute to each entry. The implementation rejects fewer than two rows and nonfinite values before division or ordering.</p>
+<p><code>Pca1::fit</code> owns the estimation step. It calculates the mean and sample covariance from the supplied rows, finds the leading component, and stores all four fitted quantities for later transformation and diagnostics:</p>
+<pre><code class="language-rust" data-source="projects/ch17/src/main.rs">fn fit(rows: &amp;[Vec2]) -&gt; Result&lt;Self, &amp;'static str&gt; {
+    let mean = mean(rows)?;
+    let covariance = covariance(rows, mean)?;
+    // Constant data has no distinguished direction: choose the first axis.
+    let (mut component, eigenvalue) = if covariance.iter().flatten().all(|&amp;x| x == 0.0) {
+        ([1.0, 0.0], 0.0)
+    } else {
+        power_iteration(covariance, 40)?
+    };
+    if component[0] &lt; 0.0 {
+        component = [-component[0], -component[1]];
+    }
+    Ok(Self {
+        mean,
+        component,
+        eigenvalue,
+        covariance,
+    })
+}</code></pre>
 </section>
 
 <section id="eigenvectors"><h2>2. Variance chooses an eigenvector</h2>
-<p>Choose a unit direction q, meaning qᵀq = 1. Project centered row zᵢ onto it with the dot product tᵢ = qᵀzᵢ. The scalar tᵢ is a <a class="term" data-term="projection" href="/glossary/projection.html">projection</a> score. The sample variance of all these scores is qᵀCq. PCA chooses q that maximizes this expression while remaining unit length.</p>
-<p>The maximizing directions satisfy Cq = λq. Such a q is an <a class="term" data-term="eigenvector" href="/glossary/eigenvector.html">eigenvector</a>; multiplying by C changes its length by eigenvalue λ without rotating it. The leading principal component is the eigenvector with the largest eigenvalue because its projected scores have the largest variance.</p>
-<div class="worked-example"><h3>Find the leading component and retained variance</h3><p>For C = [[2,1],[1,2]], q₁ = [1,1]/√2 is an eigenvector because Cq₁ = 3q₁. The orthogonal direction q₂ = [1,−1]/√2 has Cq₂ = 1q₂. The total variance is the trace, 2+2 = 4, also equal to 3+1. Keeping q₁ retains 3/4 = <strong>75%</strong> of the sample variance.</p><p>For centered z = [2,0], the score is q₁ᵀz = 2/√2 = √2. Reconstruction within the one-dimensional subspace is q₁√2 = [1,1]. We compressed two coordinates into one score and lost the discarded difference direction.</p></div>
-<p>For k components, put the eigenvectors into columns of Q. Then t = Qᵀ(x−μ) produces k scores and x̂ = μ + Qt reconstructs d features. Eigenvector signs are arbitrary: q and −q describe the same axis, changing only the signs of scores. Tests should compare their absolute dot product rather than requiring matching signs.</p>
+<p>Choose a unit direction q, meaning qᵀq = 1. Project centered row zᵢ onto it with the dot product tᵢ = qᵀzᵢ. The scalar tᵢ is a <a class="term" data-term="projection" href="/glossary/projection.html">projection</a> score. The sample variance of all projection scores is qᵀCq. PCA chooses q that maximizes this expression while remaining unit length.</p>
+<p>The maximizing directions satisfy Cq = λq. Such a q is an <a class="term" data-term="eigenvector" href="/glossary/eigenvector.html">eigenvector</a>; multiplying by C changes its length by eigenvalue λ without rotating it. The leading principal component is the eigenvector with the largest eigenvalue because its projection scores have the largest variance.</p>
+<div class="worked-example"><h3>Find the leading component and retained variance</h3><p>For C = [[2,1],[1,2]], q₁ = [1,1]/√2 is an eigenvector because Cq₁ = 3q₁. The orthogonal direction q₂ = [1,−1]/√2 has Cq₂ = 1q₂. The total variance is the trace, 2+2 = 4, also equal to 3+1. Keeping q₁ retains 3/4 = <strong>75%</strong> of the sample variance.</p><p>For centered z = [2,0], the projection score is q₁ᵀz = 2/√2 = √2. Reconstruction within the one-dimensional subspace is q₁√2 = [1,1]. We compressed two coordinates into one projection score and lost the discarded difference direction.</p></div>
+<p>For k components, put the eigenvectors into columns of Q. Then t = Qᵀ(x−μ) produces k projection scores and x̂ = μ + Qt reconstructs d features. Eigenvector signs are arbitrary: q and −q describe the same axis, changing only the signs of projection scores. Tests should compare their absolute dot product rather than requiring matching signs.</p>
+<p>The reference method accepts raw <code>features</code>, applies its stored mean, and returns the projection score. Reconstruction consumes that geometric coordinate:</p>
+<pre><code class="language-rust" data-source="projects/ch17/src/main.rs">fn transform(&amp;self, features: Vec2) -&gt; f64 {
+    dot(
+        self.component,
+        [features[0] - self.mean[0], features[1] - self.mean[1]],
+    )
+}
+
+fn reconstruct(&amp;self, projection_score: f64) -&gt; Vec2 {
+    [
+        self.mean[0] + projection_score * self.component[0],
+        self.mean[1] + projection_score * self.component[1],
+    ]
+}</code></pre>
 </section>
 
 <section id="power"><h2>3. Find the direction by repeated multiplication</h2>
 <p>A general eigensolver hides useful machinery, so the project uses <a class="term" data-term="power-iteration" href="/glossary/power-iteration.html">power iteration</a>. Start with a nonzero v. Repeatedly compute Cv and normalize it: <span class="equation">v ← Cv / ||Cv||₂</span>. If the starting vector overlaps the dominant eigenvector and the largest eigenvalue magnitude is unique, its contribution eventually overwhelms the others. The Rayleigh quotient λ̂ = vᵀCv estimates the eigenvalue.</p>
 <div class="worked-example"><h3>Watch the estimate converge</h3><p>Start at v₀ = [1,0] for C = [[2,1],[1,2]]. Multiplication gives [2,1], so v₁ = [2,1]/√5. Its Rayleigh estimate is 14/5 = 2.8. The next unnormalized direction is proportional to [5,4], giving λ̂₂ = 122/41 ≈ 2.9756. A third produces [14,13] and about 2.9973. The true leading value is three.</p></div>
-<pre><code class="language-rust">let next = mat_vec(covariance, v);
-let norm = dot(next, next).sqrt();
-v = [next[0] / norm, next[1] / norm];
-let eigenvalue = dot(v, mat_vec(covariance, v));</code></pre>
+<p>Inside <code>power_iteration_from</code>, this exact loop repeats the starter's one-step primitive and then computes the final eigenvalue estimate:</p>
+<pre><code class="language-rust" data-source="projects/ch17/src/main.rs">for _ in 0..steps {
+    let next = mat_vec(a, v);
+    let norm = next[0].hypot(next[1]);
+    if !norm.is_finite() || norm == 0.0 {
+        return Err("power iteration reached a zero or non-finite direction");
+    }
+    v = [next[0] / norm, next[1] / norm];
+}
+let eigenvalue = dot(v, mat_vec(a, v));</code></pre>
 <p>Updating v in place during matrix multiplication is a subtle bug: the second output would use an already-changed first coordinate. The reference builds a separate <code>next</code> vector. It also rejects a zero or nonfinite norm before dividing.</p>
 <p>One starting direction can be exactly orthogonal to the dominant eigenvector and never discover it. In this two-dimensional teaching implementation, two independent starts are iterated and the result with the larger Rayleigh quotient is selected. This does not replace a robust general eigensolver, but it fixes the easy two-dimensional blind spot and leaves a runnable invariant: the returned vector has unit norm and a small residual ||Cv−λv||₂.</p>
 </section>
@@ -43,12 +94,25 @@ let eigenvalue = dot(v, mat_vec(covariance, v));</code></pre>
 <pre><code class="language-bash">cargo test --manifest-path projects/ch17/Cargo.toml
 cargo run --release --manifest-path projects/ch17/Cargo.toml</code></pre>
 <p>For the six course-authored correlated rows, measured output gives mean [3.500, 3.517], leading component approximately [0.7234, 0.6905], leading eigenvalue 6.6784, and 99.8% retained variance. The condition number is about 595.2, warning that the second direction carries very little variance. This tiny clean fixture demonstrates mechanics, not a guarantee of useful compression on real measurements.</p>
-<div class="exercise"><h3>Exercise A · Project one centered row</h3><p>Complete <a href="/code/exercises/cpu/exercises/ch17_01.rs">ch17_01.rs</a>. The argument is already centered.</p><details><summary>Hint 1 · Result shape</summary><p>Two coordinates become one scalar score.</p></details><details><summary>Hint 2 · Arithmetic</summary><p>Multiply corresponding coordinates and add.</p></details><details><summary>Worked solution</summary><pre><code class="language-rust">centered[0] * component[0] + centered[1] * component[1]</code></pre><p>For [2,0] and [1,1]/√2, the result is √2.</p></details></div>
+<p>The displayed “mean squared reconstruction distance” is computed by <code>mean_squared_reconstruction_norm</code>. For each row it sums both squared coordinate residuals to obtain <code>||features−reconstruction||₂²</code>, sums those row values, and divides by the number of rows. It is therefore a mean squared Euclidean reconstruction norm per row. It is not coordinate MSE, which would divide by twice as many values for this two-feature data.</p>
+<pre><code class="language-rust" data-source="projects/ch17/src/main.rs">fn mean_squared_reconstruction_norm(&amp;self, rows: &amp;[Vec2]) -&gt; f64 {
+    rows.iter()
+        .map(|&amp;features| {
+            let reconstruction = self.reconstruct(self.transform(features));
+            (features[0] - reconstruction[0]).powi(2)
+                + (features[1] - reconstruction[1]).powi(2)
+        })
+        .sum::&lt;f64&gt;()
+        / rows.len() as f64
+}</code></pre>
+<div class="exercise"><h3>Exercise A · Project one centered row</h3><p>Complete <a href="/code/exercises/cpu/exercises/ch17_01.rs">ch17_01.rs</a>. Its <code>projection_score(centered, component)</code> primitive receives an already-centered row, while <code>Pca1::transform(features)</code> performs that centering from fitted storage.</p><details><summary>Hint 1 · Result shape</summary><p>Two coordinates become one scalar projection score.</p></details><details><summary>Hint 2 · Arithmetic</summary><p>Multiply corresponding centered-feature and component coordinates, then add.</p></details><details><summary>Worked solution</summary><pre><code class="language-rust" data-source="exercises/cpu/solutions/ch17_01.rs">fn projection_score(centered: [f64; 2], component: [f64; 2]) -&gt; f64 {
+    centered[0] * component[0] + centered[1] * component[1]
+}</code></pre><p>For [2,0] and [1,1]/√2, the projection score is √2.</p></details></div>
 <div class="exercise"><h3>Exercise B · Complete one power step</h3><p>Edit <code>projects/ch17/starter/src/main.rs</code>. Its test expects [2,1]/√5 after one step.</p><details><summary>Hint 1 · Preserve the old vector</summary><p>Compute both output coordinates before changing either input coordinate.</p></details><details><summary>Hint 2 · Normalize</summary><p>The norm of [2,1] is √(2²+1²)=√5.</p></details><details><summary>Reference answer</summary><pre><code class="language-rust">let next = [a[0][0] * v[0] + a[0][1] * v[1],
             a[1][0] * v[0] + a[1][1] * v[1]];
-let norm = (next[0] * next[0] + next[1] * next[1]).sqrt();
+let norm = next[0].hypot(next[1]);
 [next[0] / norm, next[1] / norm]</code></pre></details></div>
-<div class="exercise"><h3>Debugging · Translation changes the component</h3><p>A learner projects with <code>dot(component, x)</code>. Adding [100,−50] to every row changes the scores and reconstructions.</p><details><summary>Answer</summary><p>The projection omitted centering. Use <code>dot(component, x - mean)</code> and add the mean back during reconstruction. Covariance, eigenvalues, reconstruction errors, and component directions should remain unchanged by translating every row equally.</p></details></div>
+<div class="exercise"><h3>Debugging · Translation changes the component</h3><p>A learner projects with <code>dot(component, features)</code>. Adding [100,−50] to every row changes the projection scores and reconstructions.</p><details><summary>Answer</summary><p>The transform omitted centering. Use the fitted method <code>Pca1::transform(features)</code>, which computes <code>dot(component, features - mean)</code>, and add the stored mean back during reconstruction. Covariance, eigenvalues, mean squared reconstruction norms, and component directions should remain unchanged by translating every row equally.</p></details></div>
 <div class="exercise"><h3>Independent variation · Wine measurements</h3><p>Prepare selected numeric columns from UCI Wine, define your own development/test split, and compare PCA on raw features with PCA after training-only standardization. Record retained variance and reconstruction error.</p><details><summary>Worked reasoning</summary><p>Raw PCA will favor columns with large numeric variance and units. Standardized PCA asks which correlation directions dominate after each feature begins at unit variance. Neither is universally right. The UCI dataset page lists CC BY 4.0; retain attribution and do not treat its rows as an official course split.</p></details></div>
 </section>
 

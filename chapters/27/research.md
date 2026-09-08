@@ -10,3 +10,7 @@ GPT-6 Astra High independently read the full lesson, metadata, research, referen
 Replaced the starter’s all-zero residual test with a nonzero case. Added hand-checked loss/gradient/update arithmetic and finite input/model/output/reduction checks. Overflowed proposed updates are rejected before mutation. Qualified thread-count effects as possible rather than inevitable; fixed partition/handle order remains the reproducibility contract.
 
 Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+
+## Consistency revision, 2026-09-08
+
+Aligned the one-output model with Chapter 25's frozen dense layout: `inputs=[batch,in_features]`, the single `Model.weights` row `[in_features]`, scalar bias, and flattened `predictions=[batch]`. The task operation is now `predict`; `predict_batch` and `predict_batch_parallel` are its batch wrappers. Replaced the ambiguous fused `gradient_parallel` triple with scalar and parallel `loss_and_gradient* -> (loss, Gradient)` APIs. Workers return loss and parameter-gradient sums, fixed-order parent reduction combines them, and one shared boundary divides by the complete batch size. The 17-row scalar/parallel comparison and 31-row, three-shard training test exercise unequal chunks.

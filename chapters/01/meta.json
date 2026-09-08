@@ -1,11 +1,13 @@
 {
   "outcomes": [
+    "Organize a scalar neuron and its gradient with Rust structs and methods",
     "Train one scalar neuron without ML libraries",
     "Calculate prediction and mean squared error by hand",
-    "Explain training versus inference",
-    "Diagnose the update sign and learning rate"
+    "Explain borrowing with &self and propagate numerical errors with Result and ?",
+    "Diagnose the update sign, learning rate, and sequential-update bug"
   ],
   "lessons": [
+    "The shared neuron interface",
     "Examples and targets",
     "The prediction rule",
     "A numerical loss",
@@ -21,18 +23,18 @@
     },
     "weight": {
       "name": "Weight",
-      "definition": "A learned multiplier that controls an input\u2019s contribution.",
+      "definition": "A learned multiplier that controls an input’s contribution.",
       "explanation": "For the scalar neuron, the weight multiplies the input. A positive weight makes the prediction increase with the input; a negative weight reverses that relationship. In a dense neural layer, many weights connect input features to output units. Weights are adjusted by the optimizer during training and held fixed during ordinary inference. Their interpretation depends on input scaling and the rest of the model."
     },
     "bias": {
       "name": "Bias",
       "definition": "An additive learned offset in a model.",
-      "explanation": "In the equation predicted y = weight \u00d7 x + bias, the bias controls the prediction at x = 0. Changing it moves the entire prediction line without changing its slope. This usage differs from statistical bias, which concerns systematic estimation error, and social bias, which concerns unfair patterns in data or decisions. Later chapters use those terms too; the surrounding context determines which meaning applies."
+      "explanation": "In the equation predicted y = weight × x + bias, the bias controls the prediction at x = 0. Changing it moves the entire prediction line without changing its slope. This usage differs from statistical bias, which concerns systematic estimation error, and social bias, which concerns unfair patterns in data or decisions. Later chapters use those terms too; the surrounding context determines which meaning applies."
     },
     "model": {
       "name": "Model",
       "definition": "A parameterized rule that maps inputs to predictions.",
-      "explanation": "Our opening model is a straight-line function with two adjustable parameters. Learning chooses those parameters from data, while the model\u2019s mathematical form specifies which relationships it can represent. More complex models can represent more relationships, but require additional data, computation, and evaluation. A model is only one component of an ML system; preprocessing and how predictions are used also influence the final behavior."
+      "explanation": "Our opening model is a straight-line function with two adjustable parameters. Learning chooses those parameters from data, while the model’s mathematical form specifies which relationships it can represent. More complex models can represent more relationships, but require additional data, computation, and evaluation. A model is only one component of an ML system; preprocessing and how predictions are used also influence the final behavior."
     },
     "parameter": {
       "name": "Parameter",
@@ -41,8 +43,8 @@
     },
     "loss": {
       "name": "Loss",
-      "definition": "A number measuring how poorly predictions fit a training objective.",
-      "explanation": "Training attempts to reduce a chosen loss. Mean squared error penalizes numerical prediction errors; classification commonly uses a loss based on predicted probabilities. A low training loss does not guarantee useful behavior on new data or satisfy every real-world goal. Evaluation uses held-out examples and task-appropriate metrics to ask those additional questions. Always state whether a reported loss is summed or averaged over examples or tokens."
+      "definition": "A number used to score model predictions, with lower values preferred for the chosen objective.",
+      "explanation": "Training attempts to reduce a chosen loss; evaluation can measure that same loss on held-out data without updating parameters. Mean squared error measures numerical prediction error, while cross-entropy scores probability assigned to targets. An overall objective may add regularization or auxiliary terms to a data loss. Evaluation metrics, such as accuracy, need not be the quantities optimized during training. Always state the data split and whether the reported loss sums or averages over examples, output elements, or tokens."
     },
     "gradient": {
       "name": "Gradient",
@@ -67,7 +69,7 @@
     "target": {
       "name": "Target",
       "definition": "The desired answer paired with an input in supervised learning.",
-      "explanation": "A target may be a numerical measurement, a category, or the next token in a sequence. Training compares the model\u2019s prediction with this target through a loss function. Targets can be noisy or wrong, and the chosen target may only approximate the real task we care about. In this opening chapter they are exact synthetic numbers, chosen so we can verify the entire learning calculation by hand."
+      "explanation": "A target may be a numerical measurement, a category, or the next token in a sequence. Training compares the model’s prediction with this target through a loss function. Targets can be noisy or wrong, and the chosen target may only approximate the real task we care about. In this opening chapter they are exact synthetic numbers, chosen so we can verify the entire learning calculation by hand."
     },
     "supervised-learning": {
       "name": "Supervised learning",
@@ -77,7 +79,7 @@
     "mean-squared-error": {
       "name": "Mean squared error",
       "definition": "The average of squared prediction errors.",
-      "explanation": "For each example, subtract the target from the prediction, square that difference, then average across examples. Squaring prevents negative and positive errors from cancelling and penalizes large errors strongly. The units are the square of the target\u2019s units. Taking the square root yields RMSE, a related evaluation metric. Some derivations use half of MSE for simpler gradients; always check the convention when comparing formulas or learning rates."
+      "explanation": "For each example, subtract the target from the prediction, square that difference, then average across examples. Squaring prevents negative and positive errors from cancelling and penalizes large errors strongly. The units are the square of the target’s units. Taking the square root yields RMSE, a related evaluation metric. Some derivations use half of MSE for simpler gradients; always check the convention when comparing formulas or learning rates."
     }
   },
   "sources": [
@@ -99,7 +101,9 @@
   ],
   "checks": [
     "Starting MSE equals 9",
+    "Initial numerical gradient is weight -8 and bias -2 within 1e-8",
     "First step is weight 0.8, bias 0.2 within 1e-8",
+    "An asymmetric fixture proves weight and bias update from the same old model",
     "100 steps yield MSE below 1e-12",
     "Held-out prediction at 0.5 is within 1e-7 of 2",
     "Invalid data and learning rates are rejected"

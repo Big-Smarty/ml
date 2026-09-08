@@ -25,89 +25,114 @@ impl Matrix {
             data: vec![0.0; rows * cols],
         }
     }
-    fn at(&self, r: usize, c: usize) -> f64 {
-        self.data[r * self.cols + c]
+    fn at(&self, row: usize, col: usize) -> f64 {
+        self.data[row * self.cols + col]
     }
 }
 
 #[derive(Clone, Debug)]
 struct Dense {
-    input: usize,
-    output: usize,
+    in_features: usize,
+    out_features: usize,
     weights: Vec<f64>,
     bias: Vec<f64>,
 }
 impl Dense {
-    fn new(input: usize, output: usize, weights: Vec<f64>, bias: Vec<f64>) -> Result<Self, String> {
-        if input == 0 || output == 0 {
+    fn new(
+        in_features: usize,
+        out_features: usize,
+        weights: Vec<f64>,
+        bias: Vec<f64>,
+    ) -> Result<Self, String> {
+        if in_features == 0 || out_features == 0 {
             return Err("feature counts must be positive".into());
         }
-        if weights.len() != input.checked_mul(output).ok_or("weight size overflow")?
-            || bias.len() != output
+        if weights.len()
+            != in_features
+                .checked_mul(out_features)
+                .ok_or("weight size overflow")?
+            || bias.len() != out_features
         {
-            return Err("parameter length does not match [out,in] and [out]".into());
+            return Err(
+                "parameter length does not match [out_features,in_features] and [out_features]"
+                    .into(),
+            );
         }
         if weights.iter().chain(&bias).any(|x| !x.is_finite()) {
             return Err("parameters must be finite".into());
         }
         Ok(Self {
-            input,
-            output,
+            in_features,
+            out_features,
             weights,
             bias,
         })
     }
-    fn w(&self, o: usize, i: usize) -> f64 {
-        self.weights[o * self.input + i]
+    fn w(&self, out_feature: usize, in_feature: usize) -> f64 {
+        self.weights[out_feature * self.in_features + in_feature]
     }
-    fn forward(&self, x: &Matrix) -> Result<Matrix, String> {
-        if x.cols != self.input {
+    fn forward(&self, inputs: &Matrix) -> Result<Matrix, String> {
+        if inputs.cols != self.in_features {
             return Err(format!(
                 "input has {} features; layer expects {}",
-                x.cols, self.input
+                inputs.cols, self.in_features
             ));
         }
-        let mut y = Matrix::zeros(x.rows, self.output);
-        for b in 0..x.rows {
-            for o in 0..self.output {
+        let mut outputs = Matrix::zeros(inputs.rows, self.out_features);
+        for b in 0..inputs.rows {
+            for o in 0..self.out_features {
                 let mut sum = self.bias[o];
-                for i in 0..self.input {
-                    sum += x.at(b, i) * self.w(o, i)
+                for i in 0..self.in_features {
+                    sum += inputs.at(b, i) * self.w(o, i)
                 }
-                y.data[b * self.output + o] = sum;
+                outputs.data[b * self.out_features + o] = sum;
             }
         }
-        Ok(y)
+        Ok(outputs)
     }
-    fn backward(&self, x: &Matrix, dy: &Matrix) -> Result<(Matrix, Vec<f64>, Vec<f64>), String> {
-        if x.cols != self.input || dy.rows != x.rows || dy.cols != self.output {
-            return Err("backward shapes must be x=[batch,in], dy=[batch,out]".into());
+    fn backward(
+        &self,
+        inputs: &Matrix,
+        output_gradients: &Matrix,
+    ) -> Result<(Matrix, Vec<f64>, Vec<f64>), String> {
+        if inputs.cols != self.in_features
+            || output_gradients.rows != inputs.rows
+            || output_gradients.cols != self.out_features
+        {
+            return Err(
+                "backward shapes must be inputs=[batch,in_features], output_gradients=[batch,out_features]"
+                    .into(),
+            );
         }
-        let mut dx = Matrix::zeros(x.rows, self.input);
-        let mut dw = vec![0.0; self.weights.len()];
-        let mut db = vec![0.0; self.output];
-        for b in 0..x.rows {
-            for o in 0..self.output {
-                let g = dy.at(b, o);
-                db[o] += g;
-                for i in 0..self.input {
-                    dx.data[b * self.input + i] += g * self.w(o, i);
-                    dw[o * self.input + i] += g * x.at(b, i);
+        let mut input_gradients = Matrix::zeros(inputs.rows, self.in_features);
+        let mut weight_gradients = vec![0.0; self.weights.len()];
+        let mut bias_gradients = vec![0.0; self.out_features];
+        for b in 0..inputs.rows {
+            for o in 0..self.out_features {
+                let gradient = output_gradients.at(b, o);
+                bias_gradients[o] += gradient;
+                for i in 0..self.in_features {
+                    input_gradients.data[b * self.in_features + i] += gradient * self.w(o, i);
+                    weight_gradients[o * self.in_features + i] += gradient * inputs.at(b, i);
                 }
             }
         }
-        Ok((dx, dw, db))
+        Ok((input_gradients, weight_gradients, bias_gradients))
     }
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let x = Matrix::new(2, 3, vec![1., 2., 3., 4., 5., 6.])?;
+    let inputs = Matrix::new(2, 3, vec![1., 2., 3., 4., 5., 6.])?;
     let layer = Dense::new(3, 2, vec![1., 0., -1., 2., 1., 0.], vec![0.5, -0.5])?;
-    let y = layer.forward(&x)?;
-    println!("forward [batch=2,out=2]: {:?}", y.data);
-    let dy = Matrix::new(2, 2, vec![1., 2., 3., 4.])?;
-    let (dx, dw, db) = layer.backward(&x, &dy)?;
-    println!("dx={:?}\ndw={:?}\ndb={:?}", dx.data, dw, db);
+    let outputs = layer.forward(&inputs)?;
+    println!("forward [batch=2,out_features=2]: {:?}", outputs.data);
+    let output_gradients = Matrix::new(2, 2, vec![1., 2., 3., 4.])?;
+    let (input_gradients, weight_gradients, bias_gradients) =
+        layer.backward(&inputs, &output_gradients)?;
+    println!(
+        "input_gradients={:?}\nweight_gradients={:?}\nbias_gradients={:?}",
+        input_gradients.data, weight_gradients, bias_gradients
+    );
     Ok(())
 }
 
@@ -122,44 +147,49 @@ mod tests {
     }
     #[test]
     fn hand_computed_forward_and_backward() {
-        let (x, l) = fixture();
-        assert_eq!(l.forward(&x).unwrap().data, vec![-1.5, 3.5, -1.5, 12.5]);
-        let dy = Matrix::new(2, 2, vec![1., 2., 3., 4.]).unwrap();
-        let (dx, dw, db) = l.backward(&x, &dy).unwrap();
-        assert_eq!(dx.data, vec![5., 2., -1., 11., 4., -3.]);
-        assert_eq!(dw, vec![13., 17., 21., 18., 24., 30.]);
-        assert_eq!(db, vec![4., 6.]);
+        let (inputs, layer) = fixture();
+        assert_eq!(
+            layer.forward(&inputs).unwrap().data,
+            vec![-1.5, 3.5, -1.5, 12.5]
+        );
+        let output_gradients = Matrix::new(2, 2, vec![1., 2., 3., 4.]).unwrap();
+        let (input_gradients, weight_gradients, bias_gradients) =
+            layer.backward(&inputs, &output_gradients).unwrap();
+        assert_eq!(input_gradients.data, vec![5., 2., -1., 11., 4., -3.]);
+        assert_eq!(weight_gradients, vec![13., 17., 21., 18., 24., 30.]);
+        assert_eq!(bias_gradients, vec![4., 6.]);
     }
     #[test]
     fn weight_gradient_matches_difference() {
-        let (x, l) = fixture();
-        let dy = Matrix::new(2, 2, vec![0.2, -0.3, 0.4, 0.1]).unwrap();
-        let (_, dw, _) = l.backward(&x, &dy).unwrap();
-        let score = |d: &Dense| {
-            d.forward(&x)
+        let (inputs, layer) = fixture();
+        let output_gradients = Matrix::new(2, 2, vec![0.2, -0.3, 0.4, 0.1]).unwrap();
+        let (_, weight_gradients, _) = layer.backward(&inputs, &output_gradients).unwrap();
+        let score = |dense: &Dense| {
+            dense
+                .forward(&inputs)
                 .unwrap()
                 .data
                 .iter()
-                .zip(&dy.data)
+                .zip(&output_gradients.data)
                 .map(|(a, b)| a * b)
                 .sum::<f64>()
         };
         let h = 1e-5;
-        let mut p = l.clone();
-        let mut m = l.clone();
-        p.weights[1] += h;
-        m.weights[1] -= h;
-        let n = (score(&p) - score(&m)) / (2. * h);
-        assert!((dw[1] - n).abs() < 1e-6 + 1e-4 * n.abs());
+        let mut plus = layer.clone();
+        let mut minus = layer.clone();
+        plus.weights[1] += h;
+        minus.weights[1] -= h;
+        let numerical = (score(&plus) - score(&minus)) / (2. * h);
+        assert!((weight_gradients[1] - numerical).abs() < 1e-6 + 1e-4 * numerical.abs());
     }
     #[test]
     fn bad_shapes_are_errors() {
-        let (x, l) = fixture();
-        assert!(l
+        let (inputs, layer) = fixture();
+        assert!(layer
             .forward(&Matrix::new(1, 2, vec![1., 2.]).unwrap())
             .is_err());
-        assert!(l
-            .backward(&x, &Matrix::new(1, 2, vec![1., 2.]).unwrap())
+        assert!(layer
+            .backward(&inputs, &Matrix::new(1, 2, vec![1., 2.]).unwrap())
             .is_err());
     }
 }

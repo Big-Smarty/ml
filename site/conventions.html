@@ -1,0 +1,55 @@
+<article class="lesson"><div class="breadcrumb">A reference throughout the course</div><h1>The same ideas, the same names.</h1>
+<p class="lead">You should be able to recognize the code you learned in an earlier chapter. This page sets out the names we carry forward and explains the changes you will encounter as the models grow.</p>
+<section id="neuron"><h2>The first two chapters share one interface</h2>
+<p>A <code>Neuron</code> stores <code>weight</code> and <code>bias</code>. Calling a method on that neuron keeps its parameters together. A dataset is a slice of <code>(input, target)</code> pairs. The order stays the same in prediction, loss calculation, and training.</p>
+<pre><code class="language-rust">let model = Neuron { weight: 0.0, bias: 0.0 };
+let prediction = model.predict(0.5);
+let initial_loss = model.loss(&amp;TRAIN)?;
+let model = model.train(&amp;TRAIN, 100, 0.1)?;</code></pre>
+<p>This excerpt belongs inside a function that can return an error, such as the reference program's <code>main</code>. The question mark propagates an error; it is not part of the mathematics. <code>predict</code> borrows the model through <code>&amp;self</code>. The early <code>step</code> and <code>train</code> methods return an updated model, which we store back in <code>model</code>.</p>
+<div class="table-wrap"><table><caption>The neuron’s operations</caption><thead><tr><th>Call</th><th>Meaning</th></tr></thead><tbody>
+<tr><td><code>model.predict(input)</code></td><td>Return weight × input + bias, without learning.</td></tr>
+<tr><td><code>model.loss(data)</code></td><td>Return mean squared error over the supplied examples.</td></tr>
+<tr><td><code>model.numerical_gradient(data)</code></td><td>Estimate both loss slopes using central differences.</td></tr>
+<tr><td><code>model.gradient(data)</code></td><td>Calculate the same slopes analytically, introduced in Chapter 2.</td></tr>
+<tr><td><code>model.step(data, learning_rate)</code></td><td>Apply one simultaneous parameter update.</td></tr>
+<tr><td><code>model.train(data, steps, learning_rate)</code></td><td>Repeat that update the requested number of times.</td></tr>
+</tbody></table></div>
+<p><a href="/chapters/01.html">Chapter 1</a> uses the numerical gradient inside <code>step</code>. <a href="/chapters/02.html">Chapter 2</a> uses the analytical gradient there and retains the numerical calculation as a check. The model, data, loss, and prediction have the same meaning in both chapters.</p>
+</section>
+<section id="vocabulary"><h2>Vocabulary that stays with you</h2>
+<dl><dt>Input, features, and target</dt><dd>An input is what the model receives. A feature vector contains several input measurements. A target is the desired output paired with an input. A class label is a target identifying a category.</dd>
+<dt>Prediction, error, and loss</dt><dd>A prediction is the model's answer. For regression, signed error is prediction − target. A loss scores disagreement according to a chosen objective. These are different quantities: an error can be negative even though its square is positive.</dd>
+<dt>Parameters and hyperparameters</dt><dd>Training adjusts parameters such as weights and biases. You choose hyperparameters such as the learning rate, batch size, and layer width. Rust uses <code>learning_rate</code> for the update multiplier; equations often use η for the same quantity.</dd>
+<dt>Gradient and update</dt><dd>A gradient contains derivatives of the loss with respect to parameters. It is calculated at the current parameters. An update uses it to produce new parameters. Calculate all derivatives that depend on the old parameters before changing those parameters.</dd>
+<dt>Batch, step, and epoch</dt><dd>A batch is the group processed together. An optimizer step applies one update. An epoch is a pass over the training dataset. Several batches can make one epoch; gradient accumulation can make several batches contribute to one step.</dd>
+<dt>Training, inference, and evaluation</dt><dd>Training adjusts learned state. Inference uses learned state to make predictions. Evaluation compares predictions with a task's criteria. Validation helps choose settings; the test split is reserved for the final evaluation.</dd></dl>
+<p>Hover or focus linked terms in lessons for a preview, or consult the <a href="/glossary.html">glossary</a>. The early “bias” is a learned additive offset; statistical bias and fairness concerns have different meanings and are introduced separately.</p>
+</section>
+<section id="loss"><h2>A loss name includes a mathematical promise</h2>
+<p>For the scalar regression model, <code>loss(data)</code> means ordinary mean squared error:</p>
+<div class="equation">L = (1/N) Σᵢ (predictionᵢ − targetᵢ)²</div>
+<p>N is the number of examples. There is no factor of one half. Its derivative therefore includes a factor of two. At zero weight and bias, the five examples in Chapters 1 and 2 give loss 9 and gradient (−8, −2). With learning rate 0.1, the next parameters are (0.8, 0.2).</p>
+<p>Classification introduces a different objective: cross-entropy. A <code>logit</code> is a score before probability normalization; it is not a probability or a predicted class. Standalone primitives such as <code>binary_cross_entropy_from_logit(logit, target)</code> name the input representation explicitly. A model's <code>loss</code> method computes the objective defined by that chapter.</p>
+<p>Later implementations use <code>loss_and_gradient</code> when the loss and its derivatives can share a computation. The longer name describes two outputs, not a new kind of loss. Every chapter specifies whether it sums or averages over examples, output elements, or tokens. The gradient uses the same reduction. A regularization penalty is stated separately from the data loss.</p>
+</section>
+<section id="growth"><h2>How the interface grows</h2>
+<div class="table-wrap"><table><caption>Changes introduced for a reason</caption><thead><tr><th>New requirement</th><th>What changes</th><th>What carries forward</th></tr></thead><tbody>
+<tr><td>Several input measurements</td><td><code>input</code> becomes a feature vector and <code>weight</code> becomes <code>weights</code>.</td><td>Weighted contributions plus bias; prediction is compared with a target.</td></tr>
+<tr><td>Classification</td><td>Separate logits, probabilities, and the class decision; introduce cross-entropy.</td><td>Parameters, loss gradients, and the update loop.</td></tr>
+<tr><td>Multiple layers</td><td><code>forward</code> returns layer outputs and sometimes cached intermediates; <code>backward</code> propagates derivatives.</td><td>Forward computation is the calculation inside prediction. Backward computes the same kind of loss slopes.</td></tr>
+<tr><td>Large parameter arrays</td><td>Update methods may use <code>&amp;mut self</code> to change arrays without copying the model.</td><td>An update still occurs after its required gradients are calculated.</td></tr>
+<tr><td>CPU and GPU kernels</td><td>Explicit dimensions, buffers, scalar references, and optimized versions.</td><td>The mathematical operation and its numerical checks.</td></tr>
+<tr><td>Language models</td><td>Token IDs, sequence positions, causal masks, and next-token targets.</td><td>Scores, cross-entropy, gradients, optimizer steps, and held-out evaluation.</td></tr>
+</tbody></table></div>
+<p>Each chapter starts with a short account of the code and terminology it carries forward. Classical models and preprocessing tools can use <code>fit</code> to estimate state from training data and <code>transform</code> to apply that fitted state. A tokenizer's training loop or an environment's <code>step</code> has a different job from a neural optimizer; the lesson identifies the object and what one step counts.</p>
+</section>
+<section id="shapes"><h2>Read shapes alongside function signatures</h2>
+<p>Arrays are contiguous and stored in row-major order unless a particular layout is explicitly explained. A dense layer normally receives activations shaped <code>[batch, in_features]</code>, stores weights as <code>[out_features, in_features]</code>, and returns <code>[batch, out_features]</code>. Its operation is input × weights-transpose + bias. A general matrix multiplication instead takes A[m,k] and B[k,n] and returns C[m,n]. These are compatible descriptions once the transpose is accounted for.</p>
+<p>Language-model formulas use T for sequence positions, D for model width, V for vocabulary size, and τ for temperature. A token ID chooses a vocabulary entry; a position says where that token occurs in a sequence. The same ID can appear at several positions.</p>
+<p>Kernel and checkpoint layouts sometimes differ. Their chapters give the indexing and conversion so you can follow the same numbers through memory. Early numerical examples use <code>f64</code>; performance chapters introduce <code>f32</code> and explain the associated tolerance. Faster execution can change rounding without changing the intended formula.</p>
+</section>
+<section id="checkpoints"><h2>Compare the lesson with your checkpoint</h2>
+<p>A lesson's implementation excerpt uses the same function names, arguments, and return meanings as its linked reference file. Short fragments identify their context. Deliberately broken examples are labeled as debugging tasks. Your starter and small exercise may leave one operation unfinished; their hints explain how that operation maps to the full project.</p>
+<p>If you already wrote an experiment with different names, keep it in your <a href="/git.html">learning history</a>. Match its quantities to this guide before comparing it with the current reference. An independently written function can be mathematically correct even when its names differ; the course uses a consistent interface so you can spend your attention on the new idea.</p>
+</section></article>

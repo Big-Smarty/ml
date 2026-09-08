@@ -13,7 +13,7 @@ Authored by Sol High with a bounded GPT-5.6 Luna High research subagent. The res
 
 ## Author decisions
 
-The runnable project implements a simple percentile interval because its resampling mechanism is inspectable. The lesson explicitly denies a coverage guarantee for the eight-row fixture and separates bootstrap sampling uncertainty from bias, shift, and dependence. It measures calibration but does not fit a calibrator, avoiding another model and another data partition.
+The runnable project implements a simple percentile confidence interval because its resampling mechanism is inspectable. The lesson explicitly denies a coverage guarantee for the eight-row fixture and separates bootstrap sampling uncertainty from bias, shift, and dependence. It measures calibration but does not fit a calibrator, avoiding another model and another data partition. The consistency revision maps each binary evaluation row to one frozen Chapter 11 softmax class probability and the corresponding observed class-versus-rest outcome. Accuracy, Brier score, and calibration summaries are recomputed from those held-out rows; none consumes the classifier's recorded training loss.
 
 
 ## Astra High review — 2026-09-08

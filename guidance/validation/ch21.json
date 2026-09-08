@@ -5,76 +5,78 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch21/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.03,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch21/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.036,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+      "seconds": 0.043,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch21/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.044,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch21/target/debug/deps/ch21-6278e917dc9eaae9)\n\nrunning 4 tests\ntest tests::normalization_and_split_invariants_hold ... ok\ntest tests::loss_is_stable_at_large_common_bias_and_bad_images_are_rejected ... ok\ntest tests::first_block_gradient_matches_central_difference_through_second_block ... ok\ntest tests::training_improves_disjoint_validation_loss ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n"
+      "seconds": 0.055,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch21/target/debug/deps/ch21-6278e917dc9eaae9)\n\nrunning 4 tests\ntest tests::normalization_and_split_invariants_hold ... ok\ntest tests::first_block_gradient_matches_central_difference_through_second_block ... ok\ntest tests::loss_is_stable_at_large_common_bias_and_bad_images_are_rejected ... ok\ntest tests::training_improves_disjoint_validation_loss ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch21/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.015,
+      "seconds": 0.017,
       "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch21/target/release/ch21`\naugmented training images=20, disjoint validation images=4\nvalidation cross-entropy 0.6949 -> 0.0928; accuracy 50.0% -> 100.0%\nlearned residual scales [0.5993, 0.3146]\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch21/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.024,
+      "seconds": 0.027,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch21/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.036,
+      "seconds": 0.042,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch21/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.032,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch21/starter/target/debug/ch21-starter`\nprevious checkpoint convolution: 4.5\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch21/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.015,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch21/starter/target/debug/deps/ch21_starter-551fcfe3037be4d0)\n\nrunning 1 test\ntest tests::shortcut_adds_elementwise ... FAILED\n\nfailures:\n\n---- tests::shortcut_adds_elementwise stdout ----\n\nthread 'tests::shortcut_adds_elementwise' (1479) panicked at src/main.rs:6:5:\nnot yet implemented: return elementwise input plus branch\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::shortcut_adds_elementwise\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch21-starter`\n",
+      "seconds": 0.019,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch21/starter/target/debug/deps/ch21_starter-551fcfe3037be4d0)\n\nrunning 1 test\ntest tests::shortcut_adds_elementwise ... FAILED\n\nfailures:\n\n---- tests::shortcut_adds_elementwise stdout ----\n\nthread 'tests::shortcut_adds_elementwise' (4602) panicked at src/main.rs:6:5:\nnot yet implemented: return elementwise input plus branch\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::shortcut_adds_elementwise\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch21-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch21_01.rs -o /tmp/ml-check-reawnkjh/solutionch21_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch21_01.rs -o /tmp/ml-check-2ozfishn/solutionch21_01",
       "returncode": 0,
-      "seconds": 0.044,
+      "seconds": 0.052,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-reawnkjh/solutionch21_01",
+      "command": "/tmp/ml-check-2ozfishn/solutionch21_01",
       "returncode": 0,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest identity_shortcut_is_elementwise ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "output": "\nrunning 1 test\ntest residual_add_is_elementwise ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch21_01.rs -o /tmp/ml-check-reawnkjh/exercisech21_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch21_01.rs -o /tmp/ml-check-2ozfishn/exercisech21_01",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.047,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-reawnkjh/exercisech21_01",
+      "command": "/tmp/ml-check-2ozfishn/exercisech21_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest identity_shortcut_is_elementwise ... FAILED\n\nfailures:\n\n---- identity_shortcut_is_elementwise stdout ----\n\nthread 'identity_shortcut_is_elementwise' (1551) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch21_01.rs:3:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    identity_shortcut_is_elementwise\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest residual_add_is_elementwise ... FAILED\n\nfailures:\n\n---- residual_add_is_elementwise stdout ----\n\nthread 'residual_add_is_elementwise' (4674) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch21_01.rs:3:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    residual_add_is_elementwise\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

@@ -10,4 +10,4 @@ Route: Sol High author with a bounded GPT-5.6 Luna High research subagent. Sourc
 
 Implementation evidence: Chapter 40 uses Chapter 36's published flat parameter spans and reproduces every inference operator for one new token. The test compares every prefix's full vocabulary-logit row, so this is not an output-only or standalone attention cache.
 
-Independent review: GPT-6 Astra High owned the complete lesson/code/starter/exercise audit and corrections. Bounded GPT-5.6 Luna High primary-source and technical verification covered AdamW, checkpoint continuation, validation, caching, serving, and quantization claims. See `guidance/astra-review-29-41.md` for findings, executed gates, and inherited hardware evidence.
+Consistency revision: the assigned GPT-5.6 Sol High author rechecked the complete lesson, reference, starter, exercise, solution, and metadata against the Chapter 36 and 39 interfaces. The earlier bounded GPT-5.6 Luna High primary-source review remains the source check for caching and serving claims; no new online research was needed for terminology and interface unification.

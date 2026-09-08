@@ -12,7 +12,7 @@ struct CachedDecoder<'a> {
     model: &'a Decoder,
     spans: HashMap<String, Range<usize>>,
     layers: Vec<LayerKv>,
-    position: usize,
+    next_position: usize,
 }
 
 impl<'a> CachedDecoder<'a> {
@@ -29,38 +29,43 @@ impl<'a> CachedDecoder<'a> {
             model,
             spans,
             layers,
-            position: 0,
+            next_position: 0,
         }
     }
-    fn p(&self, name: &str) -> &[f32] {
+    fn parameter_slice(&self, name: &str) -> &[f32] {
         &self.model.parameters()[self.spans[name].clone()]
     }
-    fn step(&mut self, token: usize) -> Result<Vec<f32>, Box<dyn Error>> {
+    /// Cache one token at the next sequence position and return its [vocabulary] logits.
+    /// This decoding step advances no optimizer state.
+    fn step(&mut self, token_id: usize) -> Result<Vec<f32>, Box<dyn Error>> {
         let c = self.model.config();
-        if token >= c.vocab_size {
+        if token_id >= c.vocab_size {
             return Err("token exceeds vocabulary".into());
         }
-        if self.position >= c.context {
+        if self.next_position >= c.context {
             return Err("cache reached model context; reset and replay a cropped window".into());
         }
         let mut x = vec![0.0; c.width];
-        let tok = self.p("token_embedding");
-        let pos = self.p("position_embedding");
+        let tok = self.parameter_slice("token_embedding");
+        let pos = self.parameter_slice("position_embedding");
         for j in 0..c.width {
-            x[j] = tok[token * c.width + j] + pos[self.position * c.width + j];
+            x[j] = tok[token_id * c.width + j] + pos[self.next_position * c.width + j];
         }
         for layer in 0..c.layers {
             let n1 = layer_norm(
                 &x,
-                self.p(&format!("layer.{layer}.ln1_gain")),
-                self.p(&format!("layer.{layer}.ln1_bias")),
+                self.parameter_slice(&format!("layer.{layer}.ln1_gain")),
+                self.parameter_slice(&format!("layer.{layer}.ln1_bias")),
             );
             let mut qkv = matvec(
                 &n1,
-                self.p(&format!("layer.{layer}.qkv_weight")),
+                self.parameter_slice(&format!("layer.{layer}.qkv_weight")),
                 3 * c.width,
             );
-            add(&mut qkv, self.p(&format!("layer.{layer}.qkv_bias")));
+            add(
+                &mut qkv,
+                self.parameter_slice(&format!("layer.{layer}.qkv_bias")),
+            );
             let (q, rest) = qkv.split_at(c.width);
             let (k, v) = rest.split_at(c.width);
             self.layers[layer].keys.extend_from_slice(k);
@@ -68,60 +73,76 @@ impl<'a> CachedDecoder<'a> {
             let mut context = vec![0.0; c.width];
             let head_dim = c.width / c.heads;
             for h in 0..c.heads {
-                let mut scores = Vec::with_capacity(self.position + 1);
-                for past in 0..=self.position {
+                let mut scores = Vec::with_capacity(self.next_position + 1);
+                for cached_position in 0..=self.next_position {
                     let dot: f32 = (0..head_dim)
                         .map(|j| {
                             q[h * head_dim + j]
-                                * self.layers[layer].keys[past * c.width + h * head_dim + j]
+                                * self.layers[layer].keys
+                                    [cached_position * c.width + h * head_dim + j]
                         })
                         .sum();
                     scores.push(dot / (head_dim as f32).sqrt());
                 }
                 let max = scores.iter().copied().fold(f32::NEG_INFINITY, f32::max);
                 let denom: f32 = scores.iter().map(|s| (*s - max).exp()).sum();
-                for (past, score) in scores.into_iter().enumerate() {
-                    let weight = (score - max).exp() / denom;
+                for (cached_position, score) in scores.into_iter().enumerate() {
+                    let probability = (score - max).exp() / denom;
                     for j in 0..head_dim {
-                        context[h * head_dim + j] +=
-                            weight * self.layers[layer].values[past * c.width + h * head_dim + j];
+                        context[h * head_dim + j] += probability
+                            * self.layers[layer].values
+                                [cached_position * c.width + h * head_dim + j];
                     }
                 }
             }
             let mut attn = matvec(
                 &context,
-                self.p(&format!("layer.{layer}.attention_output_weight")),
+                self.parameter_slice(&format!("layer.{layer}.attention_output_weight")),
                 c.width,
             );
             add(
                 &mut attn,
-                self.p(&format!("layer.{layer}.attention_output_bias")),
+                self.parameter_slice(&format!("layer.{layer}.attention_output_bias")),
             );
             for j in 0..c.width {
                 x[j] += attn[j];
             }
             let n2 = layer_norm(
                 &x,
-                self.p(&format!("layer.{layer}.ln2_gain")),
-                self.p(&format!("layer.{layer}.ln2_bias")),
+                self.parameter_slice(&format!("layer.{layer}.ln2_gain")),
+                self.parameter_slice(&format!("layer.{layer}.ln2_bias")),
             );
             let mut ff = matvec(
                 &n2,
-                self.p(&format!("layer.{layer}.ff1_weight")),
+                self.parameter_slice(&format!("layer.{layer}.ff1_weight")),
                 c.ff_width,
             );
-            add(&mut ff, self.p(&format!("layer.{layer}.ff1_bias")));
+            add(
+                &mut ff,
+                self.parameter_slice(&format!("layer.{layer}.ff1_bias")),
+            );
             ff.iter_mut().for_each(|z| *z = gelu(*z));
-            let mut projected = matvec(&ff, self.p(&format!("layer.{layer}.ff2_weight")), c.width);
-            add(&mut projected, self.p(&format!("layer.{layer}.ff2_bias")));
+            let mut projected = matvec(
+                &ff,
+                self.parameter_slice(&format!("layer.{layer}.ff2_weight")),
+                c.width,
+            );
+            add(
+                &mut projected,
+                self.parameter_slice(&format!("layer.{layer}.ff2_bias")),
+            );
             for j in 0..c.width {
                 x[j] += projected[j];
             }
         }
-        let n = layer_norm(&x, self.p("final_norm_gain"), self.p("final_norm_bias"));
-        let mut logits = matvec(&n, self.p("output_weight"), c.vocab_size);
-        add(&mut logits, self.p("output_bias"));
-        self.position += 1;
+        let n = layer_norm(
+            &x,
+            self.parameter_slice("final_norm_gain"),
+            self.parameter_slice("final_norm_bias"),
+        );
+        let mut logits = matvec(&n, self.parameter_slice("output_weight"), c.vocab_size);
+        add(&mut logits, self.parameter_slice("output_bias"));
+        self.next_position += 1;
         Ok(logits)
     }
     fn cached_values(&self) -> usize {
@@ -132,9 +153,13 @@ impl<'a> CachedDecoder<'a> {
     }
 }
 
-fn matvec(x: &[f32], w: &[f32], out: usize) -> Vec<f32> {
-    (0..out)
-        .map(|j| (0..x.len()).map(|i| x[i] * w[i * out + j]).sum())
+fn matvec(input: &[f32], weights: &[f32], out_features: usize) -> Vec<f32> {
+    (0..out_features)
+        .map(|j| {
+            (0..input.len())
+                .map(|i| input[i] * weights[i * out_features + j])
+                .sum()
+        })
         .collect()
 }
 fn add(x: &mut [f32], b: &[f32]) {
@@ -156,18 +181,18 @@ fn gelu(x: f32) -> f32 {
 }
 
 #[derive(Clone)]
-struct Rng(u64);
-impl Rng {
+struct SamplingRng(u64);
+impl SamplingRng {
     fn next(&mut self) -> f32 {
         self.0 = self.0.wrapping_mul(6364136223846793005).wrapping_add(1);
         ((self.0 >> 40) as u32 as f32) / (1u32 << 24) as f32
     }
 }
-fn sample(
+fn sample_token(
     logits: &[f32],
     temperature: f32,
     top_k: usize,
-    rng: &mut Rng,
+    rng: &mut SamplingRng,
 ) -> Result<usize, &'static str> {
     if logits.is_empty()
         || logits.iter().any(|x| !x.is_finite())
@@ -177,69 +202,72 @@ fn sample(
     {
         return Err("sampling needs logits, positive temperature, and top_k");
     };
-    let mut ids: Vec<usize> = (0..logits.len()).collect();
-    ids.sort_by(|&a, &b| logits[b].total_cmp(&logits[a]));
-    ids.truncate(top_k.min(ids.len()));
-    let max = ids
+    let mut token_ids: Vec<usize> = (0..logits.len()).collect();
+    token_ids.sort_by(|&a, &b| logits[b].total_cmp(&logits[a]));
+    token_ids.truncate(top_k.min(token_ids.len()));
+    let max = token_ids
         .iter()
         .map(|&i| logits[i])
         .fold(f32::NEG_INFINITY, f32::max);
-    let total: f32 = ids
+    let total: f32 = token_ids
         .iter()
         .map(|&i| ((logits[i] - max) / temperature).exp())
         .sum();
     let mut draw = rng.next() * total;
-    for &i in &ids {
+    for &i in &token_ids {
         draw -= ((logits[i] - max) / temperature).exp();
         if draw <= 0.0 {
             return Ok(i);
         }
     }
-    Ok(*ids.last().unwrap())
+    Ok(*token_ids.last().unwrap())
 }
 
 struct Request<'a> {
     id: &'static str,
-    output: Vec<usize>,
-    remaining: usize,
+    tokens: Vec<usize>,
+    remaining_tokens: usize,
     cache: CachedDecoder<'a>,
     logits: Vec<f32>,
-    rng: Rng,
+    rng: SamplingRng,
 }
-fn run_batch(
+fn run_request_batch(
     model: &Decoder,
     prompts: &[(&'static str, Vec<usize>, usize)],
     mut emit: impl FnMut(&str, usize),
 ) -> Result<Vec<(String, usize)>, Box<dyn Error>> {
     let mut requests = Vec::new();
-    for (id, prompt, n) in prompts {
+    for (id, prompt, tokens_to_generate) in prompts {
         let mut cache = CachedDecoder::new(model);
         let mut logits = Vec::new();
-        for &t in prompt {
-            logits = cache.step(t)?;
+        for &token_id in prompt {
+            logits = cache.step(token_id)?;
         }
         if logits.is_empty() {
             return Err("prompt must not be empty".into());
         }
         requests.push(Request {
             id,
-            output: prompt.clone(),
-            remaining: *n,
+            tokens: prompt.clone(),
+            remaining_tokens: *tokens_to_generate,
             cache,
             logits,
-            rng: Rng(id.len() as u64 + 9),
+            rng: SamplingRng(id.len() as u64 + 9),
         });
     }
     let mut events = Vec::new();
-    while requests.iter().any(|r| r.remaining > 0) {
-        for r in requests.iter_mut().filter(|r| r.remaining > 0) {
-            let token = sample(&r.logits, 0.8, 4, &mut r.rng)?;
-            r.output.push(token);
-            r.remaining -= 1;
-            events.push((r.id.to_string(), token));
-            emit(r.id, token);
-            if r.remaining > 0 {
-                r.logits = r.cache.step(token)?;
+    while requests.iter().any(|request| request.remaining_tokens > 0) {
+        for request in requests
+            .iter_mut()
+            .filter(|request| request.remaining_tokens > 0)
+        {
+            let token_id = sample_token(&request.logits, 0.8, 4, &mut request.rng)?;
+            request.tokens.push(token_id);
+            request.remaining_tokens -= 1;
+            events.push((request.id.to_string(), token_id));
+            emit(request.id, token_id);
+            if request.remaining_tokens > 0 {
+                request.logits = request.cache.step(token_id)?;
             }
         }
     }
@@ -285,11 +313,11 @@ fn main() -> Result<(), Box<dyn Error>> {
         tokens.len(),
         cached.cached_values()
     );
-    run_batch(
+    run_request_batch(
         &model,
         &[("short", vec![1, 2], 2), ("long", vec![3, 4, 5], 3)],
-        |id, token| {
-            println!("stream {id}: token {token}");
+        |id, token_id| {
+            println!("stream {id}: token {token_id}");
             std::io::stdout().flush().expect("flush streamed token");
         },
     )?;
@@ -301,44 +329,47 @@ mod tests {
     use super::*;
     #[test]
     fn cached_matches_every_full_prefix() {
-        let m = tiny_model().unwrap();
-        let seq = [2, 9, 1, 6, 4, 3];
-        let mut c = CachedDecoder::new(&m);
-        for end in 1..=seq.len() {
-            let got = c.step(seq[end - 1]).unwrap();
-            let all = m.forward(&seq[..end]).unwrap();
-            let want = &all[all.len() - m.config().vocab_size..];
-            assert!(max_error(&got, want) < 2e-5, "prefix {end}");
+        let model = tiny_model().unwrap();
+        let tokens = [2, 9, 1, 6, 4, 3];
+        let mut cached = CachedDecoder::new(&model);
+        for end in 1..=tokens.len() {
+            let cached_logits = cached.step(tokens[end - 1]).unwrap();
+            let full_logits = model.forward(&tokens[..end]).unwrap();
+            let expected = &full_logits[full_logits.len() - model.config().vocab_size..];
+            assert_eq!(cached_logits.len(), model.config().vocab_size);
+            assert!(max_error(&cached_logits, expected) < 2e-5, "prefix {end}");
         }
         assert_eq!(
-            c.cached_values(),
-            2 * m.config().layers * seq.len() * m.config().width
+            cached.cached_values(),
+            2 * model.config().layers * tokens.len() * model.config().width
         );
     }
     #[test]
     fn top_k_one_is_greedy() {
-        let mut r = Rng(1);
+        let mut rng = SamplingRng(1);
         for _ in 0..10 {
-            assert_eq!(sample(&[1.0, 4.0, 2.0], 0.7, 1, &mut r).unwrap(), 1);
+            assert_eq!(sample_token(&[1.0, 4.0, 2.0], 0.7, 1, &mut rng).unwrap(), 1);
         }
-        assert!(sample(&[f32::NAN], 1.0, 1, &mut r).is_err());
+        assert!(sample_token(&[f32::NAN], 1.0, 1, &mut rng).is_err());
     }
     #[test]
     fn context_limit_is_explicit() {
-        let m = tiny_model().unwrap();
-        let mut c = CachedDecoder::new(&m);
-        for _ in 0..m.config().context {
-            c.step(1).unwrap();
+        let model = tiny_model().unwrap();
+        let mut cached = CachedDecoder::new(&model);
+        for _ in 0..model.config().context {
+            cached.step(1).unwrap();
         }
-        assert!(c.step(1).is_err());
+        assert!(cached.step(1).is_err());
     }
     #[test]
     fn unequal_requests_finish_and_emit_in_rounds() {
-        let m = tiny_model().unwrap();
+        let model = tiny_model().unwrap();
         let mut streamed = Vec::new();
-        let events = run_batch(&m, &[("a", vec![1], 1), ("bb", vec![2], 3)], |id, t| {
-            streamed.push((id.to_string(), t))
-        })
+        let events = run_request_batch(
+            &model,
+            &[("a", vec![1], 1), ("bb", vec![2], 3)],
+            |id, token_id| streamed.push((id.to_string(), token_id)),
+        )
         .unwrap();
         assert_eq!(events, streamed);
         assert_eq!(

@@ -1,5 +1,5 @@
-fn output_size(_input: usize, _kernel: usize, _padding: usize, _stride: usize) -> usize {
-    // TODO: return floor((input + 2*padding - kernel) / stride) + 1.
+fn output_size(_input_size: usize, _kernel_size: usize, _padding: usize, _stride: usize) -> usize {
+    // TODO: return floor((input_size + 2*padding - kernel_size) / stride) + 1.
     todo!()
 }
 fn main() {

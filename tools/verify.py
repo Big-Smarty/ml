@@ -62,6 +62,13 @@ def run(cmd,timeout=180):
         p=subprocess.run(cmd,cwd=ROOT,text=True,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=timeout)
         return dict(command=' '.join(cmd),returncode=p.returncode,seconds=round(time.monotonic()-start,3),output=p.stdout[-14000:])
     except subprocess.TimeoutExpired as e:return dict(command=' '.join(cmd),returncode=-1,seconds=timeout,output='TIMEOUT '+str(e))
+def learner_result(result):
+    """Accept solved work, or an unfinished task failing at its intended TODO."""
+    result['learner_complete']=result['returncode']==0
+    if not result['learner_complete']:
+        result['expected_failure']=True
+        result['expected_failure_observed']=result['returncode']!= -1 and any(marker in result['output'] for marker in ('not yet implemented', 'guided repair:')) and 'error[E' not in result['output']
+    return result
 def rust_checks(ids):
     reports=[]
     for id in ids:
@@ -76,8 +83,7 @@ def rust_checks(ids):
             results.append(run(['cargo','fmt','--manifest-path',str(starter),'--check']))
             results.append(run(['cargo','clippy','--offline','--manifest-path',str(starter),'--all-targets','--','-D','warnings']))
             results.append(run(['cargo','run','--offline','--manifest-path',str(starter)]))
-            test=run(['cargo','test','--offline','--manifest-path',str(starter)]);test['expected_failure']=True
-            test['expected_failure_observed']=test['returncode']!=0 and any(marker in test['output'] for marker in ('not yet implemented', 'guided repair:')) and 'error[E' not in test['output'];results.append(test)
+            results.append(learner_result(run(['cargo','test','--offline','--manifest-path',str(starter)])))
         with tempfile.TemporaryDirectory(prefix='ml-check-') as tmp:
             for solution in sorted((ROOT/'exercises/cpu/solutions').glob(f'ch{id}_*.rs')):
                 for kind,path in [('solution',solution),('exercise',ROOT/'exercises/cpu/exercises'/solution.name)]:
@@ -85,7 +91,7 @@ def rust_checks(ids):
                     compile=run(['rustc','--edition=2021','--test',str(path),'-o',str(binary)]);results.append(compile)
                     if compile['returncode']==0:
                         test=run([str(binary)])
-                        if kind=='exercise':test.update(expected_failure=True,expected_failure_observed=test['returncode']!=0 and ('not yet implemented' in test['output']))
+                        if kind=='exercise':learner_result(test)
                         results.append(test)
         ok=all(r.get('expected_failure_observed',r['returncode']==0) for r in results)
         reports.append(dict(chapter=id,passed=ok,results=results));print(f'Chapter {id}: {"PASS" if ok else "FAIL"}',flush=True)

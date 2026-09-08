@@ -5,6 +5,17 @@ use std::{collections::HashSet, error::Error, fs, path::PathBuf, time::Instant};
 const TINY: &str = include_str!("../data/tiny.txt");
 const VALIDATION: &str = include_str!("../data/validation.txt");
 
+fn default_config() -> Config {
+    Config {
+        vocab_size: 256,
+        context: 12,
+        width: 16,
+        heads: 2,
+        layers: 1,
+        ff_width: 32,
+    }
+}
+
 #[derive(Default)]
 struct Args {
     corpus: Option<PathBuf>,
@@ -48,27 +59,27 @@ fn args() -> Result<Args, Box<dyn Error>> {
 
 fn evaluate(
     model: &Decoder,
-    data: &[usize],
-    context: usize,
-    token_budget: usize,
+    validation_data: &[usize],
+    targets_per_block: usize,
+    target_budget: usize,
 ) -> Result<f32, Box<dyn Error>> {
-    if context == 0 || context > model.config().context || token_budget == 0 {
+    if targets_per_block == 0 || targets_per_block > model.config().context || target_budget == 0 {
         return Err("validation needs a positive model-compatible context and token budget".into());
     }
-    if data.len() < 2 {
+    if validation_data.len() < 2 {
         return Err("validation text needs at least two bytes".into());
     }
     let (mut weighted, mut count, mut start) = (0.0, 0usize, 0usize);
-    let available = (data.len() - 1).min(token_budget);
+    let available = (validation_data.len() - 1).min(target_budget);
     while start < available {
-        let tokens = context.min(available - start);
+        let targets_in_block = targets_per_block.min(available - start);
         let loss = model.loss(
-            &data[start..start + tokens],
-            &data[start + 1..start + tokens + 1],
+            &validation_data[start..start + targets_in_block],
+            &validation_data[start + 1..start + targets_in_block + 1],
         )?;
-        weighted += loss * tokens as f32;
-        count += tokens;
-        start += tokens;
+        weighted += loss * targets_in_block as f32;
+        count += targets_in_block;
+        start += targets_in_block;
     }
     Ok(weighted / count as f32)
 }
@@ -120,19 +131,26 @@ fn main() -> Result<(), Box<dyn Error>> {
     if a.large && a.steps.is_none() {
         return Err("--large requires an explicit --steps budget".into());
     }
-    let (raw, raw_valid) = if let (Some(train), Some(valid)) = (&a.corpus, &a.validation) {
-        (fs::read(train)?, fs::read(valid)?)
-    } else {
-        (TINY.as_bytes().to_vec(), VALIDATION.as_bytes().to_vec())
-    };
-    if raw.len() < 2 || raw_valid.len() < 2 {
+    let (raw_train_data, raw_validation_data) =
+        if let (Some(train), Some(valid)) = (&a.corpus, &a.validation) {
+            (fs::read(train)?, fs::read(valid)?)
+        } else {
+            (TINY.as_bytes().to_vec(), VALIDATION.as_bytes().to_vec())
+        };
+    if raw_train_data.len() < 2 || raw_validation_data.len() < 2 {
         return Err("training and validation documents need at least two bytes".into());
     }
-    if has_overlap(&raw, &raw_valid) {
+    if has_overlap(&raw_train_data, &raw_validation_data) {
         return Err("training and validation documents share an exact 32-byte passage".into());
     }
-    let train = raw.iter().map(|&b| b as usize).collect::<Vec<_>>();
-    let valid = raw_valid.iter().map(|&b| b as usize).collect::<Vec<_>>();
+    let train_data = raw_train_data
+        .iter()
+        .map(|&byte| byte as usize)
+        .collect::<Vec<_>>();
+    let validation_data = raw_validation_data
+        .iter()
+        .map(|&byte| byte as usize)
+        .collect::<Vec<_>>();
     let steps = a.steps.unwrap_or(40);
     let mut trainer = if let Some(path) = &a.resume {
         let loaded = Trainer::load(path)?;
@@ -141,36 +159,26 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         loaded
     } else {
-        let config = if a.large {
-            large
-        } else {
-            Config {
-                vocab_size: 256,
-                context: 12,
-                width: 16,
-                heads: 2,
-                layers: 1,
-                ff_width: 32,
-            }
-        };
+        let config = if a.large { large } else { default_config() };
         let mut train_config = TrainConfig::default();
         train_config.total_steps = steps.max(1);
         train_config.warmup_steps = train_config.warmup_steps.min(train_config.total_steps);
         Trainer::new(Decoder::new(config, 39)?, train_config, 390)?
     };
-    let eval_budget = if a.large { 16 } else { usize::MAX };
-    let train_tokens = if a.large {
+    let evaluation_target_budget = if a.large { 16 } else { usize::MAX };
+    let targets_per_microbatch = if a.large {
         8
     } else {
         trainer.model.config().context
     };
+    let starting_step = trainer.step;
     let before = evaluate(
         &trainer.model,
-        &valid,
+        &validation_data,
         trainer.model.config().context,
-        eval_budget,
+        evaluation_target_budget,
     )?;
-    let mut seen = 0usize;
+    let mut processed_targets = 0usize;
     #[cfg(feature = "gpu")]
     let gpu = if a.gpu { Some(ch30::Gpu::new()?) } else { None };
     #[cfg(not(feature = "gpu"))]
@@ -181,22 +189,22 @@ fn main() -> Result<(), Box<dyn Error>> {
     for _ in 0..steps {
         #[cfg(feature = "gpu")]
         if let Some(ref device) = gpu {
-            trainer.train_accumulated_gpu(&train, train_tokens, 2, device)?;
+            trainer.train_accumulated_gpu(&train_data, targets_per_microbatch, 2, device)?;
         } else {
-            trainer.train_accumulated(&train, train_tokens, 2)?;
+            trainer.train_accumulated(&train_data, targets_per_microbatch, 2)?;
         }
         #[cfg(not(feature = "gpu"))]
-        trainer.train_accumulated(&train, train_tokens, 2)?;
-        seen = seen
-            .checked_add(train_tokens * 2)
+        trainer.train_accumulated(&train_data, targets_per_microbatch, 2)?;
+        processed_targets = processed_targets
+            .checked_add(targets_per_microbatch * 2)
             .ok_or("token counter overflow")?;
     }
     let elapsed = started.elapsed();
     let after = evaluate(
         &trainer.model,
-        &valid,
+        &validation_data,
         trainer.model.config().context,
-        eval_budget,
+        evaluation_target_budget,
     )?;
     let prompt = b"The ".iter().map(|&b| b as usize).collect::<Vec<_>>();
     let generated =
@@ -207,13 +215,16 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("trainable parameters: {}", trainer.model.parameter_count());
     println!("validation cross-entropy: {before:.3} -> {after:.3}");
     if a.large {
-        println!("large smoke evaluation used the first {eval_budget} held-out target bytes");
+        println!(
+            "large smoke evaluation used the first {evaluation_target_budget} held-out target bytes"
+        );
     }
     let seconds = elapsed.as_secs_f64();
     println!(
-        "processed {seen} tokens in {seconds:.3}s ({:.1} tokens/s)",
+        "optimizer steps: {starting_step} -> {}; processed {processed_targets} target tokens in {seconds:.3}s ({:.1} target tokens/s)",
+        trainer.step,
         if seconds > 0.0 {
-            seen as f64 / seconds
+            processed_targets as f64 / seconds
         } else {
             0.0
         }
@@ -235,8 +246,17 @@ mod tests {
     use super::*;
     use ch36::Rng;
     #[test]
+    fn published_parameter_counts_are_exact() {
+        let tiny = default_config();
+        assert_eq!(tiny.vocab_size, 256);
+        assert_eq!(tiny.parameter_count().unwrap(), 10_896);
+        let large = Config::approximately_15m();
+        assert_eq!(large.vocab_size, 256);
+        assert_eq!(large.parameter_count().unwrap(), 14_442_496);
+    }
+    #[test]
     fn tiny_run_trains_saves_loads_and_generates() {
-        let data = TINY
+        let train_data = TINY
             .as_bytes()
             .iter()
             .map(|&b| b as usize)
@@ -256,23 +276,29 @@ mod tests {
         let mut trainer = Trainer::new(model, TrainConfig::default(), 2).unwrap();
         let before = trainer
             .model
-            .loss_and_grad(&data[..8], &data[1..9])
-            .unwrap()
-            .loss;
+            .loss(&train_data[..8], &train_data[1..9])
+            .unwrap();
         for _ in 0..12 {
-            trainer.train_accumulated(&data, 8, 1).unwrap();
+            trainer.train_accumulated(&train_data, 8, 1).unwrap();
         }
         assert!(
             trainer
                 .model
-                .loss_and_grad(&data[..8], &data[1..9])
+                .loss(&train_data[..8], &train_data[1..9])
                 .unwrap()
-                .loss
                 < before
         );
         let p = std::env::temp_dir().join(format!("ch39-{}.bin", std::process::id()));
         trainer.save(&p).unwrap();
-        let loaded = Trainer::load(&p).unwrap();
+        let mut loaded = Trainer::load(&p).unwrap();
+        let mut changed = Trainer::load(&p).unwrap();
+        let mut changed_data = train_data.clone();
+        changed_data[0] ^= 1;
+        assert!(changed.train_accumulated(&changed_data, 8, 1).is_err());
+        let continued_loss = trainer.train_accumulated(&train_data, 8, 1).unwrap();
+        let resumed_loss = loaded.train_accumulated(&train_data, 8, 1).unwrap();
+        assert_eq!(continued_loss.to_bits(), resumed_loss.to_bits());
+        assert_eq!(trainer.model.parameters(), loaded.model.parameters());
         let mut rng = Rng::new(3);
         assert_eq!(
             loaded

@@ -176,7 +176,7 @@ impl Layout {
 pub struct Decoder {
     config: Config,
     layout: Layout,
-    params: Vec<f32>,
+    parameters: Vec<f32>,
 }
 
 #[derive(Clone, Debug)]
@@ -288,28 +288,28 @@ impl Decoder {
         let layout = Layout::new(config);
         debug_assert_eq!(layout.total, checked_count);
         let mut rng = Rng::new(seed);
-        let mut params = vec![0.0; layout.total];
+        let mut parameters = vec![0.0; layout.total];
         let scale = 0.02;
-        for x in &mut params {
+        for x in &mut parameters {
             *x = (rng.next_f32() * 2.0 - 1.0) * scale;
         }
         for layer in &layout.layers {
-            params[layer.ln1_g.clone()].fill(1.0);
-            params[layer.ln1_b.clone()].fill(0.0);
-            params[layer.ln2_g.clone()].fill(1.0);
-            params[layer.ln2_b.clone()].fill(0.0);
-            params[layer.qkv_b.clone()].fill(0.0);
-            params[layer.out_b.clone()].fill(0.0);
-            params[layer.ff1_b.clone()].fill(0.0);
-            params[layer.ff2_b.clone()].fill(0.0);
+            parameters[layer.ln1_g.clone()].fill(1.0);
+            parameters[layer.ln1_b.clone()].fill(0.0);
+            parameters[layer.ln2_g.clone()].fill(1.0);
+            parameters[layer.ln2_b.clone()].fill(0.0);
+            parameters[layer.qkv_b.clone()].fill(0.0);
+            parameters[layer.out_b.clone()].fill(0.0);
+            parameters[layer.ff1_b.clone()].fill(0.0);
+            parameters[layer.ff2_b.clone()].fill(0.0);
         }
-        params[layout.final_g.clone()].fill(1.0);
-        params[layout.final_b.clone()].fill(0.0);
-        params[layout.lm_b.clone()].fill(0.0);
+        parameters[layout.final_g.clone()].fill(1.0);
+        parameters[layout.final_b.clone()].fill(0.0);
+        parameters[layout.lm_b.clone()].fill(0.0);
         Ok(Self {
             config,
             layout,
-            params,
+            parameters,
         })
     }
 
@@ -317,13 +317,13 @@ impl Decoder {
         self.config
     }
     pub fn parameter_count(&self) -> usize {
-        self.params.len()
+        self.parameters.len()
     }
     pub fn parameters(&self) -> &[f32] {
-        &self.params
+        &self.parameters
     }
     pub fn parameters_mut(&mut self) -> &mut [f32] {
-        &mut self.params
+        &mut self.parameters
     }
 
     pub fn parameter_spans(&self) -> Vec<ParameterSpan> {
@@ -377,12 +377,12 @@ impl Decoder {
         Ok(self.forward_cached(tokens, &Cpu)?.logits)
     }
 
-    pub fn loss_and_grad(
+    pub fn loss_and_gradient(
         &self,
         input: &[usize],
         targets: &[usize],
     ) -> Result<Gradients, Box<dyn Error>> {
-        self.loss_and_grad_backend(input, targets, &Cpu)
+        self.loss_and_gradient_backend(input, targets, &Cpu)
     }
 
     pub fn loss(&self, input: &[usize], targets: &[usize]) -> Result<f32, Box<dyn Error>> {
@@ -391,7 +391,13 @@ impl Decoder {
             return Err(ModelError("targets must match input length and vocabulary").into());
         }
         let logits = self.forward_cached(input, &Cpu)?.logits;
-        let loss = cross_entropy(&logits, targets, input.len(), self.config.vocab_size).0;
+        let loss = cross_entropy_with_gradient_from_logits(
+            &logits,
+            targets,
+            input.len(),
+            self.config.vocab_size,
+        )
+        .0;
         if !loss.is_finite() {
             return Err(ModelError("nonfinite loss").into());
         }
@@ -408,13 +414,13 @@ impl Decoder {
     }
 
     #[cfg(feature = "gpu")]
-    pub fn loss_and_grad_with_gpu(
+    pub fn loss_and_gradient_with_gpu(
         &self,
         input: &[usize],
         targets: &[usize],
         gpu: &ch30::Gpu,
     ) -> Result<Gradients, Box<dyn Error>> {
-        self.loss_and_grad_backend(input, targets, &GpuBackend(gpu))
+        self.loss_and_gradient_backend(input, targets, &GpuBackend(gpu))
     }
 
     pub fn apply_sgd(
@@ -422,7 +428,7 @@ impl Decoder {
         gradients: &Gradients,
         learning_rate: f32,
     ) -> Result<(), ModelError> {
-        if gradients.values.len() != self.params.len()
+        if gradients.values.len() != self.parameters.len()
             || !learning_rate.is_finite()
             || learning_rate <= 0.0
             || !gradients.loss.is_finite()
@@ -432,14 +438,14 @@ impl Decoder {
             return Err(ModelError("invalid gradient or learning rate"));
         }
         if self
-            .params
+            .parameters
             .iter()
             .zip(&gradients.values)
             .any(|(p, g)| !(*p - learning_rate * g).is_finite())
         {
             return Err(ModelError("SGD update would produce a nonfinite parameter"));
         }
-        for (p, g) in self.params.iter_mut().zip(&gradients.values) {
+        for (p, g) in self.parameters.iter_mut().zip(&gradients.values) {
             *p -= learning_rate * g;
         }
         Ok(())
@@ -487,8 +493,8 @@ impl Decoder {
         let mut x = vec![0.0; t * d];
         for i in 0..t {
             for j in 0..d {
-                x[i * d + j] = self.params[self.layout.token.start + tokens[i] * d + j]
-                    + self.params[self.layout.position.start + i * d + j];
+                x[i * d + j] = self.parameters[self.layout.token.start + tokens[i] * d + j]
+                    + self.parameters[self.layout.position.start + i * d + j];
             }
         }
         let mut caches = Vec::with_capacity(self.config.layers);
@@ -497,25 +503,25 @@ impl Decoder {
                 &x,
                 t,
                 d,
-                &self.params[l.ln1_g.clone()],
-                &self.params[l.ln1_b.clone()],
+                &self.parameters[l.ln1_g.clone()],
+                &self.parameters[l.ln1_b.clone()],
             );
-            let mut qkv = backend.mm(&n1, &self.params[l.qkv_w.clone()], t, d, 3 * d)?;
-            add_bias(&mut qkv, t, 3 * d, &self.params[l.qkv_b.clone()]);
+            let mut qkv = backend.mm(&n1, &self.parameters[l.qkv_w.clone()], t, d, 3 * d)?;
+            add_bias(&mut qkv, t, 3 * d, &self.parameters[l.qkv_b.clone()]);
             let (probs, context) = attention_forward(&qkv, t, d, self.config.heads);
-            let mut attn = backend.mm(&context, &self.params[l.out_w.clone()], t, d, d)?;
-            add_bias(&mut attn, t, d, &self.params[l.out_b.clone()]);
+            let mut attn = backend.mm(&context, &self.parameters[l.out_w.clone()], t, d, d)?;
+            add_bias(&mut attn, t, d, &self.parameters[l.out_b.clone()]);
             let residual: Vec<f32> = x.iter().zip(&attn).map(|(a, b)| a + b).collect();
             let (n2, n2_cache) = layer_norm(
                 &residual,
                 t,
                 d,
-                &self.params[l.ln2_g.clone()],
-                &self.params[l.ln2_b.clone()],
+                &self.parameters[l.ln2_g.clone()],
+                &self.parameters[l.ln2_b.clone()],
             );
             let mut ff_pre = backend.mm(
                 &n2,
-                &self.params[l.ff1_w.clone()],
+                &self.parameters[l.ff1_w.clone()],
                 t,
                 d,
                 self.config.ff_width,
@@ -524,17 +530,17 @@ impl Decoder {
                 &mut ff_pre,
                 t,
                 self.config.ff_width,
-                &self.params[l.ff1_b.clone()],
+                &self.parameters[l.ff1_b.clone()],
             );
             let ff_act: Vec<f32> = ff_pre.iter().copied().map(gelu).collect();
             let mut ff = backend.mm(
                 &ff_act,
-                &self.params[l.ff2_w.clone()],
+                &self.parameters[l.ff2_w.clone()],
                 t,
                 self.config.ff_width,
                 d,
             )?;
-            add_bias(&mut ff, t, d, &self.params[l.ff2_b.clone()]);
+            add_bias(&mut ff, t, d, &self.parameters[l.ff2_b.clone()]);
             x = residual.iter().zip(&ff).map(|(a, b)| a + b).collect();
             caches.push(LayerCache {
                 n1,
@@ -552,12 +558,22 @@ impl Decoder {
             &x,
             t,
             d,
-            &self.params[self.layout.final_g.clone()],
-            &self.params[self.layout.final_b.clone()],
+            &self.parameters[self.layout.final_g.clone()],
+            &self.parameters[self.layout.final_b.clone()],
         );
-        let mut logits =
-            backend.mm(&final_norm, &self.params[self.layout.lm_w.clone()], t, d, v)?;
-        add_bias(&mut logits, t, v, &self.params[self.layout.lm_b.clone()]);
+        let mut logits = backend.mm(
+            &final_norm,
+            &self.parameters[self.layout.lm_w.clone()],
+            t,
+            d,
+            v,
+        )?;
+        add_bias(
+            &mut logits,
+            t,
+            v,
+            &self.parameters[self.layout.lm_b.clone()],
+        );
         if logits.iter().any(|x| !x.is_finite()) {
             return Err(ModelError("nonfinite decoder logits").into());
         }
@@ -569,7 +585,7 @@ impl Decoder {
         })
     }
 
-    fn loss_and_grad_backend(
+    fn loss_and_gradient_backend(
         &self,
         input: &[usize],
         targets: &[usize],
@@ -581,19 +597,20 @@ impl Decoder {
         }
         let cache = self.forward_cached(input, backend)?;
         let (t, d, v) = (input.len(), self.config.width, self.config.vocab_size);
-        let (loss, mut dlogits) = cross_entropy(&cache.logits, targets, t, v);
-        let mut grads = vec![0.0; self.params.len()];
+        let (loss, mut dlogits) =
+            cross_entropy_with_gradient_from_logits(&cache.logits, targets, t, v);
+        let mut grads = vec![0.0; self.parameters.len()];
         let final_t = transpose(&cache.final_norm, t, d);
         grads[self.layout.lm_w.clone()].copy_from_slice(&backend.mm(&final_t, &dlogits, d, t, v)?);
         sum_rows_into(&dlogits, t, v, &mut grads[self.layout.lm_b.clone()]);
-        let lm_t = transpose(&self.params[self.layout.lm_w.clone()], d, v);
+        let lm_t = transpose(&self.parameters[self.layout.lm_w.clone()], d, v);
         let mut dx = backend.mm(&dlogits, &lm_t, t, v, d)?;
         let (next_dx, dg, db) = layer_norm_backward(
             &dx,
             &cache.final_cache,
             t,
             d,
-            &self.params[self.layout.final_g.clone()],
+            &self.parameters[self.layout.final_g.clone()],
         );
         dx = next_dx;
         grads[self.layout.final_g.clone()].copy_from_slice(&dg);
@@ -610,7 +627,7 @@ impl Decoder {
                 d,
             )?);
             sum_rows_into(&dff, t, d, &mut grads[l.ff2_b.clone()]);
-            let ff2_t = transpose(&self.params[l.ff2_w.clone()], self.config.ff_width, d);
+            let ff2_t = transpose(&self.parameters[l.ff2_w.clone()], self.config.ff_width, d);
             let mut dact = backend.mm(&dff, &ff2_t, t, d, self.config.ff_width)?;
             for (g, &z) in dact.iter_mut().zip(&c.ff_pre) {
                 *g *= gelu_grad(z);
@@ -624,10 +641,10 @@ impl Decoder {
                 self.config.ff_width,
             )?);
             sum_rows_into(&dact, t, self.config.ff_width, &mut grads[l.ff1_b.clone()]);
-            let ff1_t = transpose(&self.params[l.ff1_w.clone()], d, self.config.ff_width);
+            let ff1_t = transpose(&self.parameters[l.ff1_w.clone()], d, self.config.ff_width);
             let dn2 = backend.mm(&dact, &ff1_t, t, self.config.ff_width, d)?;
             let (from_n2, dg, db) =
-                layer_norm_backward(&dn2, &c.n2_cache, t, d, &self.params[l.ln2_g.clone()]);
+                layer_norm_backward(&dn2, &c.n2_cache, t, d, &self.parameters[l.ln2_g.clone()]);
             grads[l.ln2_g.clone()].copy_from_slice(&dg);
             grads[l.ln2_b.clone()].copy_from_slice(&db);
             for (i, g) in from_n2.into_iter().enumerate() {
@@ -638,16 +655,16 @@ impl Decoder {
             let ctx_t = transpose(&c.context, t, d);
             grads[l.out_w.clone()].copy_from_slice(&backend.mm(&ctx_t, &datt, d, t, d)?);
             sum_rows_into(&datt, t, d, &mut grads[l.out_b.clone()]);
-            let out_t = transpose(&self.params[l.out_w.clone()], d, d);
+            let out_t = transpose(&self.parameters[l.out_w.clone()], d, d);
             let dcontext = backend.mm(&datt, &out_t, t, d, d)?;
             let dqkv = attention_backward(&dcontext, &c.qkv, &c.probs, t, d, self.config.heads);
             let n1_t = transpose(&c.n1, t, d);
             grads[l.qkv_w.clone()].copy_from_slice(&backend.mm(&n1_t, &dqkv, d, t, 3 * d)?);
             sum_rows_into(&dqkv, t, 3 * d, &mut grads[l.qkv_b.clone()]);
-            let qkv_t = transpose(&self.params[l.qkv_w.clone()], d, 3 * d);
+            let qkv_t = transpose(&self.parameters[l.qkv_w.clone()], d, 3 * d);
             let dn1 = backend.mm(&dqkv, &qkv_t, t, 3 * d, d)?;
             let (from_n1, dg, db) =
-                layer_norm_backward(&dn1, &c.n1_cache, t, d, &self.params[l.ln1_g.clone()]);
+                layer_norm_backward(&dn1, &c.n1_cache, t, d, &self.parameters[l.ln1_g.clone()]);
             grads[l.ln1_g.clone()].copy_from_slice(&dg);
             grads[l.ln1_b.clone()].copy_from_slice(&db);
             for (i, g) in from_n1.into_iter().enumerate() {
@@ -850,7 +867,12 @@ fn gelu_grad(x: f32) -> f32 {
         + 0.5 * x * (1.0 - u.tanh().powi(2)) * 0.797_884_6 * (1.0 + 3.0 * 0.044715 * x * x)
 }
 
-fn cross_entropy(logits: &[f32], targets: &[usize], rows: usize, v: usize) -> (f32, Vec<f32>) {
+fn cross_entropy_with_gradient_from_logits(
+    logits: &[f32],
+    targets: &[usize],
+    rows: usize,
+    v: usize,
+) -> (f32, Vec<f32>) {
     let mut loss = 0.0;
     let mut grad = vec![0.0; logits.len()];
     for i in 0..rows {
@@ -921,7 +943,7 @@ mod tests {
     use super::*;
     #[test]
     fn cross_entropy_and_sampling_handle_large_shared_offsets() {
-        let (loss, grad) = cross_entropy(&[1e8; 3], &[1], 1, 3);
+        let (loss, grad) = cross_entropy_with_gradient_from_logits(&[1e8; 3], &[1], 1, 3);
         assert!((loss - 3.0_f32.ln()).abs() < 1e-6);
         assert!(grad.iter().sum::<f32>().abs() < 1e-6);
         let mut rng = Rng::new(1);
@@ -981,6 +1003,47 @@ mod tests {
         .is_err());
     }
     #[test]
+    fn parameter_span_abi_is_stable() {
+        let model = Decoder::new(
+            Config {
+                vocab_size: 3,
+                context: 2,
+                width: 2,
+                heads: 1,
+                layers: 1,
+                ff_width: 3,
+            },
+            1,
+        )
+        .unwrap();
+        let expected = [
+            ("token_embedding", 0, 6),
+            ("position_embedding", 6, 10),
+            ("layer.0.ln1_gain", 10, 12),
+            ("layer.0.ln1_bias", 12, 14),
+            ("layer.0.qkv_weight", 14, 26),
+            ("layer.0.qkv_bias", 26, 32),
+            ("layer.0.attention_output_weight", 32, 36),
+            ("layer.0.attention_output_bias", 36, 38),
+            ("layer.0.ln2_gain", 38, 40),
+            ("layer.0.ln2_bias", 40, 42),
+            ("layer.0.ff1_weight", 42, 48),
+            ("layer.0.ff1_bias", 48, 51),
+            ("layer.0.ff2_weight", 51, 57),
+            ("layer.0.ff2_bias", 57, 59),
+            ("final_norm_gain", 59, 61),
+            ("final_norm_bias", 61, 63),
+            ("output_weight", 63, 69),
+            ("output_bias", 69, 72),
+        ];
+        let spans = model.parameter_spans();
+        assert_eq!(spans.len(), expected.len());
+        for (span, &(name, start, end)) in spans.iter().zip(&expected) {
+            assert_eq!((&*span.name, span.start, span.end), (name, start, end));
+        }
+        assert_eq!(model.parameter_count() * std::mem::size_of::<f32>(), 288);
+    }
+    #[test]
     fn causal_mask_blocks_future_tokens() {
         let m = Decoder::new(
             Config {
@@ -1016,7 +1079,7 @@ mod tests {
         .unwrap();
         let input = [1, 2, 3];
         let target = [2, 3, 4];
-        let analytic = m.loss_and_grad(&input, &target).unwrap();
+        let analytic = m.loss_and_gradient(&input, &target).unwrap();
         let l = &m.layout;
         let indices = [
             l.token.start + 4,
@@ -1027,13 +1090,13 @@ mod tests {
             l.lm_w.start + 4,
         ];
         for &idx in &indices {
-            let old = m.params[idx];
+            let old = m.parameters[idx];
             let eps = 1e-3;
-            m.params[idx] = old + eps;
-            let plus = m.loss_and_grad(&input, &target).unwrap().loss;
-            m.params[idx] = old - eps;
-            let minus = m.loss_and_grad(&input, &target).unwrap().loss;
-            m.params[idx] = old;
+            m.parameters[idx] = old + eps;
+            let plus = m.loss_and_gradient(&input, &target).unwrap().loss;
+            m.parameters[idx] = old - eps;
+            let minus = m.loss_and_gradient(&input, &target).unwrap().loss;
+            m.parameters[idx] = old;
             let numeric = (plus - minus) / (2.0 * eps);
             let tol = 3e-3 + 3e-2 * numeric.abs();
             assert!(
@@ -1054,12 +1117,12 @@ mod tests {
             ff_width: 7,
         };
         let mut model = Decoder::new(config, 123).unwrap();
-        for (i, p) in model.params.iter_mut().enumerate() {
+        for (i, p) in model.parameters.iter_mut().enumerate() {
             *p += (i % 17) as f32 * 0.003 - 0.02;
         }
         let input = [1, 5, 3, 7];
         let targets = [5, 3, 7, 2];
-        let analytic = model.loss_and_grad(&input, &targets).unwrap();
+        let analytic = model.loss_and_gradient(&input, &targets).unwrap();
         let ranges = [
             model.layout.layers[0].qkv_w.clone(),
             model.layout.layers[0].ff1_w.clone(),
@@ -1079,13 +1142,13 @@ mod tests {
                 analytic.values[idx].abs() > 1e-5,
                 "gradient path was effectively zero at {idx}"
             );
-            let old = model.params[idx];
+            let old = model.parameters[idx];
             let eps = 1e-3;
-            model.params[idx] = old + eps;
-            let plus = model.loss_and_grad(&input, &targets).unwrap().loss;
-            model.params[idx] = old - eps;
-            let minus = model.loss_and_grad(&input, &targets).unwrap().loss;
-            model.params[idx] = old;
+            model.parameters[idx] = old + eps;
+            let plus = model.loss_and_gradient(&input, &targets).unwrap().loss;
+            model.parameters[idx] = old - eps;
+            let minus = model.loss_and_gradient(&input, &targets).unwrap().loss;
+            model.parameters[idx] = old;
             let numeric = (plus - minus) / (2.0 * eps);
             assert!((analytic.values[idx] - numeric).abs() < 4e-3 + 4e-2 * numeric.abs());
         }
@@ -1136,10 +1199,13 @@ mod tests {
         let x = [1, 2, 3, 1];
         let y = [2, 3, 1, 2];
         for _ in 0..40 {
-            let g = m.loss_and_grad(&x, &y).unwrap();
+            let g = m.loss_and_gradient(&x, &y).unwrap();
             m.apply_sgd(&g, 0.08).unwrap();
         }
-        assert!(m.loss_and_grad(&x, &y).unwrap().loss < before.loss_and_grad(&x, &y).unwrap().loss);
+        assert!(
+            m.loss_and_gradient(&x, &y).unwrap().loss
+                < before.loss_and_gradient(&x, &y).unwrap().loss
+        );
         let l = &m.layout;
         for r in [
             &l.token,
@@ -1153,7 +1219,7 @@ mod tests {
             &l.final_g,
             &l.lm_w,
         ] {
-            assert!(r.clone().any(|i| m.params[i] != before.params[i]));
+            assert!(r.clone().any(|i| m.parameters[i] != before.parameters[i]));
         }
     }
     #[test]

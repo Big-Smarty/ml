@@ -7,7 +7,7 @@ const FILTERS: usize = 2;
 #[derive(Clone)]
 struct Dataset {
     images: Vec<f64>,
-    labels: Vec<usize>,
+    labels: Vec<u8>,
     rows: usize,
     cols: usize,
 }
@@ -16,8 +16,11 @@ impl Dataset {
     fn len(&self) -> usize {
         self.labels.len()
     }
+    fn width(&self) -> usize {
+        self.rows * self.cols
+    }
     fn image(&self, n: usize) -> &[f64] {
-        let d = self.rows * self.cols;
+        let d = self.width();
         &self.images[n * d..(n + 1) * d]
     }
 }
@@ -53,7 +56,7 @@ fn parse_idx(images: &[u8], labels: &[u8]) -> Result<Dataset, String> {
     }
     Ok(Dataset {
         images: images[16..].iter().map(|&v| v as f64 / 255.0).collect(),
-        labels: labels[8..].iter().map(|&v| v as usize).collect(),
+        labels: labels[8..].to_vec(),
         rows,
         cols,
     })
@@ -66,30 +69,35 @@ fn load_idx(image_path: &str, label_path: &str) -> Result<Dataset, String> {
 }
 
 #[derive(Clone)]
-struct Model {
+struct Cnn {
     rows: usize,
     cols: usize,
-    kernel: [[f64; 9]; FILTERS],
-    conv_bias: [f64; FILTERS],
-    dense: Vec<f64>,
-    class_bias: [f64; CLASSES],
+    convolution_weights: [[f64; 9]; FILTERS],
+    convolution_biases: [f64; FILTERS],
+    dense_weights: Vec<f64>,
+    class_biases: [f64; CLASSES],
 }
 
-struct Forward {
+struct ForwardCache {
     relu: Vec<f64>,
     winners: Vec<usize>,
     pooled: Vec<f64>,
     logits: [f64; CLASSES],
 }
 
-struct Grad {
-    kernel: [[f64; 9]; FILTERS],
-    conv_bias: [f64; FILTERS],
-    dense: Vec<f64>,
-    class_bias: [f64; CLASSES],
+struct Gradient {
+    convolution_weights: [[f64; 9]; FILTERS],
+    convolution_biases: [f64; FILTERS],
+    dense_weights: Vec<f64>,
+    class_biases: [f64; CLASSES],
 }
 
-impl Model {
+struct Optimizer {
+    learning_rate: f64,
+    step_count: u64,
+}
+
+impl Cnn {
     fn new(rows: usize, cols: usize) -> Result<Self, String> {
         if rows < 4 || cols < 4 {
             return Err("images must be at least 4x4".into());
@@ -101,31 +109,31 @@ impl Model {
         let dense_len = CLASSES
             .checked_mul(pooled)
             .ok_or("dense shape overflows addressable memory")?;
-        let mut dense = vec![0.0; dense_len];
-        for (i, value) in dense.iter_mut().enumerate() {
+        let mut dense_weights = vec![0.0; dense_len];
+        for (i, value) in dense_weights.iter_mut().enumerate() {
             *value = ((i * 37 + 11) as f64).sin() * 0.08;
         }
         Ok(Self {
             rows,
             cols,
-            kernel: [
+            convolution_weights: [
                 [-0.08, 0.02, 0.08, -0.12, 0.03, 0.12, -0.08, 0.02, 0.08],
                 [-0.08, -0.12, -0.08, 0.02, 0.03, 0.02, 0.08, 0.12, 0.08],
             ],
-            conv_bias: [0.02; FILTERS],
-            dense,
-            class_bias: [0.0; CLASSES],
+            convolution_biases: [0.02; FILTERS],
+            dense_weights,
+            class_biases: [0.0; CLASSES],
         })
     }
 
-    fn forward(&self, image: &[f64]) -> Forward {
+    fn forward(&self, image: &[f64]) -> ForwardCache {
         assert_eq!(image.len(), self.rows * self.cols);
         let plane = self.rows * self.cols;
         let mut relu = vec![0.0; FILTERS * plane];
         for f in 0..FILTERS {
             for r in 0..self.rows {
                 for c in 0..self.cols {
-                    let mut z = self.conv_bias[f];
+                    let mut z = self.convolution_biases[f];
                     for kr in 0..3 {
                         for kc in 0..3 {
                             let ir = r as isize + kr as isize - 1;
@@ -135,7 +143,7 @@ impl Model {
                                 && ir < self.rows as isize
                                 && ic < self.cols as isize
                             {
-                                z += self.kernel[f][kr * 3 + kc]
+                                z += self.convolution_weights[f][kr * 3 + kc]
                                     * image[ir as usize * self.cols + ic as usize];
                             }
                         }
@@ -166,13 +174,13 @@ impl Model {
                 }
             }
         }
-        let mut logits = self.class_bias;
+        let mut logits = self.class_biases;
         for (y, logit) in logits.iter_mut().enumerate() {
             for (j, &value) in pooled.iter().enumerate() {
-                *logit += self.dense[y * pooled.len() + j] * value;
+                *logit += self.dense_weights[y * pooled.len() + j] * value;
             }
         }
-        Forward {
+        ForwardCache {
             relu,
             winners,
             pooled,
@@ -180,44 +188,60 @@ impl Model {
         }
     }
 
-    fn loss_and_grad(&self, image: &[f64], label: usize) -> (f64, Grad) {
-        let pass = self.forward(image);
-        let max = pass
-            .logits
-            .iter()
-            .copied()
-            .fold(f64::NEG_INFINITY, f64::max);
-        let sum_exp: f64 = pass.logits.iter().map(|&z| (z - max).exp()).sum();
-        let loss = (max - pass.logits[label]) + sum_exp.ln();
-        let mut dz = pass.logits.map(|z| (z - max).exp() / sum_exp);
-        dz[label] -= 1.0;
-        let mut grad = Grad {
-            kernel: [[0.0; 9]; FILTERS],
-            conv_bias: [0.0; FILTERS],
-            dense: vec![0.0; self.dense.len()],
-            class_bias: dz,
+    fn probabilities(logits: [f64; CLASSES]) -> [f64; CLASSES] {
+        let maximum = logits.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        let mut probabilities = logits.map(|logit| (logit - maximum).exp());
+        let sum = probabilities.iter().sum::<f64>();
+        for probability in &mut probabilities {
+            *probability /= sum;
+        }
+        probabilities
+    }
+
+    fn cross_entropy_from_logits(logits: [f64; CLASSES], target: usize) -> f64 {
+        let maximum = logits.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+        (maximum - logits[target])
+            + logits
+                .iter()
+                .map(|logit| (logit - maximum).exp())
+                .sum::<f64>()
+                .ln()
+    }
+
+    fn loss_and_gradient(&self, image: &[f64], target: usize) -> (f64, Gradient) {
+        let cache = self.forward(image);
+        let loss = Self::cross_entropy_from_logits(cache.logits, target);
+        let mut logit_gradient = Self::probabilities(cache.logits);
+        logit_gradient[target] -= 1.0;
+        let mut gradient = Gradient {
+            convolution_weights: [[0.0; 9]; FILTERS],
+            convolution_biases: [0.0; FILTERS],
+            dense_weights: vec![0.0; self.dense_weights.len()],
+            class_biases: logit_gradient,
         };
-        let mut dpool = vec![0.0; pass.pooled.len()];
-        for (y, &dy) in dz.iter().enumerate() {
-            for (j, dpool_value) in dpool.iter_mut().enumerate() {
-                grad.dense[y * pass.pooled.len() + j] = dy * pass.pooled[j];
-                *dpool_value += self.dense[y * pass.pooled.len() + j] * dy;
+        let mut pooled_gradient = vec![0.0; cache.pooled.len()];
+        for (class, &class_gradient) in logit_gradient.iter().enumerate() {
+            for (feature, pooled_value_gradient) in pooled_gradient.iter_mut().enumerate() {
+                gradient.dense_weights[class * cache.pooled.len() + feature] =
+                    class_gradient * cache.pooled[feature];
+                *pooled_value_gradient +=
+                    self.dense_weights[class * cache.pooled.len() + feature] * class_gradient;
             }
         }
         let plane = self.rows * self.cols;
-        let mut drelu = vec![0.0; pass.relu.len()];
-        for (j, &winner) in pass.winners.iter().enumerate() {
-            drelu[winner] += dpool[j];
+        let mut relu_gradient = vec![0.0; cache.relu.len()];
+        for (j, &winner) in cache.winners.iter().enumerate() {
+            relu_gradient[winner] += pooled_gradient[j];
         }
         for f in 0..FILTERS {
             for r in 0..self.rows {
                 for c in 0..self.cols {
                     let at = f * plane + r * self.cols + c;
-                    if pass.relu[at] <= 0.0 {
+                    if cache.relu[at] <= 0.0 {
                         continue;
                     }
-                    let d = drelu[at];
-                    grad.conv_bias[f] += d;
+                    let activation_gradient = relu_gradient[at];
+                    gradient.convolution_biases[f] += activation_gradient;
                     for kr in 0..3 {
                         for kc in 0..3 {
                             let ir = r as isize + kr as isize - 1;
@@ -227,28 +251,28 @@ impl Model {
                                 && ir < self.rows as isize
                                 && ic < self.cols as isize
                             {
-                                grad.kernel[f][kr * 3 + kc] +=
-                                    d * image[ir as usize * self.cols + ic as usize];
+                                gradient.convolution_weights[f][kr * 3 + kc] += activation_gradient
+                                    * image[ir as usize * self.cols + ic as usize];
                             }
                         }
                     }
                 }
             }
         }
-        (loss, grad)
+        (loss, gradient)
     }
 
     fn train(
         &mut self,
+        optimizer: &mut Optimizer,
         data: &Dataset,
         epochs: usize,
-        rate: f64,
         limit: usize,
     ) -> Result<(), String> {
         if data.rows != self.rows || data.cols != self.cols || data.len() == 0 {
             return Err("training data shape does not match the model".into());
         }
-        if epochs == 0 || !rate.is_finite() || rate <= 0.0 {
+        if epochs == 0 {
             return Err("epochs and learning rate must be positive".into());
         }
         let n = data.len().min(limit);
@@ -257,33 +281,12 @@ impl Model {
         }
         for _ in 0..epochs {
             for i in 0..n {
-                let (loss, g) = self.loss_and_grad(data.image(i), data.labels[i]);
+                let (loss, gradient) =
+                    self.loss_and_gradient(data.image(i), data.labels[i] as usize);
                 if !loss.is_finite() {
                     return Err("non-finite training loss; reduce the learning rate".into());
                 }
-                for f in 0..FILTERS {
-                    for k in 0..9 {
-                        self.kernel[f][k] -= rate * g.kernel[f][k];
-                    }
-                    self.conv_bias[f] -= rate * g.conv_bias[f];
-                }
-                for (w, dw) in self.dense.iter_mut().zip(g.dense) {
-                    *w -= rate * dw;
-                }
-                for y in 0..CLASSES {
-                    self.class_bias[y] -= rate * g.class_bias[y];
-                }
-                if self
-                    .kernel
-                    .iter()
-                    .flatten()
-                    .chain(&self.conv_bias)
-                    .chain(&self.dense)
-                    .chain(&self.class_bias)
-                    .any(|x| !x.is_finite())
-                {
-                    return Err("training update overflow; reduce the learning rate".into());
-                }
+                optimizer.step(self, &gradient)?;
             }
         }
         Ok(())
@@ -300,28 +303,63 @@ impl Model {
         let mut loss = 0.0;
         let mut correct = 0;
         for i in 0..n {
-            let pass = self.forward(data.image(i));
-            let max = pass
-                .logits
-                .iter()
-                .copied()
-                .fold(f64::NEG_INFINITY, f64::max);
-            loss += (max - pass.logits[data.labels[i]])
-                + pass
-                    .logits
-                    .iter()
-                    .map(|&z| (z - max).exp())
-                    .sum::<f64>()
-                    .ln();
-            let guess = (0..CLASSES)
-                .max_by(|&a, &b| pass.logits[a].total_cmp(&pass.logits[b]))
+            let cache = self.forward(data.image(i));
+            loss += Self::cross_entropy_from_logits(cache.logits, data.labels[i] as usize);
+            let prediction = (0..CLASSES)
+                .max_by(|&a, &b| cache.logits[a].total_cmp(&cache.logits[b]))
                 .unwrap();
-            correct += usize::from(guess == data.labels[i]);
+            correct += usize::from(prediction == data.labels[i] as usize);
         }
         if !loss.is_finite() {
             return Err("non-finite evaluation loss".into());
         }
         Ok((loss / n as f64, correct as f64 / n as f64))
+    }
+}
+
+impl Optimizer {
+    fn new(learning_rate: f64) -> Result<Self, String> {
+        if !learning_rate.is_finite() || learning_rate <= 0.0 {
+            return Err("epochs and learning rate must be positive".into());
+        }
+        Ok(Self {
+            learning_rate,
+            step_count: 0,
+        })
+    }
+
+    fn step(&mut self, model: &mut Cnn, gradient: &Gradient) -> Result<(), String> {
+        self.step_count = self
+            .step_count
+            .checked_add(1)
+            .ok_or("optimizer step overflow")?;
+        for filter in 0..FILTERS {
+            for kernel_value in 0..9 {
+                model.convolution_weights[filter][kernel_value] -=
+                    self.learning_rate * gradient.convolution_weights[filter][kernel_value];
+            }
+            model.convolution_biases[filter] -=
+                self.learning_rate * gradient.convolution_biases[filter];
+        }
+        for (weight, weight_gradient) in model.dense_weights.iter_mut().zip(&gradient.dense_weights)
+        {
+            *weight -= self.learning_rate * weight_gradient;
+        }
+        for class in 0..CLASSES {
+            model.class_biases[class] -= self.learning_rate * gradient.class_biases[class];
+        }
+        if model
+            .convolution_weights
+            .iter()
+            .flatten()
+            .chain(&model.convolution_biases)
+            .chain(&model.dense_weights)
+            .chain(&model.class_biases)
+            .any(|parameter| !parameter.is_finite())
+        {
+            return Err("training update overflow; reduce the learning rate".into());
+        }
+        Ok(())
     }
 }
 
@@ -378,7 +416,7 @@ fn fixture(train: bool) -> Dataset {
                 image[(digit * 13 + 7) % 64] += 0.05;
             }
             images.extend(image);
-            labels.push(digit);
+            labels.push(digit as u8);
         }
     }
     Dataset {
@@ -393,15 +431,16 @@ fn run(
     train: Dataset,
     valid: Dataset,
     epochs: usize,
-    rate: f64,
+    learning_rate: f64,
     limit: usize,
 ) -> Result<(), String> {
     if train.rows != valid.rows || train.cols != valid.cols {
         return Err("fit and validation image dimensions differ".into());
     }
-    let mut model = Model::new(train.rows, train.cols)?;
+    let mut model = Cnn::new(train.rows, train.cols)?;
+    let mut optimizer = Optimizer::new(learning_rate)?;
     let before = model.metrics(&valid, limit)?;
-    model.train(&train, epochs, rate, limit)?;
+    model.train(&mut optimizer, &train, epochs, limit)?;
     let after = model.metrics(&valid, limit)?;
     println!(
         "fit={} validation={} shape={}x{}",
@@ -441,12 +480,19 @@ mod tests {
     use super::*;
     #[test]
     fn cross_entropy_preserves_small_loss_at_large_common_offset() {
-        let mut model = Model::new(8, 8).unwrap();
-        model.dense.fill(0.0);
-        model.class_bias.fill(1e16);
+        let mut model = Cnn::new(8, 8).unwrap();
+        model.dense_weights.fill(0.0);
+        model.class_biases.fill(1e16);
         let data = fixture(false);
         let expected = (CLASSES as f64).ln();
-        assert!((model.loss_and_grad(data.image(0), data.labels[0]).0 - expected).abs() < 1e-12);
+        assert!(
+            (model
+                .loss_and_gradient(data.image(0), data.labels[0] as usize)
+                .0
+                - expected)
+                .abs()
+                < 1e-12
+        );
         assert!((model.metrics(&data, 1).unwrap().0 - expected).abs() < 1e-12);
     }
     #[test]
@@ -473,17 +519,17 @@ mod tests {
 
     #[test]
     fn convolution_gradient_matches_central_difference_away_from_ties() {
-        let mut model = Model::new(8, 8).unwrap();
+        let mut model = Cnn::new(8, 8).unwrap();
         let mut x: Vec<f64> = (0..64).map(|i| (i as f64 * 0.071).sin() + 0.3).collect();
         for (i, value) in x.iter_mut().enumerate() {
             *value += i as f64 * 1e-4;
         }
-        let analytic = model.loss_and_grad(&x, 3).1.kernel[0][0];
+        let analytic = model.loss_and_gradient(&x, 3).1.convolution_weights[0][0];
         let h = 1e-5;
-        model.kernel[0][0] += h;
-        let plus = model.loss_and_grad(&x, 3).0;
-        model.kernel[0][0] -= 2.0 * h;
-        let minus = model.loss_and_grad(&x, 3).0;
+        model.convolution_weights[0][0] += h;
+        let plus = model.loss_and_gradient(&x, 3).0;
+        model.convolution_weights[0][0] -= 2.0 * h;
+        let minus = model.loss_and_gradient(&x, 3).0;
         let numeric = (plus - minus) / (2.0 * h);
         assert!((analytic - numeric).abs() < 1e-6 + 1e-4 * numeric.abs());
     }
@@ -492,10 +538,12 @@ mod tests {
     fn training_reduces_held_out_loss() {
         let train = fixture(true);
         let valid = fixture(false);
-        let mut model = Model::new(8, 8).unwrap();
+        let mut model = Cnn::new(8, 8).unwrap();
+        let mut optimizer = Optimizer::new(0.025).unwrap();
         let before = model.metrics(&valid, usize::MAX).unwrap().0;
-        model.train(&train, 80, 0.025, usize::MAX).unwrap();
+        model.train(&mut optimizer, &train, 80, usize::MAX).unwrap();
         let after = model.metrics(&valid, usize::MAX).unwrap();
+        assert_eq!(optimizer.step_count, 80 * train.len() as u64);
         assert!(
             after.0 < before * 0.7 && after.1 >= 0.7,
             "{before:?} {after:?}"
@@ -515,7 +563,8 @@ mod tests {
             .images
             .chunks(64)
             .all(|v| !train.images.chunks(64).any(|t| t == v)));
-        assert!(Model::new(usize::MAX, usize::MAX).is_err());
-        assert!(Model::new(8, 8).unwrap().metrics(&valid, 0).is_err());
+        assert!(Cnn::new(usize::MAX, usize::MAX).is_err());
+        assert!(Cnn::new(8, 8).unwrap().metrics(&valid, 0).is_err());
+        assert!(Optimizer::new(0.0).is_err());
     }
 }

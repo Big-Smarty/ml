@@ -1,9 +1,9 @@
 fn bytes(text: &str) -> Vec<u8> {
     text.as_bytes().to_vec()
 }
-fn merge_pair(ids: &[u16], _pair: (u16, u16), _new_id: u16) -> Vec<u16> {
+fn merge_pair(token_ids: &[u16], _pair: (u16, u16), _new_token_id: u16) -> Vec<u16> {
     // TODO: replace every non-overlapping matching pair.
-    let _ = ids;
+    let _ = token_ids;
     todo!("guided repair: implement non-overlapping pair merging")
 }
 fn main() {

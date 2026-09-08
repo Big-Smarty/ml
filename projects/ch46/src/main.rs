@@ -38,88 +38,132 @@ struct Preference {
     rejected: usize,
 }
 
-fn dpo_loss(
-    policy: &[Vec<f64>],
-    reference: &[Vec<f64>],
-    pairs: &[Preference],
-    beta: f64,
-) -> Result<f64, &'static str> {
-    if pairs.is_empty() || !beta.is_finite() || beta <= 0.0 || policy.len() != reference.len() {
-        return Err("DPO needs aligned policies, pairs, and positive beta");
-    }
-    for (current, frozen) in policy.iter().zip(reference) {
-        if current.is_empty()
-            || current.len() != frozen.len()
-            || current.iter().chain(frozen).any(|logit| !logit.is_finite())
-        {
-            return Err("all policy rows must have matching nonempty finite reference rows");
-        }
-    }
-    let mut total = 0.0;
-    for pair in pairs {
-        let current = log_softmax(policy.get(pair.prompt).ok_or("prompt is out of range")?)?;
-        let frozen = log_softmax(reference.get(pair.prompt).ok_or("prompt is out of range")?)?;
-        if pair.chosen == pair.rejected
-            || pair.chosen >= current.len()
-            || pair.rejected >= current.len()
-            || current.len() != frozen.len()
-        {
-            return Err("response is out of range");
-        }
-        let margin = beta
-            * ((current[pair.chosen] - current[pair.rejected])
-                - (frozen[pair.chosen] - frozen[pair.rejected]));
-        let negative_margin = -margin;
-        total += negative_margin.max(0.0) + (-negative_margin.abs()).exp().ln_1p();
-    }
-    let mean = total / pairs.len() as f64;
-    if !mean.is_finite() {
-        return Err("DPO loss became nonfinite");
-    }
-    Ok(mean)
+fn dpo_pair_loss(policy_logratio: f64, reference_logratio: f64, beta: f64) -> f64 {
+    let negative_margin = -beta * (policy_logratio - reference_logratio);
+    negative_margin.max(0.0) + (-negative_margin.abs()).exp().ln_1p()
 }
 
-fn dpo_step(
-    policy: &mut [Vec<f64>],
-    reference: &[Vec<f64>],
-    pairs: &[Preference],
-    beta: f64,
-    rate: f64,
-) -> Result<(), &'static str> {
-    if !rate.is_finite() || rate <= 0.0 {
-        return Err("learning rate must be finite and positive");
-    }
-    dpo_loss(policy, reference, pairs, beta)?;
-    let mut gradients: Vec<Vec<f64>> = policy.iter().map(|row| vec![0.0; row.len()]).collect();
-    for pair in pairs {
-        let current = log_softmax(&policy[pair.prompt])?;
-        let frozen = log_softmax(&reference[pair.prompt])?;
-        let margin = beta
-            * ((current[pair.chosen] - current[pair.rejected])
-                - (frozen[pair.chosen] - frozen[pair.rejected]));
-        let loss_slope = -beta / (1.0 + margin.exp()) / pairs.len() as f64;
-        gradients[pair.prompt][pair.chosen] += loss_slope;
-        gradients[pair.prompt][pair.rejected] -= loss_slope;
-    }
-    // Validate the complete candidate before mutation so an error preserves the old policy.
-    for (row, gradient) in policy.iter().zip(&gradients) {
-        for (logit, slope) in row.iter().zip(gradient) {
-            if !(logit - rate * slope).is_finite() {
-                return Err("DPO update produced a nonfinite logit");
+#[derive(Clone, Debug, PartialEq)]
+struct Policy {
+    logits: Vec<Vec<f64>>,
+}
+
+#[derive(Debug)]
+struct Gradient {
+    logits: Vec<Vec<f64>>,
+}
+
+impl Policy {
+    fn loss_and_gradient(
+        &self,
+        reference: &Self,
+        data: &[Preference],
+        beta: f64,
+    ) -> Result<(f64, Gradient), &'static str> {
+        if data.is_empty()
+            || !beta.is_finite()
+            || beta <= 0.0
+            || self.logits.len() != reference.logits.len()
+        {
+            return Err("DPO needs aligned policies, data, and positive beta");
+        }
+        for (policy_row, reference_row) in self.logits.iter().zip(&reference.logits) {
+            if policy_row.is_empty()
+                || policy_row.len() != reference_row.len()
+                || policy_row
+                    .iter()
+                    .chain(reference_row)
+                    .any(|logit| !logit.is_finite())
+            {
+                return Err("all policy rows must have matching nonempty finite reference rows");
             }
         }
-    }
-    for (row, gradient) in policy.iter_mut().zip(gradients) {
-        for (logit, slope) in row.iter_mut().zip(gradient) {
-            *logit -= rate * slope;
+
+        let mut total_loss = 0.0;
+        let mut gradient = Gradient {
+            logits: self.logits.iter().map(|row| vec![0.0; row.len()]).collect(),
+        };
+        for pair in data {
+            let policy_log_probabilities = log_softmax(
+                self.logits
+                    .get(pair.prompt)
+                    .ok_or("prompt is out of range")?,
+            )?;
+            let reference_log_probabilities = log_softmax(
+                reference
+                    .logits
+                    .get(pair.prompt)
+                    .ok_or("prompt is out of range")?,
+            )?;
+            if pair.chosen == pair.rejected
+                || pair.chosen >= policy_log_probabilities.len()
+                || pair.rejected >= policy_log_probabilities.len()
+            {
+                return Err("response is out of range");
+            }
+            let policy_logratio =
+                policy_log_probabilities[pair.chosen] - policy_log_probabilities[pair.rejected];
+            let reference_logratio = reference_log_probabilities[pair.chosen]
+                - reference_log_probabilities[pair.rejected];
+            let margin = beta * (policy_logratio - reference_logratio);
+            total_loss += dpo_pair_loss(policy_logratio, reference_logratio, beta);
+            let loss_slope = -beta / (1.0 + margin.exp()) / data.len() as f64;
+            gradient.logits[pair.prompt][pair.chosen] += loss_slope;
+            gradient.logits[pair.prompt][pair.rejected] -= loss_slope;
         }
+        let loss = total_loss / data.len() as f64;
+        if !loss.is_finite()
+            || gradient
+                .logits
+                .iter()
+                .flatten()
+                .any(|slope| !slope.is_finite())
+        {
+            return Err("DPO loss or gradient became nonfinite");
+        }
+        Ok((loss, gradient))
     }
-    Ok(())
+
+    fn loss(&self, reference: &Self, data: &[Preference], beta: f64) -> Result<f64, &'static str> {
+        Ok(self.loss_and_gradient(reference, data, beta)?.0)
+    }
+
+    fn step(
+        &mut self,
+        reference: &Self,
+        data: &[Preference],
+        beta: f64,
+        learning_rate: f64,
+    ) -> Result<(), &'static str> {
+        if !learning_rate.is_finite() || learning_rate <= 0.0 {
+            return Err("learning rate must be finite and positive");
+        }
+        let (_, gradient) = self.loss_and_gradient(reference, data, beta)?;
+        // Validate the complete candidate before mutation so an error preserves the old policy.
+        for (row, gradient_row) in self.logits.iter().zip(&gradient.logits) {
+            for (logit, slope) in row.iter().zip(gradient_row) {
+                if !(logit - learning_rate * slope).is_finite() {
+                    return Err("DPO update produced a nonfinite logit");
+                }
+            }
+        }
+        for (row, gradient_row) in self.logits.iter_mut().zip(gradient.logits) {
+            for (logit, slope) in row.iter_mut().zip(gradient_row) {
+                *logit -= learning_rate * slope;
+            }
+        }
+        Ok(())
+    }
 }
 
-fn train_dpo(steps: usize) -> Result<(Vec<Vec<f64>>, Vec<f64>), &'static str> {
-    let reference = vec![vec![0.3, 0.1, -0.2], vec![0.0, 0.2, -0.1]];
-    let pairs = [
+fn train_dpo(steps: usize, learning_rate: f64) -> Result<(Policy, [f64; 2]), &'static str> {
+    if !learning_rate.is_finite() || learning_rate <= 0.0 {
+        return Err("learning rate must be finite and positive");
+    }
+    let reference = Policy {
+        logits: vec![vec![0.3, 0.1, -0.2], vec![0.0, 0.2, -0.1]],
+    };
+    let data = [
         Preference {
             prompt: 0,
             chosen: 1,
@@ -142,12 +186,12 @@ fn train_dpo(steps: usize) -> Result<(Vec<Vec<f64>>, Vec<f64>), &'static str> {
         },
     ];
     let mut policy = reference.clone();
-    let mut curve = vec![dpo_loss(&policy, &reference, &pairs, 0.5)?];
+    let before = policy.loss(&reference, &data, 0.5)?;
     for _ in 0..steps {
-        dpo_step(&mut policy, &reference, &pairs, 0.5, 0.2)?;
+        policy.step(&reference, &data, 0.5, learning_rate)?;
     }
-    curve.push(dpo_loss(&policy, &reference, &pairs, 0.5)?);
-    Ok((policy, curve))
+    let after = policy.loss(&reference, &data, 0.5)?;
+    Ok((policy, [before, after]))
 }
 
 fn arithmetic_reward(prompt: &str, candidate: i64) -> Result<f64, &'static str> {
@@ -165,11 +209,15 @@ fn arithmetic_reward(prompt: &str, candidate: i64) -> Result<f64, &'static str> 
     Ok(f64::from(candidate == answer))
 }
 
-fn exact_reward_training(steps: usize) -> Result<Vec<f64>, &'static str> {
+fn exact_reward_training(steps: usize, learning_rate: f64) -> Result<Vec<f64>, &'static str> {
+    if !learning_rate.is_finite() || learning_rate <= 0.0 {
+        return Err("exact-reward training needs a positive learning rate");
+    }
+    let prompt = "2 + 3";
     let candidates = [4, 5, 6];
     let rewards: Vec<_> = candidates
         .iter()
-        .map(|&candidate| arithmetic_reward("2 + 3", candidate))
+        .map(|&candidate| arithmetic_reward(prompt, candidate))
         .collect::<Result<_, _>>()?;
     let mut logits = vec![0.0; rewards.len()];
     for _ in 0..steps {
@@ -181,23 +229,24 @@ fn exact_reward_training(steps: usize) -> Result<Vec<f64>, &'static str> {
             .sum();
         for i in 0..logits.len() {
             let gradient = probabilities[i] * (rewards[i] - expected_reward);
-            logits[i] += 0.5 * gradient;
+            logits[i] += learning_rate * gradient;
         }
     }
     softmax(&logits)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let (policy, curve) = train_dpo(400)?;
+    let (policy, curve) = train_dpo(400, 0.2)?;
     println!("DPO mean loss: {:.4} -> {:.4}", curve[0], curve[1]);
     println!(
         "learned prompt policies: {:?}",
         policy
+            .logits
             .iter()
             .map(|row| softmax(row))
             .collect::<Result<Vec<_>, _>>()?
     );
-    let verified = exact_reward_training(200)?;
+    let verified = exact_reward_training(200, 0.5)?;
     println!("exact-reward policy after 200 steps: {verified:.4?}");
     println!("The categorical fixture checks objective mechanics; it is not language-model alignment evidence.");
     Ok(())
@@ -209,17 +258,23 @@ mod tests {
 
     #[test]
     fn dpo_lowers_loss_and_ranks_chosen_answers() -> Result<(), &'static str> {
-        let (policy, curve) = train_dpo(400)?;
+        let (policy, curve) = train_dpo(400, 0.2)?;
         assert!(curve[1] < curve[0] * 0.25);
-        assert!(policy[0][1] > policy[0][0] && policy[0][1] > policy[0][2]);
-        assert!(policy[1][2] > policy[1][0] && policy[1][2] > policy[1][1]);
+        assert!(
+            policy.logits[0][1] > policy.logits[0][0] && policy.logits[0][1] > policy.logits[0][2]
+        );
+        assert!(
+            policy.logits[1][2] > policy.logits[1][0] && policy.logits[1][2] > policy.logits[1][1]
+        );
         Ok(())
     }
 
     #[test]
     fn dpo_gradient_matches_central_difference() -> Result<(), &'static str> {
-        let reference = vec![vec![0.1, -0.2, 0.0]];
-        let pair = [
+        let reference = Policy {
+            logits: vec![vec![0.1, -0.2, 0.0]],
+        };
+        let data = [
             Preference {
                 prompt: 0,
                 chosen: 0,
@@ -232,17 +287,16 @@ mod tests {
             },
         ];
         let mut policy = reference.clone();
-        let before = policy[0][0];
-        dpo_step(&mut policy, &reference, &pair, 0.7, 1e-4)?;
-        let analytic = (before - policy[0][0]) / 1e-4;
+        let before = policy.logits[0][0];
+        policy.step(&reference, &data, 0.7, 1e-4)?;
+        let analytic = (before - policy.logits[0][0]) / 1e-4;
         let h = 1e-6;
         let mut plus = reference.clone();
         let mut minus = reference.clone();
-        plus[0][0] += h;
-        minus[0][0] -= h;
-        let numerical = (dpo_loss(&plus, &reference, &pair, 0.7)?
-            - dpo_loss(&minus, &reference, &pair, 0.7)?)
-            / (2.0 * h);
+        plus.logits[0][0] += h;
+        minus.logits[0][0] -= h;
+        let numerical =
+            (plus.loss(&reference, &data, 0.7)? - minus.loss(&reference, &data, 0.7)?) / (2.0 * h);
         assert!((analytic - numerical).abs() < 1e-6);
         Ok(())
     }
@@ -251,8 +305,12 @@ mod tests {
     fn stable_probabilities_and_batch_order() -> Result<(), &'static str> {
         let log_p = log_softmax(&[1e16, 1e16])?;
         assert!((log_p[0] + std::f64::consts::LN_2).abs() < 1e-12);
-        let reference = vec![vec![0.1, -0.2, 0.0]];
-        let pairs = [
+        assert!((dpo_pair_loss(0.3, 0.3, 0.5) - std::f64::consts::LN_2).abs() < 1e-12);
+        assert!((dpo_pair_loss(-2000.0, 0.0, 0.5) - 1000.0).abs() < 1e-10);
+        let reference = Policy {
+            logits: vec![vec![0.1, -0.2, 0.0]],
+        };
+        let data = [
             Preference {
                 prompt: 0,
                 chosen: 0,
@@ -266,30 +324,35 @@ mod tests {
         ];
         let mut forward = reference.clone();
         let mut reverse = reference.clone();
-        dpo_step(&mut forward, &reference, &pairs, 0.7, 0.1)?;
-        dpo_step(&mut reverse, &reference, &[pairs[1], pairs[0]], 0.7, 0.1)?;
-        for (a, b) in forward[0].iter().zip(&reverse[0]) {
+        forward.step(&reference, &data, 0.7, 0.1)?;
+        reverse.step(&reference, &[data[1], data[0]], 0.7, 0.1)?;
+        for (a, b) in forward.logits[0].iter().zip(&reverse.logits[0]) {
             assert!((a - b).abs() < 1e-12);
         }
-        assert_eq!(reference, vec![vec![0.1, -0.2, 0.0]]);
-        assert!(dpo_loss(&reference, &reference, &[], 0.7).is_err());
-        assert!(dpo_loss(&reference, &reference, &pairs, f64::NAN).is_err());
+        assert_eq!(reference.logits, vec![vec![0.1, -0.2, 0.0]]);
+        assert!(reference.loss(&reference, &[], 0.7).is_err());
+        assert!(reference.loss(&reference, &data, f64::NAN).is_err());
         let mut invalid_unused = reference.clone();
-        invalid_unused.push(vec![0.0]);
+        invalid_unused.logits.push(vec![0.0]);
         let mut expected_unused = reference.clone();
-        expected_unused.push(vec![0.0, 0.0]);
-        assert!(dpo_loss(&invalid_unused, &expected_unused, &pairs, 0.7).is_err());
+        expected_unused.logits.push(vec![0.0, 0.0]);
+        assert!(invalid_unused.loss(&expected_unused, &data, 0.7).is_err());
         let mut preserved = reference.clone();
-        assert!(dpo_step(&mut preserved, &reference, &pairs, f64::MAX, f64::MAX).is_err());
+        assert!(preserved
+            .step(&reference, &data, f64::MAX, f64::MAX)
+            .is_err());
         assert_eq!(preserved, reference);
         let bad = [Preference {
             prompt: 0,
             chosen: 3,
             rejected: 0,
         }];
-        assert!(dpo_step(&mut forward, &reference, &bad, 0.7, 0.1).is_err());
-        let extreme = vec![vec![-1000.0, 1000.0, 0.0]];
-        assert!(dpo_loss(&extreme, &reference, &pairs, 0.7)?.is_finite());
+        assert!(forward.step(&reference, &bad, 0.7, 0.1).is_err());
+        let extreme = Policy {
+            logits: vec![vec![-1000.0, 1000.0, 0.0]],
+        };
+        assert!(extreme.loss(&reference, &data, 0.7)?.is_finite());
+        assert!(train_dpo(0, f64::NAN).is_err());
         Ok(())
     }
 
@@ -301,8 +364,9 @@ mod tests {
         assert!(arithmetic_reward("9223372036854775807 + 1", 0).is_err());
         assert!(arithmetic_reward("-9223372036854775808 + -1", 0).is_err());
         assert_eq!(arithmetic_reward("-2 + 3", 1)?, 1.0);
-        let probabilities = exact_reward_training(200)?;
+        let probabilities = exact_reward_training(200, 0.5)?;
         assert!(probabilities[1] > 0.99);
+        assert!(exact_reward_training(0, f64::NAN).is_err());
         Ok(())
     }
 }

@@ -1,5 +1,11 @@
-fn rnn_state(input: f64, previous: f64, wx: f64, wh: f64, bias: f64) -> f64 {
-    (wx * input + wh * previous + bias).tanh()
+fn rnn_state(
+    input: f64,
+    previous_state: f64,
+    input_weight: f64,
+    recurrent_weight: f64,
+    bias: f64,
+) -> f64 {
+    (input_weight * input + recurrent_weight * previous_state + bias).tanh()
 }
 fn main() {
     println!("state={}", rnn_state(1.0, 0.0, 0.5, 0.2, 0.0));

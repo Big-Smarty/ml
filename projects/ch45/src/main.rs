@@ -66,7 +66,7 @@ impl Action {
     }
 }
 
-fn step(state: usize, action: Action) -> (usize, f64, bool) {
+fn environment_step(state: usize, action: Action) -> (usize, f64, bool) {
     assert!(state <= 4, "closed chain state must be in 0..=4");
     if state == 4 {
         return (4, 0.0, true);
@@ -78,34 +78,56 @@ fn step(state: usize, action: Action) -> (usize, f64, bool) {
     (next, if next == 4 { 1.0 } else { -0.02 }, next == 4)
 }
 
-fn q_target(reward: f64, best_next: f64, done: bool, gamma: f64) -> f64 {
-    reward + if done { 0.0 } else { gamma * best_next }
+fn q_update(
+    old_value: f64,
+    reward: f64,
+    best_next_value: f64,
+    done: bool,
+    learning_rate: f64,
+    discount_factor: f64,
+) -> f64 {
+    let target = reward
+        + if done {
+            0.0
+        } else {
+            discount_factor * best_next_value
+        };
+    old_value + learning_rate * (target - old_value)
 }
 
 fn q_learning(episodes: usize, seed: u64) -> [[f64; 2]; 5] {
-    let mut q = [[0.0_f64; 2]; 5];
+    let mut q_values = [[0.0_f64; 2]; 5];
     let mut rng = Rng(seed);
+    let learning_rate = 0.2;
+    let discount_factor = 0.95;
     for episode in 0..episodes {
         let mut state = 0;
         let epsilon = 0.25 * (1.0 - episode as f64 / episodes as f64) + 0.02;
         for _ in 0..32 {
             let action = if rng.next_f64() < epsilon {
                 Action::ALL[rng.index(2)]
-            } else if q[state][1] >= q[state][0] {
+            } else if q_values[state][1] >= q_values[state][0] {
                 Action::Right
             } else {
                 Action::Left
             };
-            let (next, reward, done) = step(state, action);
-            let target = q_target(reward, q[next][0].max(q[next][1]), done, 0.95);
-            q[state][action.index()] += 0.2 * (target - q[state][action.index()]);
+            let (next, reward, done) = environment_step(state, action);
+            let action_index = action.index();
+            q_values[state][action_index] = q_update(
+                q_values[state][action_index],
+                reward,
+                q_values[next][0].max(q_values[next][1]),
+                done,
+                learning_rate,
+                discount_factor,
+            );
             state = next;
             if done {
                 break;
             }
         }
     }
-    q
+    q_values
 }
 
 fn softmax2(logits: [f64; 2]) -> [f64; 2] {
@@ -123,15 +145,17 @@ fn reinforce(episodes: usize, seed: u64) -> Result<[f64; 2], &'static str> {
     let mut logits = [0.0; 2];
     let mut baseline = 0.0;
     let mut rng = Rng(seed);
+    let learning_rate = 0.08;
+    let baseline_smoothing = 0.05;
     for _ in 0..episodes {
         let probabilities = softmax2(logits);
         let action = usize::from(rng.next_f64() >= probabilities[0]);
         let reward = f64::from(rng.next_f64() < reward_probability[action]);
         let advantage = reward - baseline;
-        baseline += 0.05 * advantage;
+        baseline += baseline_smoothing * advantage;
         for i in 0..2 {
             let grad_log_probability = f64::from(i == action) - probabilities[i];
-            logits[i] += 0.08 * advantage * grad_log_probability;
+            logits[i] += learning_rate * advantage * grad_log_probability;
         }
     }
     Ok(softmax2(logits))
@@ -174,11 +198,11 @@ mod tests {
 
     #[test]
     fn terminal_state_never_bootstraps_or_restarts() {
-        assert_eq!(q_target(1.0, 99.0, true, 0.95), 1.0);
-        assert!((q_target(1.0, 0.5, false, 0.9) - 1.45).abs() < 1e-12);
-        assert_eq!(step(3, Action::Right), (4, 1.0, true));
-        assert_eq!(step(4, Action::Left), (4, 0.0, true));
-        assert_eq!(step(4, Action::Right), (4, 0.0, true));
+        assert!((q_update(0.2, 1.0, 99.0, true, 0.1, 0.95) - 0.28).abs() < 1e-12);
+        assert!((q_update(0.2, 1.0, 0.5, false, 0.1, 0.9) - 0.325).abs() < 1e-12);
+        assert_eq!(environment_step(3, Action::Right), (4, 1.0, true));
+        assert_eq!(environment_step(4, Action::Left), (4, 0.0, true));
+        assert_eq!(environment_step(4, Action::Right), (4, 0.0, true));
     }
 
     #[test]

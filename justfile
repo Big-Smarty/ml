@@ -66,3 +66,7 @@ mnist *args:
 # Check chapter validation and literal argument forwarding without running models.
 recipes-test:
     @python3 tools/chapter.py self-test
+
+# Check shared API signatures, chapter transitions, glossary ownership, and tagged excerpts.
+consistency:
+    @python3 tools/check_consistency.py

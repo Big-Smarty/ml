@@ -1,4 +1,5 @@
 fn scalar_tail(a: &[f32], b: &[f32], consumed: usize) -> f32 {
+    // The dispatcher already proved equal lengths and consumed <= a.len().
     a[consumed..]
         .iter()
         .zip(&b[consumed..])

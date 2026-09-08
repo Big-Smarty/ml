@@ -16,8 +16,8 @@
   "terms": {
     "reinforcement-learning": {
       "name": "Reinforcement learning",
-      "definition": "Learning a behavior from rewards produced by interaction.",
-      "explanation": "An agent observes a situation, chooses an action, and receives a reward and possibly a new situation. Unlike supervised learning, the data depends on the current behavior: an action never tried produces no direct evidence. The objective is expected cumulative reward, not agreement with a supplied target for every decision. This chapter uses simulated finite environments so the interaction loop and update equations can be checked exactly."
+      "definition": "Learning a behavior to maximize expected return from rewards produced by interaction.",
+      "explanation": "An agent observes a state, chooses an action, and receives a reward and a next state. Unlike a supervised input/target example, the transition depends on the current policy and contains no supplied correct-action target. A return begins with the reward after an action and combines later discounted rewards. This chapter uses simulated finite environments so the interaction loop and update equations can be checked exactly."
     },
     "bandit": {
       "name": "Multi-armed bandit",
@@ -31,8 +31,8 @@
     },
     "q-value": {
       "name": "Action value",
-      "definition": "The expected future return after taking an action in a state and following a policy afterward.",
-      "explanation": "Written Q(s,a), an action value combines an immediate consequence with later rewards. In a bandit there is no later state, so Q is simply an arm's expected reward. In tabular control, a two-dimensional table stores one number for every state-action pair. These values are estimates learned from experience, not rewards supplied directly by the environment, and their meaning depends on the discount and continuation policy."
+      "definition": "The expected discounted return beginning with the immediate reward after taking a specified action in a specified state, then following a policy.",
+      "explanation": "Written Q^pi(s,a), an action value includes the immediate consequence of action a in state s and every later discounted reward obtained while following policy pi. In a bandit there is no later state, so Q is simply an arm's expected reward. In tabular control, a two-dimensional table stores one estimate for every state-action pair. These learned estimates are distinct from rewards supplied directly by the environment, and their meaning depends on the discount and continuation policy."
     },
     "temporal-difference-error": {
       "name": "Temporal-difference error",
@@ -41,8 +41,8 @@
     },
     "policy-gradient": {
       "name": "Policy gradient",
-      "definition": "A gradient of expected return with respect to parameters that directly define an action policy.",
-      "explanation": "REINFORCE estimates this gradient with sampled returns multiplied by the gradient of the chosen action's log probability. The log-probability derivative raises probability for actions with positive advantage and lowers it for negative advantage. A baseline can reduce variance without changing the expected gradient when it does not depend on the sampled action. Finite stochastic training remains noisy, so a deterministic seed is a reproducibility aid rather than a proof."
+      "definition": "A gradient of expected return with respect to logits or other parameters that directly define an action policy.",
+      "explanation": "REINFORCE estimates this gradient with sampled returns multiplied by the gradient of the chosen action's log probability. The logits are unrestricted learned scores; softmax converts them to normalized action probabilities. They are distinct from Q-values, which estimate expected return. The log-probability derivative raises probability for actions with positive advantage and lowers it for negative advantage. A baseline can reduce variance without changing the expected gradient when it does not depend on the sampled action. Finite stochastic training remains noisy, so a deterministic seed is a reproducibility aid rather than a proof."
     }
   },
   "sources": [

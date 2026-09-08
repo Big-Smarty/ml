@@ -4,8 +4,8 @@ use std::{env, hint::black_box, time::Instant};
 
 #[derive(Debug, Clone)]
 struct Quantized {
-    rows: usize,
-    cols: usize,
+    out_features: usize,
+    in_features: usize,
     bits: u8,
     scales: Vec<f32>,
     data: Vec<u8>,
@@ -13,12 +13,15 @@ struct Quantized {
 
 fn quantize(
     weights: &[f32],
-    rows: usize,
-    cols: usize,
+    out_features: usize,
+    in_features: usize,
     bits: u8,
 ) -> Result<Quantized, &'static str> {
-    if rows == 0 || cols == 0 || rows.checked_mul(cols) != Some(weights.len()) {
-        return Err("weights must be a nonempty [rows, cols] matrix");
+    if out_features == 0
+        || in_features == 0
+        || out_features.checked_mul(in_features) != Some(weights.len())
+    {
+        return Err("weights must be a nonempty [out_features, in_features] matrix");
     }
     if bits != 8 && bits != 4 {
         return Err("only int8 and int4 are supported");
@@ -27,9 +30,9 @@ fn quantize(
         return Err("weights must be finite");
     }
     let qmax = if bits == 8 { 127.0 } else { 7.0 };
-    let mut scales = Vec::with_capacity(rows);
+    let mut scales = Vec::with_capacity(out_features);
     let mut values = Vec::with_capacity(weights.len());
-    for row in weights.chunks_exact(cols) {
+    for row in weights.chunks_exact(in_features) {
         let max_abs = row.iter().fold(0.0_f32, |m, x| m.max(x.abs()));
         let scale = if max_abs == 0.0 {
             1.0
@@ -47,20 +50,20 @@ fn quantize(
     } else {
         values
             .chunks(2)
-            .map(|pair| {
-                let low = (pair[0] as u8) & 0x0f;
-                let high = pair.get(1).copied().unwrap_or(0) as u8 & 0x0f;
-                low | (high << 4)
-            })
+            .map(|pair| pack_int4_pair(pair[0], pair.get(1).copied().unwrap_or(0)))
             .collect()
     };
     Ok(Quantized {
-        rows,
-        cols,
+        out_features,
+        in_features,
         bits,
         scales,
         data,
     })
+}
+
+fn pack_int4_pair(low: i8, high: i8) -> u8 {
+    (low as u8 & 0x0f) | ((high as u8 & 0x0f) << 4)
 }
 
 impl Quantized {
@@ -82,13 +85,15 @@ impl Quantized {
     }
 
     fn matvec(&self, input: &[f32]) -> Result<Vec<f32>, &'static str> {
-        if input.len() != self.cols || input.iter().any(|x| !x.is_finite()) {
+        if input.len() != self.in_features || input.iter().any(|x| !x.is_finite()) {
             return Err("input must be finite and match the input width");
         }
-        let output: Vec<f32> = (0..self.rows)
+        let output: Vec<f32> = (0..self.out_features)
             .map(|r| {
-                (0..self.cols)
-                    .map(|c| self.value(r * self.cols + c) as f32 * self.scales[r] * input[c])
+                (0..self.in_features)
+                    .map(|c| {
+                        self.value(r * self.in_features + c) as f32 * self.scales[r] * input[c]
+                    })
                     .sum()
             })
             .collect();
@@ -102,24 +107,33 @@ impl Quantized {
         self.data.len() + self.scales.len() * std::mem::size_of::<f32>()
     }
     fn dequantize(&self) -> Vec<f32> {
-        (0..self.rows * self.cols)
-            .map(|i| self.value(i) as f32 * self.scales[i / self.cols])
+        (0..self.out_features * self.in_features)
+            .map(|i| self.value(i) as f32 * self.scales[i / self.in_features])
             .collect()
     }
 }
 
-fn dense_matvec(weights: &[f32], rows: usize, cols: usize, input: &[f32]) -> Vec<f32> {
-    (0..rows)
-        .map(|r| (0..cols).map(|c| weights[r * cols + c] * input[c]).sum())
+fn dense_matvec_reference(
+    weights: &[f32],
+    out_features: usize,
+    in_features: usize,
+    input: &[f32],
+) -> Vec<f32> {
+    (0..out_features)
+        .map(|r| {
+            (0..in_features)
+                .map(|c| weights[r * in_features + c] * input[c])
+                .sum()
+        })
         .collect()
 }
 
-fn error(reference: &[f32], candidate: &[f32]) -> Result<(f32, f32), &'static str> {
+fn quantization_error(reference: &[f32], candidate: &[f32]) -> Result<(f32, f32), &'static str> {
     if reference.is_empty()
         || reference.len() != candidate.len()
         || reference.iter().chain(candidate).any(|x| !x.is_finite())
     {
-        return Err("error comparison needs equal, nonempty, finite slices");
+        return Err("quantization error needs equal, nonempty, finite slices");
     }
     let mut sum = 0.0;
     let mut max = 0.0_f32;
@@ -131,17 +145,17 @@ fn error(reference: &[f32], candidate: &[f32]) -> Result<(f32, f32), &'static st
     Ok(((sum / reference.len() as f32).sqrt(), max))
 }
 
-fn fixture(rows: usize, cols: usize) -> Vec<f32> {
-    (0..rows * cols)
+fn fixture(out_features: usize, in_features: usize) -> Vec<f32> {
+    (0..out_features * in_features)
         .map(|i| ((i * 37 % 101) as f32 - 50.0) / 17.0)
         .collect()
 }
 
 fn bench() -> Result<(), &'static str> {
-    let (rows, cols, repeats) = (256, 256, 200);
-    let weights = fixture(rows, cols);
-    let input: Vec<f32> = (0..cols).map(|i| (i as f32 * 0.17).sin()).collect();
-    let dense = dense_matvec(&weights, rows, cols, &input);
+    let (out_features, in_features, repeats) = (256, 256, 200);
+    let weights = fixture(out_features, in_features);
+    let input: Vec<f32> = (0..in_features).map(|i| (i as f32 * 0.17).sin()).collect();
+    let reference = dense_matvec_reference(&weights, out_features, in_features, &input);
     let measure = |f: &mut dyn FnMut() -> Vec<f32>| {
         for _ in 0..5 {
             black_box(f());
@@ -158,15 +172,21 @@ fn bench() -> Result<(), &'static str> {
         samples.sort();
         (samples[3], checksum)
     };
-    let (dense_t, dense_sum) =
-        measure(&mut || dense_matvec(black_box(&weights), rows, cols, black_box(&input)));
+    let (dense_t, dense_sum) = measure(&mut || {
+        dense_matvec_reference(
+            black_box(&weights),
+            out_features,
+            in_features,
+            black_box(&input),
+        )
+    });
     println!("fp32 median={dense_t:?} for {repeats} matvecs; checksum={dense_sum:.3}");
     for bits in [8, 4] {
-        let q = quantize(&weights, rows, cols, bits)?;
+        let q = quantize(&weights, out_features, in_features, bits)?;
         let output = q.matvec(&input)?;
-        let (rmse, max) = error(&dense, &output)?;
+        let (rmse, max_abs) = quantization_error(&reference, &output)?;
         let (time, sum) = measure(&mut || q.matvec(black_box(&input)).unwrap());
-        println!("int{bits} median={time:?}; rmse={rmse:.5}, max={max:.5}, checksum={sum:.3}");
+        println!("int{bits} median={time:?}; rmse={rmse:.5}, max={max_abs:.5}, checksum={sum:.3}");
     }
     println!(
         "Times are local measurements of this dequantizing scalar kernel, not universal speedups."
@@ -180,20 +200,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Some(_) => return Err("usage: ch41 [--bench]".into()),
         None => {}
     }
-    let (rows, cols) = (3, 6);
-    let weights = fixture(rows, cols);
+    let (out_features, in_features) = (3, 6);
+    let weights = fixture(out_features, in_features);
     let input = [0.5, -1.0, 0.25, 2.0, -0.5, 1.5];
-    let dense = dense_matvec(&weights, rows, cols, &input);
+    let reference = dense_matvec_reference(&weights, out_features, in_features, &input);
     println!(
-        "dense output: {dense:?}; fp32 weight bytes={}",
+        "dense output: {reference:?}; fp32 weight bytes={}",
         weights.len() * 4
     );
     for bits in [8, 4] {
-        let q = quantize(&weights, rows, cols, bits)?;
+        let q = quantize(&weights, out_features, in_features, bits)?;
         let output = q.matvec(&input)?;
-        let (rmse, max) = error(&dense, &output)?;
+        let (rmse, max_abs) = quantization_error(&reference, &output)?;
         println!(
-            "int{bits}: output={output:?}, bytes={}, rmse={rmse:.6}, max_abs={max:.6}",
+            "int{bits}: output={output:?}, bytes={}, rmse={rmse:.6}, max_abs={max_abs:.6}",
             q.storage_bytes()
         );
     }
@@ -203,6 +223,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn argmax(x: &[f32]) -> usize {
     (1..x.len()).fold(0, |best, i| if x[i] > x[best] { i } else { best })
+}
+
+fn transpose_matrix(values: &[f32], rows: usize, cols: usize) -> Vec<f32> {
+    let mut transposed = vec![0.0; values.len()];
+    for row in 0..rows {
+        for col in 0..cols {
+            transposed[col * rows + row] = values[row * cols + col];
+        }
+    }
+    transposed
 }
 
 fn decoder_comparison() -> Result<(), Box<dyn std::error::Error>> {
@@ -217,34 +247,25 @@ fn decoder_comparison() -> Result<(), Box<dyn std::error::Error>> {
     let base = Decoder::new(c, 41)?;
     let input = [1, 4, 2, 7];
     let targets = [4, 2, 7, 3];
-    let dense_logits = base.forward(&input)?;
-    let dense_loss = base.loss_and_grad(&input, &targets)?.loss;
+    let reference_logits = base.forward(&input)?;
+    let reference_loss = base.loss(&input, &targets)?;
     let span = base
         .parameter_spans()
         .into_iter()
         .find(|s| s.name == "output_weight")
         .ok_or("missing output projection")?;
-    let original = &base.parameters()[span.start..span.end];
-    let mut rows = vec![0.0; c.vocab_size * c.width];
-    for d in 0..c.width {
-        for v in 0..c.vocab_size {
-            rows[v * c.width + d] = original[d * c.vocab_size + v];
-        }
-    }
+    let output_weight_d_by_v = &base.parameters()[span.start..span.end];
+    let output_rows_v_by_d = transpose_matrix(output_weight_d_by_v, c.width, c.vocab_size);
     for bits in [8, 4] {
-        let q = quantize(&rows, c.vocab_size, c.width, bits)?;
-        let dq = q.dequantize();
+        let q = quantize(&output_rows_v_by_d, c.vocab_size, c.width, bits)?;
+        let dequantized_d_by_v = transpose_matrix(&q.dequantize(), c.vocab_size, c.width);
         let mut model = base.clone();
-        for d in 0..c.width {
-            for v in 0..c.vocab_size {
-                model.parameters_mut()[span.start + d * c.vocab_size + v] = dq[v * c.width + d];
-            }
-        }
+        model.parameters_mut()[span.start..span.end].copy_from_slice(&dequantized_d_by_v);
         let logits = model.forward(&input)?;
-        let (_, max) = error(&dense_logits, &logits)?;
-        let loss = model.loss_and_grad(&input, &targets)?.loss;
+        let (_, max_logit_error) = quantization_error(&reference_logits, &logits)?;
+        let loss = model.loss(&input, &targets)?;
         let token = argmax(&logits[logits.len() - c.vocab_size..]);
-        println!("decoder int{bits}: loss={loss:.6} (fp32={dense_loss:.6}), max_logit_error={max:.6}, final_argmax={token}");
+        println!("decoder int{bits}: loss={loss:.6} (fp32={reference_loss:.6}), max_logit_error={max_logit_error:.6}, final_argmax={token}");
     }
     Ok(())
 }
@@ -262,14 +283,31 @@ mod tests {
         assert_eq!(q.data.len(), 3);
     }
     #[test]
+    fn output_weight_layout_round_trips_d_by_v() {
+        let d_by_v = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0];
+        let v_by_d = transpose_matrix(&d_by_v, 2, 3);
+        assert_eq!(v_by_d, [0.0, 3.0, 1.0, 4.0, 2.0, 5.0]);
+        assert_eq!(transpose_matrix(&v_by_d, 3, 2), d_by_v);
+    }
+    #[test]
     fn quantized_matvec_is_close_and_int4_is_smaller() {
-        let w = fixture(4, 9);
-        let x = vec![0.25; 9];
-        let dense = dense_matvec(&w, 4, 9, &x);
-        let q8 = quantize(&w, 4, 9, 8).unwrap();
-        let q4 = quantize(&w, 4, 9, 4).unwrap();
-        assert!(error(&dense, &q8.matvec(&x).unwrap()).unwrap().0 < 0.02);
-        assert!(error(&dense, &q4.matvec(&x).unwrap()).unwrap().0 < 0.3);
+        let weights = fixture(4, 9);
+        let input = vec![0.25; 9];
+        let reference = dense_matvec_reference(&weights, 4, 9, &input);
+        let q8 = quantize(&weights, 4, 9, 8).unwrap();
+        let q4 = quantize(&weights, 4, 9, 4).unwrap();
+        assert!(
+            quantization_error(&reference, &q8.matvec(&input).unwrap())
+                .unwrap()
+                .0
+                < 0.02
+        );
+        assert!(
+            quantization_error(&reference, &q4.matvec(&input).unwrap())
+                .unwrap()
+                .0
+                < 0.3
+        );
         assert!(q4.storage_bytes() < q8.storage_bytes());
     }
     #[test]
@@ -282,7 +320,7 @@ mod tests {
             .unwrap()
             .matvec(&[2.0])
             .is_err());
-        assert!(error(&[1.0], &[]).is_err());
-        assert!(error(&[1.0], &[f32::NAN]).is_err());
+        assert!(quantization_error(&[1.0], &[]).is_err());
+        assert!(quantization_error(&[1.0], &[f32::NAN]).is_err());
     }
 }

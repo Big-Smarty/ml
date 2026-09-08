@@ -2,7 +2,7 @@
   "outcomes": [
     "Prune a dense matrix by global weight magnitude",
     "Construct and validate compressed sparse row storage",
-    "Prove scalar dense and CSR matrix-vector kernels agree within tolerance",
+    "Compare checked scalar f64 dense and CSR matrix-vector kernels within tolerance",
     "Measure kernel time and output error across several densities"
   ],
   "lessons": ["Why zeros need a representation", "Magnitude pruning", "CSR arithmetic", "Correct benchmarking", "Rust experiment", "Practice and transfer"],
@@ -10,7 +10,7 @@
     "sparsity": {
       "name": "Sparsity",
       "definition": "The fraction of entries in an array that are structurally zero.",
-      "explanation": "A sparse matrix contains enough zeros that skipping their storage or arithmetic may help. Density is the complementary fraction of nonzero entries. Merely writing zeros into a dense array does not reduce its allocation and does not make a dense loop skip work. Sparse benefits depend on the representation, matrix shape, nonzero pattern, numeric type, kernel, and hardware. This chapter reports density directly rather than treating the word sparse as a performance claim."
+      "explanation": "A sparse matrix contains enough zeros that skipping their storage or arithmetic may help. Density is the complementary stored-nonzero fraction, so fraction zero equals one minus density. The requested pruning density is a position budget; actual CSR density can be lower when the original matrix already contains exact zeros. Quantization instead approximates stored values with codes and scales. Sparse benefits depend on representation, shape, nonzero pattern, numeric type, kernel, and hardware."
     },
     "magnitude-pruning": {
       "name": "Magnitude pruning",
@@ -20,7 +20,7 @@
     "csr": {
       "name": "Compressed sparse row",
       "definition": "A sparse matrix layout storing nonzero values, their column indices, and row offsets.",
-      "explanation": "CSR stores values and column indices in row order. A row-pointer array of length rows plus one marks each row's half-open segment. Equal adjacent pointers represent an empty row, and the final pointer equals the number of stored values. For matrix-vector multiplication, the kernel visits only that segment and multiplies each value by the input at its stored column. Indices save arithmetic but consume memory and add indirect access."
+      "explanation": "CSR stores values and column indices in row order. Here its rows are output features and its columns are input features, matching dense weights [out_features,in_features]. A row-pointer array of length out_features plus one marks each row's half-open segment. Equal adjacent pointers represent an empty row, and the final pointer equals the stored value count. Matrix-vector multiplication visits each segment and reads the input at its stored column. Indices save arithmetic but consume memory and add indirect access."
     },
     "structural-zero": {
       "name": "Structural zero",
@@ -46,10 +46,10 @@
     {"title": "Rust std::hint::black_box", "url": "https://doc.rust-lang.org/std/hint/fn.black_box.html", "note": "Optimization-barrier semantics and limits"}
   ],
   "checks": [
-    "CSR row pointers preserve an empty middle row",
+    "CSR preserves row pointers [0,1,1,3], columns [1,0,2], and values [2,-3,4] for the worked fixture",
     "CSR and dense outputs agree within 1e-10 absolute plus 1e-8 relative tolerance",
-    "Fifty-percent pruning keeps the two largest magnitudes in the four-value fixture",
-    "Default run reports kernel median and range plus output RMSE at four densities"
+    "Fifty-percent pruning keeps the two largest magnitudes and resolves exact ties by original index",
+    "Default run reports 31-sample kernel median and range plus output RMSE at four densities"
   ],
   "limitations": [
     "Scalar matrix-vector timing does not predict SIMD, batched, or GPU sparse performance",

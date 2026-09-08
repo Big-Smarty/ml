@@ -3,6 +3,43 @@
 use std::{error::Error, io, sync::mpsc};
 use wgpu::util::DeviceExt;
 
+const WORKGROUP_SIZE: usize = 64;
+const ABS_TOLERANCE: f32 = 1e-6;
+const REL_TOLERANCE: f32 = 1e-6;
+
+fn validate_add_inputs(left: &[f32], right: &[f32]) -> io::Result<()> {
+    if left.is_empty() || left.len() != right.len() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "vectors must have the same nonzero length",
+        ));
+    }
+    if left.iter().chain(right).any(|value| !value.is_finite()) {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "inputs must be finite",
+        ));
+    }
+    Ok(())
+}
+
+fn add_scalar(left: &[f32], right: &[f32]) -> io::Result<Vec<f32>> {
+    validate_add_inputs(left, right)?;
+    Ok(left
+        .iter()
+        .zip(right)
+        .map(|(left, right)| left + right)
+        .collect())
+}
+
+fn dispatch_count(element_count: usize, workgroup_size: usize) -> usize {
+    element_count.div_ceil(workgroup_size)
+}
+
+fn close_f32(actual: f32, expected: f32) -> bool {
+    (actual - expected).abs() <= ABS_TOLERANCE + REL_TOLERANCE * expected.abs()
+}
+
 fn select_hardware_vulkan() -> Result<wgpu::Adapter, Box<dyn Error>> {
     let mut descriptor = wgpu::InstanceDescriptor::new_without_display_handle();
     descriptor.backends = wgpu::Backends::VULKAN;
@@ -36,7 +73,7 @@ fn select_hardware_vulkan() -> Result<wgpu::Adapter, Box<dyn Error>> {
 fn read_f32(
     device: &wgpu::Device,
     buffer: &wgpu::Buffer,
-    len: usize,
+    element_count: usize,
 ) -> Result<Vec<f32>, Box<dyn Error>> {
     let slice = buffer.slice(..);
     let (sender, receiver) = mpsc::channel();
@@ -48,24 +85,15 @@ fn read_f32(
         .recv()
         .map_err(|_| io::Error::other("GPU mapping callback did not run"))??;
     let mapped = slice.get_mapped_range();
-    let values = bytemuck::cast_slice::<u8, f32>(&mapped)[..len].to_vec();
+    let values = bytemuck::cast_slice::<u8, f32>(&mapped)[..element_count].to_vec();
     drop(mapped);
     buffer.unmap();
     Ok(values)
 }
 
-fn gpu_add(left: &[f32], right: &[f32]) -> Result<Vec<f32>, Box<dyn Error>> {
-    if left.is_empty() || left.len() != right.len() {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "vectors must have the same nonzero length",
-        )
-        .into());
-    }
-    if left.iter().chain(right).any(|value| !value.is_finite()) {
-        return Err(io::Error::new(io::ErrorKind::InvalidInput, "inputs must be finite").into());
-    }
-    let len = u32::try_from(left.len())?;
+fn add_with_gpu(left: &[f32], right: &[f32]) -> Result<Vec<f32>, Box<dyn Error>> {
+    validate_add_inputs(left, right)?;
+    let element_count = u32::try_from(left.len())?;
     let byte_len = u64::try_from(left.len().checked_mul(4).ok_or("buffer size overflow")?)?;
     let adapter = select_hardware_vulkan()?;
     let info = adapter.get_info();
@@ -78,7 +106,7 @@ fn gpu_add(left: &[f32], right: &[f32]) -> Result<Vec<f32>, Box<dyn Error>> {
         ..Default::default()
     }))?;
     let limits = device.limits();
-    let groups = len.div_ceil(64);
+    let groups = u32::try_from(dispatch_count(left.len(), WORKGROUP_SIZE))?;
     if byte_len > limits.max_buffer_size
         || byte_len > limits.max_storage_buffer_binding_size
         || groups > limits.max_compute_workgroups_per_dimension
@@ -124,10 +152,10 @@ fn gpu_add(left: &[f32], right: &[f32]) -> Result<Vec<f32>, Box<dyn Error>> {
         usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
         mapped_at_creation: false,
     });
-    let params = [len, 0, 0, 0];
-    let params_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-        label: Some("length"),
-        contents: bytemuck::cast_slice(&params),
+    let dispatch_params = [element_count, 0, 0, 0];
+    let dispatch_params_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("dispatch parameters"),
+        contents: bytemuck::cast_slice(&dispatch_params),
         usage: wgpu::BufferUsages::UNIFORM,
     });
     let layout = pipeline.get_bind_group_layout(0);
@@ -149,7 +177,7 @@ fn gpu_add(left: &[f32], right: &[f32]) -> Result<Vec<f32>, Box<dyn Error>> {
             },
             wgpu::BindGroupEntry {
                 binding: 3,
-                resource: params_buffer.as_entire_binding(),
+                resource: dispatch_params_buffer.as_entire_binding(),
             },
         ],
     });
@@ -170,15 +198,18 @@ fn gpu_add(left: &[f32], right: &[f32]) -> Result<Vec<f32>, Box<dyn Error>> {
 fn main() -> Result<(), Box<dyn Error>> {
     let left = [1.0, -2.0, 3.5, 8.0, 0.25];
     let right = [2.0, 5.0, -0.5, 1.0, 0.75];
-    let output = gpu_add(&left, &right)?;
+    let expected = add_scalar(&left, &right)?;
+    let output = add_with_gpu(&left, &right)?;
+    if output.len() != expected.len()
+        || output
+            .iter()
+            .zip(&expected)
+            .any(|(&actual, &expected)| !close_f32(actual, expected))
+    {
+        return Err(io::Error::other("GPU output disagrees with the scalar oracle").into());
+    }
     println!("GPU result: {output:?}");
-    println!(
-        "CPU oracle: {:?}",
-        left.iter()
-            .zip(right)
-            .map(|(a, b)| a + b)
-            .collect::<Vec<_>>()
-    );
+    println!("CPU scalar oracle: {expected:?}");
     Ok(())
 }
 
@@ -188,9 +219,19 @@ mod tests {
 
     #[test]
     fn invalid_shapes_are_rejected_before_adapter_discovery() {
-        assert!(gpu_add(&[], &[]).is_err());
-        assert!(gpu_add(&[f32::NAN], &[1.0]).is_err());
-        assert!(gpu_add(&[1.0], &[1.0, 2.0]).is_err());
+        assert!(add_with_gpu(&[], &[]).is_err());
+        assert!(add_with_gpu(&[f32::NAN], &[1.0]).is_err());
+        assert!(add_with_gpu(&[1.0], &[1.0, 2.0]).is_err());
+    }
+
+    #[test]
+    fn scalar_oracle_and_dispatch_cover_the_primitive() -> io::Result<()> {
+        assert_eq!(add_scalar(&[1.0, -2.0], &[2.0, 5.0])?, [3.0, 3.0]);
+        assert_eq!(dispatch_count(64, WORKGROUP_SIZE), 1);
+        assert_eq!(dispatch_count(67, WORKGROUP_SIZE), 2);
+        assert!(close_f32(10.000_01, 10.0));
+        assert!(!close_f32(10.001, 10.0));
+        Ok(())
     }
 
     #[test]
@@ -198,9 +239,10 @@ mod tests {
     fn gpu_matches_scalar_oracle_for_partial_workgroup() -> Result<(), Box<dyn Error>> {
         let left: Vec<f32> = (0..67).map(|i| i as f32 * 0.25).collect();
         let right: Vec<f32> = (0..67).map(|i| 10.0 - i as f32 * 0.5).collect();
-        let got = gpu_add(&left, &right)?;
-        for ((actual, a), b) in got.iter().zip(&left).zip(&right) {
-            assert!((actual - (a + b)).abs() < 1e-6);
+        let expected = add_scalar(&left, &right)?;
+        let actual = add_with_gpu(&left, &right)?;
+        for (&actual, &expected) in actual.iter().zip(&expected) {
+            assert!(close_f32(actual, expected));
         }
         Ok(())
     }

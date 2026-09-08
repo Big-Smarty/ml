@@ -1,7 +1,7 @@
 {
   "outcomes": [
     "Implement and diagnose a BM25 lexical baseline",
-    "Train query and document embeddings",
+    "Train query and document embeddings from explicit labeled pairs",
     "Search a dense index exactly",
     "Assemble source-labeled context and extract an answer",
     "Measure hit@1, attribution, coverage, and abstention"
@@ -23,7 +23,7 @@
     "dense-retrieval": {
       "name": "dense retrieval",
       "definition": "Ranking learned query and document vectors by similarity.",
-      "explanation": "A dense retriever encodes text into fixed-width vectors and scores pairs with a dot product, cosine similarity, or distance. Training on positive and negative query-document pairs can bring paraphrases together even without exact term overlap. The learned geometry depends on data and may blur rare identifiers. Search can be exact or approximate; embeddings alone do not determine the index algorithm."
+      "explanation": "A dense retriever encodes text into fixed-width vectors and scores pairs with a dot product, cosine similarity, or distance. Those raw scores order candidates; they are not probabilities of relevance or calibrated support confidence. Training on labeled query-document pairs can bring paraphrases together even without exact term overlap. A word-table row and an averaged document embedding are different representations, even when they share the same width. The learned geometry depends on data and may blur rare identifiers. Search can be exact or approximate; embeddings alone do not determine the index algorithm."
     },
     "context-assembly": {
       "name": "context assembly",
@@ -71,6 +71,7 @@
   "checks": [
     "BM25 ranks an exact-term fact first",
     "Both query and document table gradients match direct-loss central differences",
+    "Training receives explicit labeled data and uses the documented learning rate",
     "Dense exact search retrieves trained semantic pairs and held-out feature combinations",
     "Changing retrieved fact text changes the extracted answer without retraining",
     "Every answered fixture includes a matching source label",

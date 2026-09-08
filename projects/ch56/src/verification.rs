@@ -6,7 +6,7 @@ fn dense_oracle(model: &Model, tokens: &[usize]) -> Vec<f64> {
     let c = model.config;
     assert_eq!(c.experts, 1);
     let d = c.width;
-    let p = &model.params;
+    let p = &model.parameters;
     let affine = |x: &[f64], w: &Range<usize>, b: &Range<usize>| -> Vec<f64> {
         (0..b.len())
             .map(|o| {
@@ -103,8 +103,8 @@ fn one_expert_matches_independent_dense_decoder_and_causality() {
         &model.layout.norm2,
         &model.layout.norm_final,
     ] {
-        model.params[span.start] = 1.3;
-        model.params[span.start + model.config.width + 1] = 0.2;
+        model.parameters[span.start] = 1.3;
+        model.parameters[span.start + model.config.width + 1] = 0.2;
     }
     let input = [5, 9, 11, 7];
     let actual = model.forward(&input).unwrap();
@@ -144,18 +144,18 @@ fn every_parameter_gradient_matches_finite_differences_away_from_ties() {
             balance_weight: 0.03,
         };
         let mut model = Model::new(config, 92).unwrap();
-        model.params[model.layout.router_b.start + selected] += 1.0;
+        model.parameters[model.layout.router_b.start + selected] += 1.0;
         let input = [1, 3, 5];
         let target = [3, 5, 2];
-        let analytic = model.loss_and_grad(&input, &target).unwrap();
+        let analytic = model.loss_and_gradient(&input, &target).unwrap();
         assert!(analytic.routes.iter().all(|&e| e == selected));
-        for index in 0..model.params.len() {
-            let old = model.params[index];
-            model.params[index] = old + 1e-5;
+        for index in 0..model.parameters.len() {
+            let old = model.parameters[index];
+            model.parameters[index] = old + 1e-5;
             let plus = model.loss(&input, &target).unwrap();
-            model.params[index] = old - 1e-5;
+            model.parameters[index] = old - 1e-5;
             let minus = model.loss(&input, &target).unwrap();
-            model.params[index] = old;
+            model.parameters[index] = old;
             let numerical = (plus - minus) / 2e-5;
             assert!(
                 (numerical - analytic.values[index]).abs()
@@ -165,7 +165,7 @@ fn every_parameter_gradient_matches_finite_differences_away_from_ties() {
             );
         }
         model.config.balance_weight = 0.0;
-        let task_only = model.loss_and_grad(&input, &target).unwrap();
+        let task_only = model.loss_and_gradient(&input, &target).unwrap();
         assert!(task_only.values[model.layout.router_w.clone()]
             .iter()
             .any(|x| x.abs() > 1e-10));
@@ -173,6 +173,68 @@ fn every_parameter_gradient_matches_finite_differences_away_from_ties() {
         assert!(task_only.values[untouched.w1.clone()]
             .iter()
             .all(|&x| x == 0.0));
+    }
+}
+
+#[test]
+fn dropped_tokens_keep_task_loss_and_shared_decoder_gradients() {
+    let mut model = Model::new(
+        Config {
+            vocab_size: 8,
+            context: 4,
+            width: 3,
+            ff_width: 4,
+            experts: 2,
+            capacity_factor: 0.5,
+            balance_weight: 0.0,
+        },
+        17,
+    )
+    .unwrap();
+    model.parameters[model.layout.router_w.clone()].fill(0.0);
+    model.parameters[model.layout.router_b.start] = 1.0;
+    model.parameters[model.layout.router_b.start + 1] = 0.0;
+    let input = [1, 3, 5, 7];
+    let targets = [3, 5, 7, 2];
+    let cache = model.forward_cached(&input, true).unwrap();
+    let gradient = model.loss_and_gradient(&input, &targets).unwrap();
+    let (all_token_loss, _) = cross_entropy_with_gradient_from_logits(
+        &cache.logits,
+        &targets,
+        input.len(),
+        model.config.vocab_size,
+    )
+    .unwrap();
+    assert_eq!(gradient.task_loss, all_token_loss);
+    assert_eq!(gradient.accepted, [1, 0]);
+    assert_eq!(gradient.dropped, 3);
+
+    let first = model.loss_and_gradient(&input[..1], &targets[..1]).unwrap();
+    for range in [
+        &model.layout.experts[0].w1,
+        &model.layout.experts[0].b1,
+        &model.layout.experts[0].w2,
+        &model.layout.experts[0].b2,
+    ] {
+        for index in range.clone() {
+            assert!((gradient.values[index] - first.values[index] / 4.0).abs() < 1e-12);
+        }
+    }
+    for range in [
+        &model.layout.experts[1].w1,
+        &model.layout.experts[1].b1,
+        &model.layout.experts[1].w2,
+        &model.layout.experts[1].b2,
+    ] {
+        assert!(gradient.values[range.clone()]
+            .iter()
+            .all(|&value| value == 0.0));
+    }
+    for position in 1..input.len() {
+        let start = model.layout.position.start + position * model.config.width;
+        assert!(gradient.values[start..start + model.config.width]
+            .iter()
+            .any(|value| value.abs() > 1e-12));
     }
 }
 
@@ -203,11 +265,11 @@ fn checkpoint_rejects_hostile_headers_and_changed_resume_inputs() {
     fs::write(&path, good).unwrap();
     let mut restored = Trainer::load(&path).unwrap();
     fs::remove_file(path).unwrap();
-    let before = restored.model.params.clone();
+    let before = restored.model.parameters.clone();
     assert!(restored.train_step(b"other text", 8, 0.05).is_err());
     assert!(restored.train_step(b"rust words", 8, 0.06).is_err());
     assert!(restored.train_step(b"rust words", 7, 0.05).is_err());
-    assert_eq!(before, restored.model.params);
+    assert_eq!(before, restored.model.parameters);
     assert!(Model::new(
         Config {
             context: usize::MAX,
@@ -274,7 +336,7 @@ fn fragmented_requests_receive_complete_200_or_400_responses() {
 
 #[test]
 fn large_common_logits_and_tiny_temperature_are_stable() {
-    let (loss, _) = cross_entropy(&[1e300, 1e300], &[0], 1, 2).unwrap();
+    let (loss, _) = cross_entropy_with_gradient_from_logits(&[1e300, 1e300], &[0], 1, 2).unwrap();
     assert!((loss - 2f64.ln()).abs() < 1e-12);
     for _ in 0..4 {
         assert_eq!(

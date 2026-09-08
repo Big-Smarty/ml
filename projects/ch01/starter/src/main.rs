@@ -1,66 +1,174 @@
-// Complete the prediction rule, then replace numerical slopes with your own experiment.
-#[cfg(test)]
-fn predict(weight: f64, bias: f64, input: f64) -> f64 {
-    weight * input + bias
+// The learner completed prediction and extended this starter through numerical training.
+const TRAIN: [(f64, f64); 5] = [
+    (-2.0, -3.0),
+    (-1.0, -1.0),
+    (0.0, 1.0),
+    (1.0, 3.0),
+    (2.0, 5.0),
+];
+
+#[derive(Clone, Copy, Debug)]
+struct Neuron {
+    weight: f64,
+    bias: f64,
 }
-fn main() {
-    let samples = [
-        (-2.0, -3.0),
-        (-1.0, -1.0),
-        (0.0, 1.0),
-        (1.0, 3.0),
-        (2.0, 5.0),
-    ];
-    for (input, target) in samples {
+
+#[derive(Clone, Copy, Debug)]
+struct Gradient {
+    weight: f64,
+    bias: f64,
+}
+
+impl Neuron {
+    fn predict(&self, input: f64) -> f64 {
+        self.weight * input + self.bias
+    }
+
+    fn loss(&self, data: &[(f64, f64)]) -> Result<f64, &'static str> {
+        if data.is_empty() {
+            return Err("loss requires at least one example");
+        }
+        if !self.weight.is_finite()
+            || !self.bias.is_finite()
+            || data
+                .iter()
+                .any(|(input, target)| !input.is_finite() || !target.is_finite())
+        {
+            return Err("model and examples must contain finite numbers");
+        }
+        let loss = data
+            .iter()
+            .map(|&(input, target)| (self.predict(input) - target).powi(2))
+            .sum::<f64>()
+            / data.len() as f64;
+        if !loss.is_finite() {
+            return Err("loss overflowed; reduce input scale or learning rate");
+        }
+        Ok(loss)
+    }
+
+    fn numerical_gradient(&self, data: &[(f64, f64)]) -> Result<Gradient, &'static str> {
+        const H: f64 = 1e-5;
+        let weight = (Self {
+            weight: self.weight + H,
+            ..*self
+        }
+        .loss(data)?
+            - Self {
+                weight: self.weight - H,
+                ..*self
+            }
+            .loss(data)?)
+            / (2.0 * H);
+        let bias = (Self {
+            bias: self.bias + H,
+            ..*self
+        }
+        .loss(data)?
+            - Self {
+                bias: self.bias - H,
+                ..*self
+            }
+            .loss(data)?)
+            / (2.0 * H);
+        if !weight.is_finite() || !bias.is_finite() {
+            return Err("numerical gradient overflowed; reduce input scale");
+        }
+        Ok(Gradient { weight, bias })
+    }
+
+    fn step(self, data: &[(f64, f64)], learning_rate: f64) -> Result<Self, &'static str> {
+        if !learning_rate.is_finite() || learning_rate <= 0.0 {
+            return Err("learning rate must be finite and positive");
+        }
+        let gradient = self.numerical_gradient(data)?;
+        let next = Self {
+            weight: self.weight - learning_rate * gradient.weight,
+            bias: self.bias - learning_rate * gradient.bias,
+        };
+        next.loss(data)?;
+        Ok(next)
+    }
+
+    fn train(
+        self,
+        data: &[(f64, f64)],
+        steps: usize,
+        learning_rate: f64,
+    ) -> Result<Self, &'static str> {
+        if !learning_rate.is_finite() || learning_rate <= 0.0 {
+            return Err("learning rate must be finite and positive");
+        }
+        self.loss(data)?;
+        let mut model = self;
+        for _ in 0..steps {
+            model = model.step(data, learning_rate)?;
+        }
+        Ok(model)
+    }
+}
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    for (input, target) in TRAIN {
         println!("input={input:>4}, target={target:>4}");
     }
-    println!("Five observations, ready for your predictor. Complete predict, then run cargo test.");
-
-    let _ = train(&samples, 1000, 0.00001, 0.1);
+    let initial = Neuron {
+        weight: 0.0,
+        bias: 0.0,
+    };
+    println!("initial loss: {}", initial.loss(&TRAIN)?);
+    let model = initial.train(&TRAIN, 1000, 0.1)?;
+    println!("weight: {}, bias: {}", model.weight, model.bias);
+    println!("final loss: {}", model.loss(&TRAIN)?);
+    Ok(())
 }
 
-fn train(samples: &[(f64, f64)], iterations: usize, h: f64, eta: f64) -> (f64, f64) {
-    let mut w = 0.0;
-    let mut b = 0.0;
-    let (input, expected): (Vec<_>, Vec<_>) = samples.iter().map(|s| *s).unzip();
-    for _ in 0..iterations {
-        println!("w: {w}, b: {b}");
-        println!("loss: {}", mse(w, b, &input, &expected));
-        w = new_w(w, b, &input, &expected, h, eta);
-        b = new_b(w, b, &input, &expected, h, eta)
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn completed_prediction_and_training() -> Result<(), &'static str> {
+        let initial = Neuron {
+            weight: 0.0,
+            bias: 0.0,
+        };
+        assert!((initial.predict(0.5) - 0.0).abs() < 1e-12);
+        assert_eq!(
+            Neuron {
+                weight: -1.0,
+                bias: 4.0,
+            }
+            .predict(3.0),
+            1.0
+        );
+        let model = initial.train(&TRAIN, 1000, 0.1)?;
+        assert!((model.predict(0.5) - 2.0).abs() < 1e-12);
+        assert!((model.weight - 2.0).abs() < 1e-12);
+        assert!((model.bias - 1.0).abs() < 1e-12);
+        Ok(())
     }
-    println!("w: {w}, b: {b}");
-    println!("loss: {}", mse(w, b, &input, &expected));
-    (w, b)
-}
 
-fn mse(w: f64, b: f64, input: &Vec<f64>, expected: &Vec<f64>) -> f64 {
-    input
-        .iter()
-        .zip(expected.iter())
-        .map(|(x, y)| (w * x + b - y).powi(2))
-        .sum::<f64>()
-        / (input.len() as f64)
-}
+    #[test]
+    fn step_updates_both_parameters_from_the_same_model() -> Result<(), &'static str> {
+        let data = [(1.0, 0.0), (2.0, 0.0)];
+        let model = Neuron {
+            weight: 1.0,
+            bias: 1.0,
+        }
+        .step(&data, 0.1)?;
+        assert!((model.weight - 0.2).abs() < 1e-8);
+        assert!((model.bias - 0.5).abs() < 1e-8);
+        Ok(())
+    }
 
-fn gradient_weight(w: f64, b: f64, input: &Vec<f64>, expected: &Vec<f64>, h: f64) -> f64 {
-    (mse(w + h, b, input, expected) - mse(w - h, b, input, expected)) / (2.0 * h)
-}
-
-fn gradient_bias(w: f64, b: f64, input: &Vec<f64>, expected: &Vec<f64>, h: f64) -> f64 {
-    (mse(w, b + h, input, expected) - mse(w, b - h, input, expected)) / (2.0 * h)
-}
-
-fn new_w(w: f64, b: f64, input: &Vec<f64>, expected: &Vec<f64>, h: f64, eta: f64) -> f64 {
-    w - eta * gradient_weight(w, b, input, expected, h)
-}
-
-fn new_b(w: f64, b: f64, input: &Vec<f64>, expected: &Vec<f64>, h: f64, eta: f64) -> f64 {
-    b - eta * gradient_bias(w, b, input, expected, h)
-}
-
-#[test]
-fn held_out_input() {
-    assert!((predict(2.0, 1.0, 0.5) - 2.0).abs() < 1e-12);
-    assert_eq!(predict(-1.0, 4.0, 3.0), 1.0);
+    #[test]
+    fn invalid_zero_step_training_is_rejected() {
+        let model = Neuron {
+            weight: 0.0,
+            bias: 0.0,
+        };
+        assert!(model.train(&[], 0, 0.1).is_err());
+        assert!(model.train(&TRAIN, 0, f64::NAN).is_err());
+    }
 }

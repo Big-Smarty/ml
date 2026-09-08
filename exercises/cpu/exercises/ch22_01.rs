@@ -1,5 +1,5 @@
-fn reconstruction_mse(_input: &[f64], _output: &[f64]) -> f64 {
-    // TODO: average squared coordinate errors.
+fn reconstruction_mse(_reconstruction: &[f64], _target: &[f64]) -> f64 {
+    // TODO: average squared coordinate errors, with reconstruction before target.
     todo!()
 }
 fn main() {

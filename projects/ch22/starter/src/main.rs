@@ -2,7 +2,7 @@ fn normalized(values: &[f64]) -> Vec<f64> {
     let mean = values.iter().sum::<f64>() / values.len() as f64;
     values.iter().map(|x| x - mean).collect()
 }
-fn encode(_x: &[f64; 4], _weights: &[[f64; 4]; 2]) -> [f64; 2] {
+fn encode(_features: &[f64; 4], _encoder_weights: &[[f64; 4]; 2]) -> [f64; 2] {
     // TODO: compute two weighted sums, one per bottleneck coordinate.
     todo!("matrix-vector product")
 }

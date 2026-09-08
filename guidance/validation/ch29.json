@@ -5,70 +5,72 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch29/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.027,
+      "seconds": 0.029,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch29/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.055,
+      "seconds": 0.063,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch29/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.046,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running unittests src/main.rs (projects/ch29/target/debug/deps/ch29-4f2d30e60562acc4)\n\nrunning 2 tests\ntest tests::gpu_matches_scalar_oracle_for_partial_workgroup ... ignored, requires a hardware Vulkan GPU\ntest tests::invalid_shapes_are_rejected_before_adapter_discovery ... ok\n\ntest result: ok. 1 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.058,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running unittests src/main.rs (projects/ch29/target/debug/deps/ch29-4f2d30e60562acc4)\n\nrunning 3 tests\ntest tests::gpu_matches_scalar_oracle_for_partial_workgroup ... ignored, requires a hardware Vulkan GPU\ntest tests::invalid_shapes_are_rejected_before_adapter_discovery ... ok\ntest tests::scalar_oracle_and_dispatch_cover_the_primitive ... ok\n\ntest result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch29/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.025,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch29/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.037,
+      "seconds": 0.042,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch29/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.073,
-      "output": "   Compiling ch29-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch29/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.06s\n     Running `projects/ch29/starter/target/debug/ch29-starter`\nCPU checkpoint before GPU dispatch: [3.0, 3.0, 3.0]\n"
+      "seconds": 0.033,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch29/starter/target/debug/ch29-starter`\nCPU scalar oracle before GPU dispatch: [3.0, 3.0, 3.0]\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch29/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.016,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch29/starter/target/debug/deps/ch29_starter-54e817a47abe7340)\n\nrunning 1 test\ntest tests::partial_group_is_not_dropped ... FAILED\n\nfailures:\n\n---- tests::partial_group_is_not_dropped stdout ----\n\nthread 'tests::partial_group_is_not_dropped' (11453) panicked at src/main.rs:3:5:\nnot yet implemented: round up dispatch count\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::partial_group_is_not_dropped\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch29-starter`\n",
+      "seconds": 0.02,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch29/starter/target/debug/deps/ch29_starter-54e817a47abe7340)\n\nrunning 2 tests\ntest tests::scalar_oracle_maps_left_and_right_to_output ... ok\ntest tests::partial_group_is_not_dropped ... FAILED\n\nfailures:\n\n---- tests::partial_group_is_not_dropped stdout ----\n\nthread 'tests::partial_group_is_not_dropped' (9897) panicked at src/main.rs:31:5:\nnot yet implemented: round up dispatch count\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::partial_group_is_not_dropped\n\ntest result: FAILED. 1 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch29-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch29_01.rs -o /tmp/ml-check-r2i1fcmc/solutionch29_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch29_01.rs -o /tmp/ml-check-543x_hj6/solutionch29_01",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.046,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-r2i1fcmc/solutionch29_01",
+      "command": "/tmp/ml-check-543x_hj6/solutionch29_01",
       "returncode": 0,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest tests::includes_partial_workgroup ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "output": "\nrunning 1 test\ntest tests::counts_exact_and_partial_workgroups ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch29_01.rs -o /tmp/ml-check-r2i1fcmc/exercisech29_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch29_01.rs -o /tmp/ml-check-543x_hj6/exercisech29_01",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.044,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-r2i1fcmc/exercisech29_01",
+      "command": "/tmp/ml-check-543x_hj6/exercisech29_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest tests::includes_partial_workgroup ... FAILED\n\nfailures:\n\n---- tests::includes_partial_workgroup stdout ----\n\nthread 'tests::includes_partial_workgroup' (11525) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch29_01.rs:4:5:\nnot yet implemented: count complete and partial workgroups\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::includes_partial_workgroup\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest tests::counts_exact_and_partial_workgroups ... FAILED\n\nfailures:\n\n---- tests::counts_exact_and_partial_workgroups stdout ----\n\nthread 'tests::counts_exact_and_partial_workgroups' (9970) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch29_01.rs:4:5:\nnot yet implemented: count complete and partial workgroups\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::counts_exact_and_partial_workgroups\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

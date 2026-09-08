@@ -1,7 +1,7 @@
 // TODO: add the new path's contribution to the existing gradient.
 fn add_gradient(total: &mut f64, contribution: f64) {
     let _ = (total, contribution);
-    todo!("accumulate")
+    todo!("add the gradient contribution")
 }
 fn main() {
     let mut g = 0.0;

@@ -14,6 +14,7 @@ mod tests {
     #[test]
     fn rounds_up_and_keeps_one_slot() {
         assert_eq!(capacity(7, 3, 1.25), 3);
+        assert_eq!(capacity(8, 3, 1.25), 4);
         assert_eq!(capacity(1, 8, 0.5), 1);
     }
 }

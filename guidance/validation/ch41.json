@@ -11,70 +11,72 @@
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch41/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.037,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+      "seconds": 0.133,
+      "output": "    Checking ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n    Checking ch41 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch41)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.11s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch41/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.027,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch41/target/debug/deps/ch41-0556e6eec1cb2a6f)\n\nrunning 3 tests\ntest tests::packing_round_trips_signed_int4 ... ok\ntest tests::rejects_bad_shapes_and_nonfinite_values ... ok\ntest tests::quantized_matvec_is_close_and_int4_is_smaller ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.2,
+      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch41 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch41)\n    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.18s\n     Running unittests src/main.rs (projects/ch41/target/debug/deps/ch41-0556e6eec1cb2a6f)\n\nrunning 4 tests\ntest tests::output_weight_layout_round_trips_d_by_v ... ok\ntest tests::rejects_bad_shapes_and_nonfinite_values ... ok\ntest tests::quantized_matvec_is_close_and_int4_is_smaller ... ok\ntest tests::packing_round_trips_signed_int4 ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch41/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.015,
-      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch41/target/release/ch41`\ndense output: [-1.9705882, -7.647059, -5.8970585]; fp32 weight bytes=72\nint8: output=[-1.9974523, -7.64648, -5.9081745], bytes=30, rmse=0.016789, max_abs=0.026864\nint4: output=[-2.2058825, -7.6029415, -5.8298316], bytes=21, rmse=0.143561, max_abs=0.235294\ndecoder int8: loss=2.500288 (fp32=2.500316), max_logit_error=0.000244, final_argmax=8\ndecoder int4: loss=2.501305 (fp32=2.500316), max_logit_error=0.005999, final_argmax=8\n"
+      "seconds": 0.679,
+      "output": "   Compiling ch36 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch36)\n   Compiling ch41 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch41)\n    Finished `release` profile [optimized] target(s) in 0.66s\n     Running `projects/ch41/target/release/ch41`\ndense output: [-1.9705882, -7.647059, -5.8970585]; fp32 weight bytes=72\nint8: output=[-1.9974523, -7.64648, -5.9081745], bytes=30, rmse=0.016789, max_abs=0.026864\nint4: output=[-2.2058825, -7.6029415, -5.8298316], bytes=21, rmse=0.143561, max_abs=0.235294\ndecoder int8: loss=2.500288 (fp32=2.500316), max_logit_error=0.000244, final_argmax=8\ndecoder int4: loss=2.501305 (fp32=2.500316), max_logit_error=0.005999, final_argmax=8\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch41/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.025,
+      "seconds": 0.027,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch41/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.036,
+      "seconds": 0.038,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch41/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.028,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch41/starter/target/debug/ch41-starter`\ncheckpoint dense output: [4.0, -2.0]\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch41/starter/Cargo.toml",
       "returncode": 101,
       "seconds": 0.015,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch41/starter/target/debug/deps/ch41_starter-0ed6a7aa71c162ae)\n\nrunning 1 test\ntest tests::scale_uses_largest_magnitude ... FAILED\n\nfailures:\n\n---- tests::scale_uses_largest_magnitude stdout ----\n\nthread 'tests::scale_uses_largest_magnitude' (151) panicked at src/main.rs:8:5:\nnot yet implemented: compute a symmetric per-row scale\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::scale_uses_largest_magnitude\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch41-starter`\n",
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch41/starter/target/debug/deps/ch41_starter-0ed6a7aa71c162ae)\n\nrunning 1 test\ntest tests::scale_uses_largest_magnitude ... FAILED\n\nfailures:\n\n---- tests::scale_uses_largest_magnitude stdout ----\n\nthread 'tests::scale_uses_largest_magnitude' (14673) panicked at src/main.rs:17:5:\nnot yet implemented: compute a symmetric per-row scale\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::scale_uses_largest_magnitude\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch41-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch41_01.rs -o /tmp/ml-check-ckuj6jm9/solutionch41_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch41_01.rs -o /tmp/ml-check-_9zv041m/solutionch41_01",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.042,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-ckuj6jm9/solutionch41_01",
+      "command": "/tmp/ml-check-_9zv041m/solutionch41_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest tests::packs_twos_complement_nibbles ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch41_01.rs -o /tmp/ml-check-ckuj6jm9/exercisech41_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch41_01.rs -o /tmp/ml-check-_9zv041m/exercisech41_01",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.043,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-ckuj6jm9/exercisech41_01",
+      "command": "/tmp/ml-check-_9zv041m/exercisech41_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest tests::packs_twos_complement_nibbles ... FAILED\n\nfailures:\n\n---- tests::packs_twos_complement_nibbles stdout ----\n\nthread 'tests::packs_twos_complement_nibbles' (223) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch41_01.rs:3:5:\nnot yet implemented: pack int4\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::packs_twos_complement_nibbles\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest tests::packs_twos_complement_nibbles ... FAILED\n\nfailures:\n\n---- tests::packs_twos_complement_nibbles stdout ----\n\nthread 'tests::packs_twos_complement_nibbles' (14745) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch41_01.rs:3:5:\nnot yet implemented: pack int4\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::packs_twos_complement_nibbles\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

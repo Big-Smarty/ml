@@ -5,78 +5,76 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch01/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch01/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.036,
+      "seconds": 0.039,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch01/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.026,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch01/target/debug/deps/ch01-590582886c0fb685)\n\nrunning 2 tests\ntest tests::invalid_data_is_rejected ... ok\ntest tests::hand_calculation_and_training ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.122,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.04s\n     Running unittests src/main.rs (projects/ch01/target/debug/deps/ch01-590582886c0fb685)\n\nrunning 3 tests\ntest tests::invalid_data_is_rejected ... ok\ntest tests::step_updates_both_parameters_from_the_same_model ... ok\ntest tests::hand_calculation_and_training ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch01/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.014,
+      "seconds": 0.017,
       "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch01/target/release/ch01`\ninitial training MSE: 9.000000\nweight: 2.000000, bias: 1.000000\nfinal training MSE: 0.0000000000\nunseen input -1.5 -> prediction -2.000000\nunseen input 0.5 -> prediction 2.000000\nunseen input 3.0 -> prediction 7.000000\nThese exact synthetic samples test the mechanism, not real-world generalization.\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch01/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.025,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch01/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.037,
+      "seconds": 0.04,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch01/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.027,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch01/starter/target/debug/ch01_starter`\ninput=  -2, target=  -3\ninput=  -1, target=  -1\ninput=   0, target=   1\ninput=   1, target=   3\ninput=   2, target=   5\nFive observations, ready for your predictor. Complete predict, then run cargo test.\n"
+      "seconds": 0.034,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch01/starter/target/debug/ch01_starter`\ninput=  -2, target=  -3\ninput=  -1, target=  -1\ninput=   0, target=   1\ninput=   1, target=   3\ninput=   2, target=   5\ninitial loss: 9\nweight: 2, bias: 0.9999999999999998\nfinal loss: 0.000000000000000000000000000000019721522630525296\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch01/starter/Cargo.toml",
-      "returncode": 101,
-      "seconds": 0.016,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch01/starter/target/debug/deps/ch01_starter-1179d3d53129d745)\n\nrunning 1 test\ntest held_out_input ... FAILED\n\nfailures:\n\n---- held_out_input stdout ----\n\nthread 'held_out_input' (154) panicked at src/main.rs:5:5:\nnot yet implemented: Multiply the input by the weight, then add the bias\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    held_out_input\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch01_starter`\n",
-      "expected_failure": true,
-      "expected_failure_observed": true
+      "returncode": 0,
+      "seconds": 0.021,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch01/starter/target/debug/deps/ch01_starter-1179d3d53129d745)\n\nrunning 3 tests\ntest tests::invalid_zero_step_training_is_rejected ... ok\ntest tests::step_updates_both_parameters_from_the_same_model ... ok\ntest tests::completed_prediction_and_training ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch01_01.rs -o /tmp/ml-check-171o0rha/solutionch01_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch01_01.rs -o /tmp/ml-check-p3ri54qq/solutionch01_01",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.048,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-171o0rha/solutionch01_01",
+      "command": "/tmp/ml-check-p3ri54qq/solutionch01_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest prediction_uses_all_three_values ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch01_01.rs -o /tmp/ml-check-171o0rha/exercisech01_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch01_01.rs -o /tmp/ml-check-p3ri54qq/exercisech01_01",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.049,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-171o0rha/exercisech01_01",
-      "returncode": 101,
+      "command": "/tmp/ml-check-p3ri54qq/exercisech01_01",
+      "returncode": 0,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest prediction_uses_all_three_values ... FAILED\n\nfailures:\n\n---- prediction_uses_all_three_values stdout ----\n\nthread 'prediction_uses_all_three_values' (226) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch01_01.rs:4:5:\nnot yet implemented: Implement the affine prediction\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    prediction_uses_all_three_values\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
-      "expected_failure": true,
-      "expected_failure_observed": true
+      "output": "\nrunning 1 test\ntest prediction_uses_all_three_values ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": true
     }
   ]
 }

@@ -1,6 +1,6 @@
-fn pooled_accuracy(folds: &[(usize, usize)]) -> f64 {
+fn pooled_accuracy(fold_counts: &[(usize, usize)]) -> f64 {
     // TODO: aggregate correct counts and row counts before dividing.
-    let _ = folds;
+    let _ = fold_counts;
     todo!("compute pooled cross-validation accuracy")
 }
 

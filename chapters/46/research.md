@@ -10,7 +10,7 @@ Rafailov et al. derive Direct Preference Optimization from KL-regularized reward
 
 `z = beta * [(log pi(y_w|x)-log pi(y_l|x)) - (log pi_ref(y_w|x)-log pi_ref(y_l|x))]`.
 
-The mean loss is `-log sigmoid(z)`. The implementation evaluates it as stable softplus of `-z`, and it computes log-softmax with the maximum-subtraction log-sum-exp identity rather than taking the logarithm of an underflowed probability. The reference logits are cloned once and never updated. Gradients from every pair are accumulated at the same old policy before a simultaneous step; this matters because two pairs share each prompt.
+The mean loss is `-log sigmoid(z)`. The implementation evaluates it as stable softplus of `-z`, and it computes log-softmax with the maximum-subtraction log-sum-exp identity rather than taking the logarithm of an underflowed probability. `Policy::loss_and_gradient` names the policy and reference log ratios, accepts preference data explicitly, and returns a separate `Gradient` with the policy-logit shape. The reference logits are cloned once and never updated. Gradients from every pair are accumulated at the same old policy, divided by pair count, and applied in one optimizer step; this matters because two pairs share each prompt.
 
 Williams's REINFORCE paper is the primary source for score-function updates: <https://doi.org/10.1007/BF00992696>. Sutton et al. provide the policy-gradient theorem and baseline argument: <https://papers.nips.cc/paper/1713-policy-gradient-methods-for-reinforcement-learning-with-function-approximation>. PPO is included only as later practical context, not implemented: <https://arxiv.org/abs/1707.06347>.
 
@@ -18,7 +18,11 @@ Williams's REINFORCE paper is the primary source for score-function updates: <ht
 
 The preference model is categorical: each prompt has three complete one-token response choices. This makes the chosen/rejected log-probability calculation real and lets one gradient be checked against central differences without copying an autoregressive decoder. It does not exercise token masks or response-length effects, so the lecture explains the sequence sum separately.
 
-The verifiable-reward experiment parses the course-authored prompt `2 + 3`, evaluates candidate integers 4, 5, and 6, and assigns reward one only to the computed answer. It then follows the exact expected policy gradient rather than using preference pairs. This deliberately separates reward optimization from DPO. Tests include wrong answers and invalid arithmetic text, and the correct candidate reaches probability above 0.99. The checker is transparent and tiny; real verifiers can be incomplete or gamed.
+The verifiable-reward experiment parses the course-authored prompt `2 + 3`, evaluates candidate integers 4, 5, and 6, and assigns reward one only to the computed answer. Its objective is the probability-weighted sum over those three candidate rewards for one prompt, not their arithmetic mean. It then follows the exact expected policy gradient rather than using preference pairs. This deliberately separates reward optimization from DPO. Tests include wrong answers and invalid arithmetic text, and the correct candidate reaches probability above 0.99. The checker is transparent and tiny; real verifiers can be incomplete or gamed.
+
+## Consistency revision
+
+The scalar primitive is now consistently named `dpo_pair_loss(policy_logratio, reference_logratio, beta)` in the reference, starter, Rustlings exercise, and solution. The overflow-safe softplus expression and extreme wrong-way log-ratio check are shared across those paths. Optimizer rates use `learning_rate`; `Policy::step` is one optimizer update, whereas Chapter 45's `environment_step` advances an environment. `train_dpo` and `exact_reward_training` remain fixture-specific demo drivers rather than a shared training abstraction.
 
 ## Independent Astra implementation review — 2026-09-08
 

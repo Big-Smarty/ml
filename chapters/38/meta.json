@@ -1,6 +1,6 @@
 {
   "outcomes": [
-    "Derive Adam moment, bias-correction, and decoupled-decay updates",
+    "Derive Adam moment and bias-correction updates while separating the data objective from decoupled weight decay",
     "Combine equal microbatch gradients before global clipping",
     "Compute cosine decay with warmup per optimizer step",
     "Save and validate every state item required for exact continuation",
@@ -24,12 +24,7 @@
     "gradient-accumulation": {
       "name": "gradient accumulation",
       "definition": "Summing or averaging gradients from sequential microbatches before one optimizer update.",
-      "explanation": "Accumulation increases effective batch tokens without retaining all microbatch activations at once. Each microbatch evaluates the same unchanged parameters; only after its gradients are combined does the optimizer step. Equal-sized microbatch averages can be averaged equally. Unequal sizes must be weighted by target-token count. Clipping should usually operate on the combined global vector. Accumulation reduces activation pressure but does not reduce model, gradient, or optimizer-state storage and can change throughput."
-    },
-    "checkpoint": {
-      "name": "training checkpoint",
-      "definition": "A versioned snapshot containing enough state to continue a run from the same next update.",
-      "explanation": "A complete training checkpoint includes model dimensions and parameters, optimizer moments and hyperparameters, scheduler progress, optimizer step, RNG state, and data cursor. Loaders validate headers, dimensions, lengths, finite values, and compatibility before mutation. The strongest test saves one trainer, reloads another, then requires the same next-step loss and state. Current-logit equality alone misses optimizer and progress errors. Production systems may also retain checksums, data identities, compiler revisions, and multiple generations."
+      "explanation": "Accumulation increases effective batch tokens without retaining all microbatch activations at once. Each microbatch evaluates the same unchanged parameters; only after its gradients are combined does the optimizer step. Chapter 38's public method gives every microbatch one shared target-token count, so their mean gradients receive equal weight. An unequal-size extension must instead weight each mean by its target-token count. Clipping operates on the combined global vector. Accumulation reduces activation pressure but does not reduce model, gradient, or optimizer-state storage."
     }
   },
   "sources": [
@@ -62,6 +57,7 @@
   "checks": [
     "Save-load branch produces bit-identical next loss and parameters",
     "Checkpoint restores cursor, RNG, schedule step, model, and moments",
+    "Accumulated return value is the mean data loss and excludes AdamW weight decay",
     "Nonfinite gradients and checkpoint values are rejected",
     "Default run reports calculated persistent memory and measured loss"
   ],

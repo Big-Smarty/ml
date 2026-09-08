@@ -19,15 +19,25 @@ fn char_trigrams(text: &str) -> HashMap<String, usize> {
     counts
 }
 
+fn cross_entropy_from_logits(logits: &[f32], target: usize) -> f32 {
+    let maximum = logits.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+    (maximum - logits[target])
+        + logits
+            .iter()
+            .map(|logit| (logit - maximum).exp())
+            .sum::<f32>()
+            .ln()
+}
+
 #[derive(Clone)]
-struct BigramEmbeddingLm {
+struct Model {
     width: usize,
     embeddings: Vec<f32>,
-    output: Vec<f32>,
+    output_weights: Vec<f32>,
     bias: Vec<f32>,
 }
 
-impl BigramEmbeddingLm {
+impl Model {
     fn new(width: usize) -> Self {
         assert!(width > 0);
         let mut seed = 33_u64;
@@ -40,70 +50,83 @@ impl BigramEmbeddingLm {
         Self {
             width,
             embeddings: (0..256 * width).map(|_| random()).collect(),
-            output: (0..width * 256).map(|_| random()).collect(),
+            output_weights: (0..width * 256).map(|_| random()).collect(),
             bias: vec![0.0; 256],
         }
     }
-    fn logits(&self, byte: u8) -> Vec<f32> {
-        let mut z = self.bias.clone();
+    fn logits(&self, input: u8) -> Vec<f32> {
+        let mut logits = self.bias.clone();
         for h in 0..self.width {
-            for (next, value) in z.iter_mut().enumerate() {
-                *value +=
-                    self.embeddings[byte as usize * self.width + h] * self.output[h * 256 + next];
+            for (class_id, logit) in logits.iter_mut().enumerate() {
+                *logit += self.embeddings[input as usize * self.width + h]
+                    * self.output_weights[h * 256 + class_id];
             }
         }
-        z
+        logits
+    }
+    fn probabilities(&self, input: u8) -> Vec<f32> {
+        let logits = self.logits(input);
+        let maximum = logits.iter().copied().fold(f32::NEG_INFINITY, f32::max);
+        let normalizer = logits
+            .iter()
+            .map(|logit| (*logit - maximum).exp())
+            .sum::<f32>();
+        logits
+            .iter()
+            .map(|logit| (*logit - maximum).exp() / normalizer)
+            .collect()
     }
     fn loss(&self, data: &[u8]) -> f32 {
         assert!(data.len() >= 2);
         data.windows(2)
-            .map(|p| {
-                let z = self.logits(p[0]);
-                let m = z.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-                let s = z.iter().map(|x| (*x - m).exp()).sum::<f32>();
-                s.ln() + (m - z[p[1] as usize])
+            .map(|pair| {
+                let logits = self.logits(pair[0]);
+                let target = pair[1] as usize;
+                cross_entropy_from_logits(&logits, target)
             })
             .sum::<f32>()
             / (data.len() - 1) as f32
     }
-    fn step(&mut self, data: &[u8], rate: f32) {
-        assert!(data.len() >= 2 && rate.is_finite() && rate > 0.0);
-        let mut de = vec![0.0; self.embeddings.len()];
-        let mut dw = vec![0.0; self.output.len()];
-        let mut db = vec![0.0; 256];
-        let n = (data.len() - 1) as f32;
-        for p in data.windows(2) {
-            let z = self.logits(p[0]);
-            let m = z.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-            let s = z.iter().map(|x| (*x - m).exp()).sum::<f32>();
-            for j in 0..256 {
-                let mut g = (z[j] - m).exp() / s;
-                g -= f32::from(j == p[1] as usize);
-                g /= n;
-                db[j] += g;
+    fn step(&mut self, data: &[u8], learning_rate: f32) {
+        assert!(data.len() >= 2 && learning_rate.is_finite() && learning_rate > 0.0);
+        let mut embedding_gradient = vec![0.0; self.embeddings.len()];
+        let mut output_gradient = vec![0.0; self.output_weights.len()];
+        let mut bias_gradient = vec![0.0; 256];
+        let example_count = (data.len() - 1) as f32;
+        for pair in data.windows(2) {
+            let input = pair[0];
+            let target = pair[1] as usize;
+            let probabilities = self.probabilities(input);
+            for class_id in 0..256 {
+                let logit_gradient =
+                    (probabilities[class_id] - f32::from(class_id == target)) / example_count;
+                bias_gradient[class_id] += logit_gradient;
                 for h in 0..self.width {
-                    let e = p[0] as usize * self.width + h;
-                    de[e] += g * self.output[h * 256 + j];
-                    dw[h * 256 + j] += g * self.embeddings[e];
+                    let embedding_index = input as usize * self.width + h;
+                    let output_index = h * 256 + class_id;
+                    embedding_gradient[embedding_index] +=
+                        logit_gradient * self.output_weights[output_index];
+                    output_gradient[output_index] +=
+                        logit_gradient * self.embeddings[embedding_index];
                 }
             }
         }
-        for (p, g) in self.embeddings.iter_mut().zip(de) {
-            *p -= rate * g;
+        for (parameter, gradient) in self.embeddings.iter_mut().zip(embedding_gradient) {
+            *parameter -= learning_rate * gradient;
         }
-        for (p, g) in self.output.iter_mut().zip(dw) {
-            *p -= rate * g;
+        for (parameter, gradient) in self.output_weights.iter_mut().zip(output_gradient) {
+            *parameter -= learning_rate * gradient;
         }
-        for (p, g) in self.bias.iter_mut().zip(db) {
-            *p -= rate * g;
+        for (parameter, gradient) in self.bias.iter_mut().zip(bias_gradient) {
+            *parameter -= learning_rate * gradient;
         }
     }
-    fn predict(&self, byte: u8) -> u8 {
-        let z = self.logits(byte);
-        z.iter()
+    fn predict(&self, input: u8) -> u8 {
+        self.logits(input)
+            .iter()
             .enumerate()
             .max_by(|a, b| a.1.total_cmp(b.1))
-            .unwrap()
+            .expect("invariant: logits contains one score per byte class")
             .0 as u8
     }
 }
@@ -119,10 +142,11 @@ fn main() {
         "{} distinct Unicode character trigrams",
         char_trigrams("café 咖啡 café").len()
     );
-    let mut model = BigramEmbeddingLm::new(16);
+    let mut model = Model::new(16);
     let before = model.loss(bytes);
+    let learning_rate = 1.0;
     for _ in 0..250 {
-        model.step(bytes, 1.0);
+        model.step(bytes, learning_rate);
     }
     println!(
         "next-byte cross-entropy: {before:.3} -> {:.3}",
@@ -139,7 +163,7 @@ mod tests {
     use super::*;
     #[test]
     fn common_logit_offset_preserves_uniform_loss() {
-        let mut model = BigramEmbeddingLm::new(3);
+        let mut model = Model::new(3);
         model.bias.fill(1e8);
         assert!((model.loss(b"ab") - 256.0_f32.ln()).abs() < 1e-6);
     }
@@ -150,29 +174,29 @@ mod tests {
         assert!(char_trigrams("aé中b").contains_key("aé中"));
     }
     #[test]
-    fn all_embedding_weights_train() {
+    fn embedding_and_output_parameters_train() {
         let data = b"abababab";
-        let mut m = BigramEmbeddingLm::new(4);
-        let old = m.clone();
-        let before = m.loss(data);
+        let mut model = Model::new(4);
+        let old = model.clone();
+        let before = model.loss(data);
         for _ in 0..30 {
-            m.step(data, 1.0);
+            model.step(data, 1.0);
         }
-        assert!(m.loss(data) < before);
-        assert_ne!(m.embeddings, old.embeddings);
-        assert_ne!(m.output, old.output);
+        assert!(model.loss(data) < before);
+        assert_ne!(model.embeddings, old.embeddings);
+        assert_ne!(model.output_weights, old.output_weights);
     }
     #[test]
     fn embedding_and_output_gradients_match_finite_differences() {
         let data = b"aba";
-        let mut model = BigramEmbeddingLm::new(3);
+        let mut model = Model::new(3);
         let old = model.clone();
         model.step(data, 1e-3);
         for (group, index) in [(0, b'a' as usize * 3 + 1), (1, 256 + b'b' as usize)] {
             let analytic = if group == 0 {
                 (old.embeddings[index] - model.embeddings[index]) / 1e-3
             } else {
-                (old.output[index] - model.output[index]) / 1e-3
+                (old.output_weights[index] - model.output_weights[index]) / 1e-3
             };
             let mut plus = old.clone();
             let mut minus = old.clone();
@@ -181,8 +205,8 @@ mod tests {
                 plus.embeddings[index] += eps;
                 minus.embeddings[index] -= eps;
             } else {
-                plus.output[index] += eps;
-                minus.output[index] -= eps;
+                plus.output_weights[index] += eps;
+                minus.output_weights[index] -= eps;
             }
             let numeric = (plus.loss(data) - minus.loss(data)) / (2.0 * eps);
             assert!((analytic - numeric).abs() < 2e-3, "{analytic} != {numeric}");

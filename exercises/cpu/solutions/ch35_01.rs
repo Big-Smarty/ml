@@ -1,5 +1,5 @@
-fn causal_allowed(query: usize, key: usize) -> bool {
-    key <= query
+fn causal_allowed(query_position: usize, key_position: usize) -> bool {
+    key_position <= query_position
 }
 fn main() {
     println!("Causal masking protects the next-token target.");

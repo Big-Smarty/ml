@@ -5,9 +5,9 @@ struct Prediction {
     label: u8,
 }
 
-fn accuracy(data: &[Prediction]) -> Result<f64, &'static str> {
+fn validate_predictions(data: &[Prediction]) -> Result<(), &'static str> {
     if data.is_empty() {
-        return Err("accuracy needs at least one prediction");
+        return Err("evaluation needs at least one prediction");
     }
     if data
         .iter()
@@ -15,6 +15,11 @@ fn accuracy(data: &[Prediction]) -> Result<f64, &'static str> {
     {
         return Err("probabilities must be in [0,1] and labels must be 0 or 1");
     }
+    Ok(())
+}
+
+fn accuracy(data: &[Prediction]) -> Result<f64, &'static str> {
+    validate_predictions(data)?;
     Ok(data
         .iter()
         .filter(|p| (p.probability >= 0.5) == (p.label == 1))
@@ -23,7 +28,7 @@ fn accuracy(data: &[Prediction]) -> Result<f64, &'static str> {
 }
 
 fn brier(data: &[Prediction]) -> Result<f64, &'static str> {
-    accuracy(data)?;
+    validate_predictions(data)?;
     Ok(data
         .iter()
         .map(|p| (p.probability - p.label as f64).powi(2))
@@ -74,7 +79,7 @@ fn calibration_bins(
     data: &[Prediction],
     bins: usize,
 ) -> Result<Vec<(usize, f64, f64)>, &'static str> {
-    accuracy(data)?;
+    validate_predictions(data)?;
     if bins == 0 {
         return Err("calibration needs at least one bin");
     }
@@ -129,12 +134,14 @@ fn main() -> Result<(), &'static str> {
     ];
     let (lo, hi) = bootstrap_accuracy(&data, 2_000, 7)?;
     println!(
-        "accuracy {:.3}; 95% bootstrap percentile interval [{lo:.3}, {hi:.3}]",
+        "accuracy {:.3}; 95% bootstrap percentile confidence interval [{lo:.3}, {hi:.3}]",
         accuracy(&data)?
     );
     println!("Brier score {:.4}", brier(&data)?);
-    for (n, confidence, frequency) in calibration_bins(&data, 4)? {
-        println!("bin n={n}: mean confidence {confidence:.3}, observed frequency {frequency:.3}");
+    for (n, mean_probability, positive_frequency) in calibration_bins(&data, 4)? {
+        println!(
+            "bin n={n}: mean probability {mean_probability:.3}, positive frequency {positive_frequency:.3}"
+        );
     }
     Ok(())
 }
@@ -169,6 +176,12 @@ mod tests {
             bootstrap_accuracy(&d, 400, 3).unwrap()
         );
         assert!(accuracy(&[]).is_err());
+        assert!(brier(&[]).is_err());
+        assert!(brier(&[Prediction {
+            probability: f64::NAN,
+            label: 0,
+        }])
+        .is_err());
     }
     #[test]
     fn bootstrap_boundaries_and_calibration_are_real_statistics() {

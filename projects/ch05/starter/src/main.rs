@@ -3,9 +3,18 @@ fn precision(true_positive: usize, false_positive: usize) -> f64 {
     todo!("return TP / (TP + FP), or 0 when there are no predicted positives")
 }
 
+fn predict(probability: f64, threshold: f64) -> bool {
+    probability >= threshold
+}
+
 fn main() {
     let _guided_todo: fn(usize, usize) -> f64 = precision;
-    println!("prior checkpoint: score 0.7 at threshold 0.5 predicts positive");
+    let probability = 0.7;
+    let threshold = 0.5;
+    println!(
+        "prior checkpoint: probability {probability:.1} at threshold {threshold:.1} predicts class {}",
+        u8::from(predict(probability, threshold))
+    );
     println!("Run cargo test to implement the new precision TODO.");
 }
 

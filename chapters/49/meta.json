@@ -3,7 +3,7 @@
     "Compute a selective state-space sequence as a recurrence",
     "Derive associative affine-transition composition and verify scan parity",
     "Implement normalized causal linear attention with recurrent summaries",
-    "Compare recurrence, scan schedule, and a direct prefix oracle without false speed claims"
+    "Compare recurrence, scan schedule, and a direct scalar oracle without false speed claims"
   ],
   "lessons": ["Sequence state without a cache", "Selective recurrence", "Associative scan", "Linear attention", "Rust comparison", "Practice and transfer"],
   "terms": {
@@ -20,7 +20,7 @@
     "selective-state": {
       "name": "Selective state",
       "definition": "State dynamics whose coefficients depend on the current input.",
-      "explanation": "Fixed linear dynamics treat every input position with the same transition rules. A selective model computes some transition, input, or readout coefficients from the current token, allowing content to control what is retained or written. The reference chooses a_t with a sigmoid of input magnitude and b_t from a simple input formula. These coefficients are fixed educational choices, not trained Mamba parameters, but they demonstrate that scan composition still works once per-token transitions are known."
+      "explanation": "Fixed linear dynamics treat every input position with the same transition rules. A selective model computes some transition, input, or readout coefficients from the current token, allowing content to control what is retained or written. The reference chooses a_t with a sigmoid of input magnitude and b_t from a simple input formula. Here a and b are input-dependent affine coefficients, not learned model weights, and b is not a neuron's reusable bias parameter. These fixed educational choices demonstrate that scan composition still works once per-token transitions are known; they are not trained Mamba parameters."
     },
     "associative-scan": {
       "name": "Associative scan",
@@ -30,7 +30,7 @@
     "linear-attention": {
       "name": "Linear attention",
       "definition": "Attention rewritten with feature maps so key-value summaries can be accumulated without an explicit all-pairs score matrix.",
-      "explanation": "With a nonnegative feature map φ, causal linear attention stores S_t = S_{t-1}+φ(k_t)v_t and z_t = z_{t-1}+φ(k_t). A query reads φ(q_t)·S_t divided by φ(q_t)·z_t. This changes the kernel from exact softmax attention unless a special approximation is used. The reference chooses ReLU(x)+1, compares against the same kernel's direct prefix formula, and never claims equivalence to softmax for any sequence or dimension."
+      "explanation": "With a nonnegative feature map φ, causal linear attention stores S_t = S_{t-1}+φ(k_t)v_t and z_t = z_{t-1}+φ(k_t). A query reads φ(q_t)·S_t divided by φ(q_t)·z_t. The f64 reference accepts Q and K with shape [positions,2], scalar values [positions], and returns output [positions]. Its recurrent implementation matches the same kernel's direct scalar oracle. ReLU(x)+1 changes the kernel from the exact softmax attention used earlier; this chapter claims no equivalence to softmax."
     },
     "causal-prefix": {
       "name": "Causal prefix",
@@ -47,11 +47,11 @@
   "checks": [
     "Associative scan matches sequential recurrence within absolute-plus-relative tolerance",
     "Affine composition passes an explicit associativity check",
-    "Causal recurrent linear attention matches a direct prefix oracle",
+    "causal_linear_attention_recurrent matches causal_linear_attention_scalar",
     "Empty, mismatched, and nonfinite sequence inputs are rejected"
   ],
   "limitations": [
-    "The selective coefficients are fixed and the scalar SSM is not trained",
+    "The input-dependent affine coefficients are fixed and neither the scalar SSM nor linear attention is trained",
     "The scan schedule is sequential and O(N log N) work in this teaching implementation",
     "ReLU-plus-one linear attention is a different kernel from exact softmax attention",
     "Default timings are illustrative single-process CPU observations rather than a benchmark claim"

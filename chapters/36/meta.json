@@ -6,9 +6,11 @@
     "Validate causality, normalization, gradients, loss reduction, and optional GPU GEMMs"
   ],
   "lessons": [
+    "Code and terminology carried forward",
     "Assemble a pre-normalized decoder block",
     "Normalize features within each token",
     "Store all trainable state in one checked buffer",
+    "Derive the parameter count and the prediction contract",
     "Backpropagate tensors in reverse order",
     "Verify CPU and optional GPU execution",
     "Practice and debug",
@@ -19,11 +21,6 @@
       "name": "decoder Transformer",
       "definition": "A stack of causal self-attention and position-wise feed-forward blocks used for autoregressive prediction.",
       "explanation": "A decoder maps token and position embeddings through repeated residual blocks, then projects final hidden states to next-token logits. In the chapter's pre-normalized form, each attention or feed-forward branch receives layer-normalized input and its output adds to an identity path. Causal masking prevents future-token access. Training must propagate cross-entropy gradients through the output head, final normalization, every reversed block, and both embedding tables. A complete decoder is an architecture; language quality still depends on data, optimization, scale, and evaluation."
-    },
-    "residual-path": {
-      "name": "residual path",
-      "definition": "An identity connection that adds a block input to a learned update of the same shape.",
-      "explanation": "For y=x+f(x), forward preserves x while adding a learned change. Backward sends the upstream gradient directly to x and also through f, then sums both contributions. Residual paths help information and gradients traverse deep stacks, but they require matching shapes. In a decoder block, attention and feed-forward branches each have their own residual addition. Forgetting the direct gradient can leave earlier parameters with weak or zero updates even when the output head learns."
     },
     "layer-normalization": {
       "name": "layer normalization",

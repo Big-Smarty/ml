@@ -1,7 +1,7 @@
 {
   "outcomes": [
-    "Run deterministic k-means and compute inertia",
-    "Explain Gaussian-mixture responsibilities and diagonal covariance",
+    "Fit deterministic k-means to unlabeled feature points and compute summed inertia",
+    "Explain Gaussian-mixture responsibilities as normalized component probabilities",
     "Implement stable expectation-maximization with log-sum-exp",
     "Use negative log density as an anomaly score without confusing rarity with harm"
   ],
@@ -15,23 +15,23 @@
   "terms": {
     "cluster": {
       "name": "cluster",
-      "definition": "A group of rows treated as similar under a chosen representation and distance or density model.",
+      "definition": "A group of unlabeled feature points treated as similar under a chosen representation and distance or density model.",
       "explanation": "Clusters are outputs of modeling choices rather than discovered ground-truth labels. Feature scaling, distance, model family, initialization, and the requested number of groups can all change the partition. A useful cluster should therefore be evaluated against the purpose of the analysis and its stability, not accepted merely because an algorithm returned an integer assignment. External domain evidence can help interpret whether a grouping is actionable."
     },
     "inertia": {
       "name": "inertia",
-      "definition": "The sum of squared distances from every row to its assigned k-means center.",
-      "explanation": "K-means alternates assignments and mean updates to reduce inertia. Squared distance makes the arithmetic mean the optimal center for a fixed cluster. Inertia never increases under exact standard steps, but it typically decreases when k increases and therefore cannot select k by itself. Its scale also changes when feature units or scaling change. Comparing runs requires the same data transformation and distance convention."
+      "definition": "The sum of squared distances from every feature point to its assigned k-means center.",
+      "explanation": "K-means alternates assignments and mean updates to reduce inertia. Squared distance makes the arithmetic mean the optimal center for a fixed cluster. This chapter sums one assigned distance for each point; it does not average them. Inertia never increases under exact standard steps, but it typically decreases when k increases and therefore cannot select k by itself. Its scale also changes when feature units or scaling change. Comparing runs requires the same data transformation and distance convention."
     },
     "gaussian-mixture": {
       "name": "Gaussian mixture model",
       "definition": "A probability density formed by a weighted sum of Gaussian component densities.",
-      "explanation": "Each component has a mixture weight, mean, and covariance. A row can belong fractionally to several components, unlike a hard k-means assignment. The reference uses diagonal covariance to avoid matrix inversion and model axis-aligned spreads. Mixture labels are exchangeable, and likelihood can become singular when a variance collapses, so the implementation floors each variance. The weights remain nonnegative and normalized to one."
+      "explanation": "Each component has a mixture weight, mean, and covariance. A feature point can have fractional responsibility for several components, unlike a hard k-means assignment. The reference uses diagonal covariance to avoid matrix inversion and model axis-aligned spreads. Component indices are exchangeable, and likelihood can become singular when a variance collapses, so the implementation floors each variance. The fitted mixture weights remain nonnegative and normalized to one."
     },
     "responsibility": {
       "name": "responsibility",
-      "definition": "The posterior probability that one mixture component generated a row under current parameters.",
-      "explanation": "Responsibilities normalize component weight times density across all components and sum to one for each row. EM uses them as fractional counts: their component-wise sum determines a component's effective mass, weighted mean, variance, and updated mixture weight. Stable implementations compute them from log probabilities with log-sum-exp rather than dividing raw densities that may underflow. Ambiguous rows can therefore influence several components at once."
+      "definition": "The posterior probability that one mixture component generated a feature point under current parameters.",
+      "explanation": "Responsibilities normalize component weight times density across all components and sum to one for each point. They are point-specific probabilities, distinct from the model's fitted mixture weights and unnormalized component terms. EM uses them as fractional counts: their component-wise sum determines effective mass, weighted mean, variance, and an updated mixture weight. Stable implementations normalize log terms rather than dividing raw densities that may underflow. Ambiguous points can therefore influence several components at once."
     },
     "expectation-maximization": {
       "name": "expectation-maximization",
@@ -40,8 +40,8 @@
     },
     "anomaly-score": {
       "name": "anomaly score",
-      "definition": "A numeric ranking of how unusual an observation is under a fitted reference model.",
-      "explanation": "This chapter uses negative log mixture density, so low-density rows receive larger scores. A score becomes an alarm only after a threshold is calibrated on separate representative data. Density and thresholds depend on feature units, dimension, and population drift. Statistical rarity does not determine whether a row is harmful, erroneous, or valuable; that judgment requires domain investigation. False-positive and detection rates must accompany any deployed threshold."
+      "definition": "A numeric ranking of how unusual a feature point is under a fitted reference model.",
+      "explanation": "This chapter uses negative log mixture density, so low-density points receive larger scores. A score becomes an alarm only after a threshold is calibrated on separate representative data. Density and thresholds depend on feature units, dimension, and population drift. Statistical rarity does not determine whether a point is harmful, erroneous, or valuable; that judgment requires domain investigation. False-positive and detection rates must accompany any deployed threshold."
     }
   },
   "sources": [
@@ -51,11 +51,11 @@
     {"title": "Pattern Clustering by Multivariate Mixture Analysis", "url": "https://doi.org/10.1207/s15327906mbr0503_6", "note": "Early multivariate Gaussian-mixture clustering."}
   ],
   "checks": [
-    "K-means finds one negative and one positive fixture center with inertia below 3",
+    "K-means finds one negative and one positive fixture center with summed inertia below 3",
     "Final assignments are recomputed from the returned centers",
     "Mixture responsibilities sum to one and component weights remain normalized",
     "The distant point receives a larger anomaly score than a cluster-center point",
-    "Later well-conditioned EM fits do not reduce fixture log likelihood beyond tolerance"
+    "Later well-conditioned EM fits do not reduce summed fixture log-likelihood beyond tolerance"
   ],
   "limitations": [
     "K-means uses deterministic single-start initialization",

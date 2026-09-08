@@ -1,18 +1,48 @@
-fn matmul_ikj(a: &[f32], b: &[f32], c: &mut [f32], m: usize, k: usize, n: usize) {
+fn validate_matmul_shapes(
+    a: &[f32],
+    b: &[f32],
+    c: &[f32],
+    m: usize,
+    k: usize,
+    n: usize,
+) -> Result<(), String> {
+    if m == 0
+        || k == 0
+        || n == 0
+        || a.len() != m.checked_mul(k).ok_or("shape overflow")?
+        || b.len() != k.checked_mul(n).ok_or("shape overflow")?
+        || c.len() != m.checked_mul(n).ok_or("shape overflow")?
+    {
+        Err("expected A=[m,k], B=[k,n], C=[m,n] with positive dimensions".into())
+    } else {
+        Ok(())
+    }
+}
+
+fn matmul_scalar_row_inner_col(
+    a: &[f32],
+    b: &[f32],
+    c: &mut [f32],
+    m: usize,
+    k: usize,
+    n: usize,
+) -> Result<(), String> {
+    validate_matmul_shapes(a, b, c, m, k, n)?;
     c.fill(0.0);
-    for i in 0..m {
-        for p in 0..k {
-            let av = a[i * k + p];
-            for j in 0..n {
-                c[i * n + j] += av * b[p * n + j];
+    for row in 0..m {
+        for inner in 0..k {
+            let a_value = a[row * k + inner];
+            for col in 0..n {
+                c[row * n + col] += a_value * b[inner * n + col];
             }
         }
     }
+    Ok(())
 }
 
 fn main() {
     let (a, b, mut c) = ([1., 2., 3., 4., 5., 6.], [1., 2., 3., 4., 5., 6.], [0.; 4]);
-    matmul_ikj(&a, &b, &mut c, 2, 3, 2);
+    matmul_scalar_row_inner_col(&a, &b, &mut c, 2, 3, 2).unwrap();
     println!("{c:?}");
 }
 
@@ -23,7 +53,7 @@ mod tests {
     #[test]
     fn multiplies_a_rectangular_pair() {
         let (a, b, mut c) = ([1., 2., 3., 4., 5., 6.], [1., 2., 3., 4., 5., 6.], [0.; 4]);
-        matmul_ikj(&a, &b, &mut c, 2, 3, 2);
+        matmul_scalar_row_inner_col(&a, &b, &mut c, 2, 3, 2).unwrap();
         assert_eq!(c, [22., 28., 49., 64.]);
     }
 }

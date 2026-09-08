@@ -2,8 +2,8 @@ fn sigmoid(logit: f64) -> f64 {
     if logit >= 0.0 {
         1.0 / (1.0 + (-logit).exp())
     } else {
-        let e = logit.exp();
-        e / (1.0 + e)
+        let exp = logit.exp();
+        exp / (1.0 + exp)
     }
 }
 fn main() {

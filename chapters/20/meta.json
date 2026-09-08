@@ -14,6 +14,6 @@
     {"title":"Gradient-Based Learning Applied to Document Recognition","url":"https://doi.org/10.1109/5.726791","note":"Primary LeNet account of local receptive fields, shared weights, subsampling, and digit recognition."},
     {"title":"The MNIST Database of Handwritten Digits","url":"https://yann.lecun.org/exdb/mnist/","note":"Official dataset description and IDX format source."}
   ],
-  "checks": ["Central-difference and analytic convolution gradients agree away from ReLU and max-pool ties", "Training reduces validation cross-entropy and reaches at least 70% fixture accuracy", "Malformed IDX headers are rejected", "Default execution performs no network access"],
-  "limitations": ["The default seven-segment images are course-authored and much simpler than handwriting", "The model has two filters and uses sample-at-a-time SGD", "MNIST mode limits fitting and validation to 2,000 rows for a short CPU demonstration", "No claim is made about competitive MNIST accuracy"]
+  "checks": ["Central-difference and analytic convolution gradients agree away from ReLU and max-pool ties", "Training reduces validation cross-entropy, reaches at least 70% fixture accuracy, and increments optimizer step_count once per image update", "Malformed IDX headers are rejected", "Default execution performs no network access"],
+  "limitations": ["The default seven-segment images are course-authored and much simpler than handwriting", "The model has two filters and uses one-image-at-a-time SGD", "MNIST mode limits fitting and validation to 2,000 rows for a short CPU demonstration", "No claim is made about competitive MNIST accuracy"]
 }

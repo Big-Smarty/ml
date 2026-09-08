@@ -9,6 +9,10 @@ fn dot_scalar(a: &[f32], b: &[f32]) -> f32 {
     a.iter().zip(b).map(|(x, y)| x * y).sum()
 }
 
+fn dot_f64_reference(a: &[f32], b: &[f32]) -> f64 {
+    a.iter().zip(b).map(|(&x, &y)| x as f64 * y as f64).sum()
+}
+
 #[inline(never)]
 fn scale_add_auto(x: &[f32], y: &mut [f32], scale: f32) {
     for (i, v) in y.iter_mut().enumerate() {
@@ -60,7 +64,7 @@ unsafe fn dot_avx512(a: &[f32], b: &[f32]) -> f32 {
     lanes.iter().sum::<f32>() + dot_scalar(&a[i..], &b[i..])
 }
 
-fn dot(a: &[f32], b: &[f32]) -> Result<(&'static str, f32), String> {
+fn dot_dispatch(a: &[f32], b: &[f32]) -> Result<(&'static str, f32), String> {
     if a.len() != b.len() {
         return Err("dot-product vectors must have equal lengths".into());
     }
@@ -104,14 +108,10 @@ fn experiment(n: usize, repetitions: usize, request_avx512: bool) -> Result<(), 
         if request_avx512 {
             dot_avx512_checked(a, b)
         } else {
-            dot(a, b)
+            dot_dispatch(a, b)
         }
     };
-    let reference = a
-        .iter()
-        .zip(&b)
-        .map(|(&x, &y)| x as f64 * y as f64)
-        .sum::<f64>();
+    let reference = dot_f64_reference(&a, &b);
     let (_, checked) = run(&a, &b)?;
     let tolerance = 2e-5 * n as f64 + 2e-5 * reference.abs();
     if !checked.is_finite()
@@ -156,42 +156,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    fn close(a: f32, b: f32, n: usize) -> bool {
-        (a - b).abs() <= 2e-5 * n as f32 + 2e-5 * b.abs()
+    fn close(got: f32, reference: f64, n: usize) -> bool {
+        (got as f64 - reference).abs() <= 2e-5 * n as f64 + 2e-5 * reference.abs()
     }
     #[test]
     fn dispatch_handles_empty_short_and_odd_vectors() {
         for n in 0..40 {
             let a = values(n, 11);
             let b = values(n, 47);
-            let (_, got) = dot(&a, &b).unwrap();
-            assert!(close(got, dot_scalar(&a, &b), n), "n={n}");
+            let (_, got) = dot_dispatch(&a, &b).unwrap();
+            assert!(close(got, dot_f64_reference(&a, &b), n), "n={n}");
         }
         let n = 1003;
         let a = values(n, 3);
         let b = values(n, 5);
-        assert!(close(dot(&a, &b).unwrap().1, dot_scalar(&a, &b), n));
+        assert!(close(
+            dot_dispatch(&a, &b).unwrap().1,
+            dot_f64_reference(&a, &b),
+            n
+        ));
     }
     #[test]
     fn every_supported_backend_matches_the_oracle() {
         for n in (0..40).chain([1003]) {
             let a = values(n, 3);
             let b = values(n, 5);
-            let reference = a
-                .iter()
-                .zip(&b)
-                .map(|(&x, &y)| x as f64 * y as f64)
-                .sum::<f64>();
-            assert!(close(dot_scalar(&a, &b), reference as f32, n));
+            let reference = dot_f64_reference(&a, &b);
+            assert!(close(dot_scalar(&a, &b), reference, n));
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             {
                 if is_x86_feature_detected!("avx2") && is_x86_feature_detected!("fma") {
                     // SAFETY: both features are detected and equal-length slices prove all memory preconditions.
-                    assert!(close(unsafe { dot_avx2_fma(&a, &b) }, reference as f32, n));
+                    assert!(close(unsafe { dot_avx2_fma(&a, &b) }, reference, n));
                 }
                 if is_x86_feature_detected!("avx512f") {
                     // SAFETY: AVX-512F is detected and equal-length slices prove all memory preconditions.
-                    assert!(close(unsafe { dot_avx512(&a, &b) }, reference as f32, n));
+                    assert!(close(unsafe { dot_avx512(&a, &b) }, reference, n));
                 }
             }
         }
@@ -202,7 +202,7 @@ mod tests {
             let mut a = vec![0.0; n];
             a[n - 1] = 1.0;
             let b = vec![1.0; n];
-            assert_eq!(dot(&a, &b).unwrap().1, 1.0);
+            assert_eq!(dot_dispatch(&a, &b).unwrap().1, 1.0);
             #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
             if is_x86_feature_detected!("avx512f") {
                 assert_eq!(dot_avx512_checked(&a, &b).unwrap().1, 1.0);
@@ -211,7 +211,8 @@ mod tests {
     }
     #[test]
     fn rejects_length_mismatch() {
-        assert!(dot(&[1.], &[1., 2.]).is_err());
+        assert!(dot_dispatch(&[1.], &[1., 2.]).is_err());
+        assert!(dot_avx512_checked(&[1.], &[1., 2.]).is_err());
     }
     #[test]
     fn auto_kernel_handles_odd_length() {

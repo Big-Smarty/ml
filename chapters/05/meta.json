@@ -1,23 +1,97 @@
 {
-  "outcomes": ["Separate training, validation, and test decisions", "Detect entity overlap and preprocessing leakage", "Compute confusion counts and derived metrics", "Choose a threshold on validation and compare a baseline"],
-  "lessons": ["What a training score cannot tell you", "Splits and leakage", "Confusion counts and metrics", "Thresholds and baselines", "Run the audit", "Practice and transfer"],
+  "outcomes": [
+    "Separate training, validation, and test decisions",
+    "Detect entity overlap and preprocessing leakage",
+    "Compute confusion counts and derived metrics from probabilities and targets",
+    "Choose a threshold on validation and compare a baseline"
+  ],
+  "lessons": [
+    "Code and terminology carried forward",
+    "What training performance cannot tell you",
+    "Splits and leakage",
+    "Confusion counts and metrics",
+    "Thresholds and baselines",
+    "Run the audit",
+    "Practice and transfer"
+  ],
   "terms": {
-    "data-split": {"name": "Data split", "definition": "A partition of examples reserved for a distinct stage of model development.", "explanation": "Training data fits parameters. Validation data guides choices such as thresholds and hyperparameters. Test data is held untouched until those choices are fixed, providing a final estimate of performance on similarly generated examples. A random row split is not always safe: repeated users, related images, or time order may require grouped or temporal splitting. The split rule is part of the experiment and should be recorded so results can be reproduced."},
-    "data-leakage": {"name": "Data leakage", "definition": "Information unavailable at intended prediction time entering training or model selection.", "explanation": "Leakage can be obvious, such as putting the same patient in training and test sets, or subtle, such as computing scaling statistics on the full dataset before splitting. It makes held-out performance look better because the evaluation is no longer independent of development. Leakage is a property of the full data flow, not just the model code. Auditing entity identities, timestamps, target-derived fields, and preprocessing fit boundaries is therefore essential."},
-    "confusion-matrix": {"name": "Confusion matrix", "definition": "Counts of true positives, false positives, true negatives, and false negatives.", "explanation": "For binary predictions, every example enters exactly one of four cells according to its predicted and actual class. These raw counts expose which kinds of errors occur and form the basis of accuracy, precision, recall, and many other metrics. The positive class must be stated because swapping class roles changes the interpretation. Counts also reveal sample size, which a single rounded percentage can hide. A confusion matrix depends on the chosen decision threshold."},
-    "precision": {"name": "Precision", "definition": "The fraction of predicted positives that are actually positive.", "explanation": "Precision is TP divided by TP plus FP. It answers: among the examples the system flagged, how many were positive? Raising a score threshold often increases precision by making fewer, more confident positive predictions, although the exact relationship depends on the data. Precision is undefined when there are no predicted positives; this course returns zero and reports the underlying counts. Precision alone ignores missed positives, so it should be read with recall."},
-    "recall": {"name": "Recall", "definition": "The fraction of actual positives that the classifier identifies.", "explanation": "Recall is TP divided by TP plus FN. It answers: among all truly positive examples, how many did the system catch? Lowering a threshold often improves recall while creating more false positives. The appropriate tradeoff depends on the consequence of each error. Recall says nothing about how many alarms were false, and can be perfect if a classifier predicts every example positive. Pair it with precision, specificity, or direct cost analysis."},
-    "decision-threshold": {"name": "Decision threshold", "definition": "The score cutoff used to turn a continuous classifier output into a class decision.", "explanation": "A logistic model produces a probability-like score, while many applications require an action. Predicting positive when the score is at least a threshold creates that action rule. The threshold is a model-development choice and should be selected using validation data or explicit costs, never by repeatedly examining final test results. Changing it does not retrain the underlying scores, but it changes confusion counts and therefore metrics such as precision and recall."},
-    "baseline": {"name": "Baseline", "definition": "A simple reference method that a more complex model should meaningfully beat.", "explanation": "On imbalanced data, an always-majority classifier can achieve high accuracy while never finding a positive example. Reporting it makes that failure visible and establishes the minimum useful comparison. Other baselines include a previous production rule, a random score, or a simple linear model. A fair baseline uses the same split and metric definitions as the candidate model. Beating a weak baseline is necessary evidence, though it is not sufficient for deployment."}
+    "data-split": {
+      "name": "Data split",
+      "definition": "A partition of examples reserved for a distinct stage of model development.",
+      "explanation": "Training data fits parameters. Validation data guides choices such as thresholds and hyperparameters. Test data is held untouched until those choices are fixed, providing a final estimate of performance on similarly generated examples. A random row split is not always safe: repeated users, related images, or time order may require grouped or temporal splitting. The split rule is part of the experiment and should be recorded so results can be reproduced."
+    },
+    "data-leakage": {
+      "name": "Data leakage",
+      "definition": "Information unavailable under the intended training or prediction conditions entering fitting, model selection, or evaluation.",
+      "explanation": "Leakage can be obvious, such as putting the same patient in training and test sets, or subtle, such as computing scaling statistics on the full dataset before splitting. It makes held-out performance look better because the evaluation is no longer independent of development. Leakage is a property of the full data flow, not just the model code. Auditing entity identities, timestamps, target-derived fields, and preprocessing fit boundaries is therefore essential."
+    },
+    "confusion-matrix": {
+      "name": "Confusion matrix",
+      "definition": "Counts of true positives, false positives, true negatives, and false negatives.",
+      "explanation": "For binary predictions, every example enters exactly one of four cells according to its predicted and actual class. These raw counts expose which kinds of errors occur and form the basis of accuracy, precision, recall, and many other metrics. The positive class must be stated because swapping class roles changes the interpretation. Counts also reveal sample size, which a single rounded percentage can hide. A confusion matrix depends on the chosen decision threshold."
+    },
+    "precision": {
+      "name": "Precision",
+      "definition": "The fraction of predicted positives that are actually positive.",
+      "explanation": "Precision is TP divided by TP plus FP. It answers: among the examples the system flagged, how many were positive? Raising a decision threshold often increases precision by making fewer, more confident positive predictions, although the exact relationship depends on the data. Precision is undefined when there are no predicted positives; this course returns zero and reports the underlying counts. Precision alone ignores missed positives, so it should be read with recall."
+    },
+    "recall": {
+      "name": "Recall",
+      "definition": "The fraction of actual positives that the classifier identifies.",
+      "explanation": "Recall is TP divided by TP plus FN. It answers: among all truly positive examples, how many did the system catch? Lowering a threshold often improves recall while creating more false positives. The appropriate tradeoff depends on the consequence of each error. Recall says nothing about how many alarms were false, and can be perfect if a classifier predicts every example positive. Pair it with precision, specificity, or direct cost analysis."
+    },
+    "decision-threshold": {
+      "name": "Decision threshold",
+      "definition": "A cutoff used to turn a continuous classifier output into a class decision.",
+      "explanation": "In this chapter the continuous output is Chapter 4's positive-class probability, while many applications require a class or action. Predicting positive when the probability is at least a threshold creates that rule. The threshold is a model-development choice and should be selected using validation data or explicit costs, never by repeatedly examining final test results. Changing it does not retrain the model or alter its stored probabilities, but it changes confusion counts and therefore metrics such as precision and recall."
+    },
+    "baseline": {
+      "name": "Baseline",
+      "definition": "A simple reference method that a more complex model should meaningfully beat.",
+      "explanation": "On imbalanced data, an always-majority classifier can achieve high accuracy while never finding a positive example. Reporting it makes that failure visible and establishes the minimum useful comparison. Other baselines include a previous production rule, a random score, or a simple linear model. A fair baseline uses the same split and metric definitions as the candidate model. Beating a weak baseline is necessary evidence, though it is not sufficient for deployment."
+    }
   },
   "sources": [
-    {"title": "scikit-learn train_test_split", "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html", "note": "Reproducible and stratified splitting"},
-    {"title": "scikit-learn common pitfalls", "url": "https://scikit-learn.org/stable/common_pitfalls.html", "note": "Preprocessing and leakage"},
-    {"title": "Google classification metrics", "url": "https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall", "note": "Confusion matrix, precision, recall, accuracy"},
-    {"title": "Google thresholding", "url": "https://developers.google.com/machine-learning/crash-course/classification/thresholding", "note": "Threshold-dependent decisions"},
-    {"title": "Fawcett: An introduction to ROC analysis", "url": "https://doi.org/10.1016/j.patrec.2005.10.010", "note": "ROC interpretation"},
-    {"title": "Saito and Rehmsmeier: Precision-recall plots", "url": "https://doi.org/10.1371/journal.pone.0118432", "note": "Imbalanced evaluation"}
+    {
+      "title": "scikit-learn train_test_split",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html",
+      "note": "Reproducible and stratified splitting"
+    },
+    {
+      "title": "scikit-learn common pitfalls",
+      "url": "https://scikit-learn.org/stable/common_pitfalls.html",
+      "note": "Preprocessing and leakage"
+    },
+    {
+      "title": "Google classification metrics",
+      "url": "https://developers.google.com/machine-learning/crash-course/classification/accuracy-precision-recall",
+      "note": "Confusion matrix, precision, recall, accuracy"
+    },
+    {
+      "title": "Google thresholding",
+      "url": "https://developers.google.com/machine-learning/crash-course/classification/thresholding",
+      "note": "Threshold-dependent decisions"
+    },
+    {
+      "title": "Fawcett: An introduction to ROC analysis",
+      "url": "https://doi.org/10.1016/j.patrec.2005.10.010",
+      "note": "ROC interpretation"
+    },
+    {
+      "title": "Saito and Rehmsmeier: Precision-recall plots",
+      "url": "https://doi.org/10.1371/journal.pone.0118432",
+      "note": "Imbalanced evaluation"
+    }
   ],
-  "checks": ["At threshold 0.5 the test confusion counts are TP 1, FP 1, TN 7, FN 1", "Accuracy equals 0.8 while precision and recall equal 0.5", "Validation selects threshold 0.6 from the documented candidates", "Duplicate entity identifiers across splits are detected"],
-  "limitations": ["The fixture scores are supplied rather than learned", "Eight validation examples make threshold selection noisy", "Metrics do not encode application-specific harms or subgroup behavior"]
+  "checks": [
+    "At threshold 0.5 the test confusion counts are TP 1, FP 1, TN 7, FN 1",
+    "Accuracy equals 0.8 while precision and recall equal 0.5",
+    "Validation selects threshold 0.6 from the documented candidates",
+    "Duplicate entity identifiers across splits are detected"
+  ],
+  "limitations": [
+    "The fixture probabilities are supplied rather than learned or calibrated",
+    "Eight validation examples make threshold selection noisy",
+    "Metrics do not encode application-specific harms or subgroup behavior"
+  ]
 }

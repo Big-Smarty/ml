@@ -105,7 +105,7 @@ fn data_hash(data: &[(f64, f64)]) -> u64 {
     hash
 }
 
-fn train(version: u32, data: &[(f64, f64)]) -> Result<Model, &'static str> {
+fn train(data: &[(f64, f64)], version: u32) -> Result<Model, &'static str> {
     if data.is_empty() || data.iter().any(|(x, y)| !x.is_finite() || !y.is_finite()) {
         return Err("training data must be finite and nonempty");
     }
@@ -117,14 +117,20 @@ fn train(version: u32, data: &[(f64, f64)]) -> Result<Model, &'static str> {
     }
     let mut weight = 0.0;
     let mut bias = 0.0;
+    let learning_rate = 0.05;
     for _ in 0..300 {
-        let (dw, db) = data.iter().fold((0.0, 0.0), |(dw, db), &(x, y)| {
-            let normalized = (x - mean) / scale;
-            let error = weight * normalized + bias - y;
-            (dw + 2.0 * error * normalized, db + 2.0 * error)
-        });
-        weight -= 0.05 * dw / data.len() as f64;
-        bias -= 0.05 * db / data.len() as f64;
+        let (weight_gradient, bias_gradient) =
+            data.iter()
+                .fold((0.0, 0.0), |(weight_gradient, bias_gradient), &(x, y)| {
+                    let normalized = (x - mean) / scale;
+                    let error = weight * normalized + bias - y;
+                    (
+                        weight_gradient + 2.0 * error * normalized,
+                        bias_gradient + 2.0 * error,
+                    )
+                });
+        weight -= learning_rate * weight_gradient / data.len() as f64;
+        bias -= learning_rate * bias_gradient / data.len() as f64;
     }
     if !weight.is_finite() || !bias.is_finite() {
         return Err("training produced nonfinite parameters");
@@ -368,8 +374,8 @@ fn serve(address: &str, model: Model) -> Result<(), Box<dyn std::error::Error>> 
 }
 
 fn demo() -> Result<(), Box<dyn std::error::Error>> {
-    let previous = train(1, &TRAIN)?;
-    let mut candidate = train(2, &TRAIN)?;
+    let previous = train(&TRAIN, 1)?;
+    let mut candidate = train(&TRAIN, 2)?;
     candidate.weight *= 1.5;
     let selected = choose_release(&candidate, &previous, &[8.0, 10.0, 12.0], 0.25)?;
     let path = std::env::temp_dir().join(format!("ch53-{}.model", std::process::id()));
@@ -405,7 +411,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     match args.get(1).map(String::as_str) {
         Some("train") => {
             let path = Path::new(args.get(2).ok_or("usage: ch53 train MODEL_PATH")?);
-            save_atomic(path, &train(1, &TRAIN)?)
+            save_atomic(path, &train(&TRAIN, 1)?)
         }
         Some("serve") => {
             let address = args.get(2).map_or("127.0.0.1:7878", String::as_str);
@@ -423,10 +429,23 @@ mod tests {
 
     #[test]
     fn checkpoint_round_trip_and_schema_validation() -> Result<(), Box<dyn std::error::Error>> {
-        let model = train(7, &TRAIN)?;
+        let model = train(&TRAIN, 7)?;
         assert_eq!(Model::decode(&model.encode())?, model);
         assert!(Model::decode("MLMODEL 2 1 1 0 1 1 0 0").is_err());
+        let fixture = Model {
+            format: 1,
+            model_version: 1,
+            input_schema: 1,
+            mean: 10.0,
+            scale: 2.0,
+            weight: 0.75,
+            bias: -0.25,
+            data_hash: 0,
+        };
+        assert_eq!(fixture.predict(12.0)?, 0.5);
         assert_eq!(parse_body("schema=1&x=12.5")?, 12.5);
+        assert_eq!(parse_body("schema=01&x=12.5")?, 12.5);
+        assert_eq!(parse_body("schema=+1&x=12.5")?, 12.5);
         assert!(parse_body("schema=1&x=NaN").is_err());
         assert!(parse_body("schema=1&x=2&extra=3").is_err());
         let mut valid = std::io::Cursor::new(
@@ -446,7 +465,7 @@ mod tests {
     #[test]
     #[ignore = "requires host loopback networking"]
     fn serving_monitor_and_rollback_are_real() -> Result<(), Box<dyn std::error::Error>> {
-        let model = train(1, &TRAIN)?;
+        let model = train(&TRAIN, 1)?;
         let listener = TcpListener::bind("127.0.0.1:0")?;
         let address = listener.local_addr()?;
         let server_model = model.clone();

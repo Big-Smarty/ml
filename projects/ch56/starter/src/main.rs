@@ -1,8 +1,9 @@
 fn softmax(logits: [f64; 3]) -> [f64; 3] {
-    let max = logits.into_iter().fold(f64::NEG_INFINITY, f64::max);
-    let exp = logits.map(|x| (x - max).exp());
-    let sum: f64 = exp.iter().sum();
-    exp.map(|x| x / sum)
+    let maximum = logits.into_iter().fold(f64::NEG_INFINITY, f64::max);
+    let mut probabilities = logits.map(|logit| (logit - maximum).exp());
+    let sum: f64 = probabilities.iter().sum();
+    probabilities.iter_mut().for_each(|value| *value /= sum);
+    probabilities
 }
 
 fn route(logits: [f64; 3]) -> (usize, f64) {

@@ -29,8 +29,8 @@
     },
     "load-balancing-loss": {
       "name": "Load-balancing loss",
-      "definition": "An auxiliary objective encouraging routing traffic and probability mass to spread across experts.",
-      "explanation": "The Switch-style term multiplies each expert's hard assignment fraction by its mean router probability, sums across experts, and scales by the expert count. Hard assignments are treated as fixed for differentiation, while mean probabilities provide a smooth path into router logits. This discourages collapse but does not guarantee semantically useful specialization. Its coefficient trades task fit against balance and must be reported rather than hidden in training code."
+      "definition": "An auxiliary MoE objective that sums, across experts, attempted hard-assignment frequency times mean router probability, multiplied by the expert count and coefficient; hard frequencies are stop-gradient while probabilities remain differentiable.",
+      "explanation": "The attempted hard-assignment frequencies count every route before capacity admission and divide by all T examples. Mean probabilities also use the full softmax over all T examples. Capacity acceptance and dropped-token metrics stay separate from this objective. The term discourages collapse but does not guarantee semantically useful specialization, and its coefficient must be reported rather than hidden in training code."
     },
     "top-k-routing": {
       "name": "Top-k routing",
@@ -45,9 +45,10 @@
   ],
   "checks": [
     "Router and selected-expert gradients match central differences away from a routing tie",
-    "Mean uncapped task loss falls below one fifth of its initial value",
+    "Uncapped task-only half-MSE falls below one fifth of its initial value",
     "All three experts receive routes after training on the deterministic fixture",
-    "Overflow count equals assignments beyond the computed per-expert capacity"
+    "Overflow count equals assignments beyond the computed per-expert capacity",
+    "Accepted task gradients divide by all attempted examples even when capacity drops one"
   ],
   "limitations": [
     "The reported mean loss is uncapped task loss and excludes the balancing term",

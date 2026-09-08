@@ -5,25 +5,25 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch56/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.037,
+      "seconds": 0.041,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch56/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.036,
+      "seconds": 0.039,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch56/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.048,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/lib.rs (projects/ch56/target/debug/deps/ch56-24d3c8d203b2e41e)\n\nrunning 12 tests\ntest tests::capacity_counts_attempts_and_drops ... ok\ntest tests::request_boundary_is_strict ... ok\ntest verification::large_common_logits_and_tiny_temperature_are_stable ... ok\ntest tests::one_expert_is_dense_feed_forward ... ok\ntest verification::failed_exclusive_save_keeps_existing_temporary_file ... ok\ntest tests::router_and_expert_gradients_match_finite_differences ... ok\ntest verification::fragmented_requests_receive_complete_200_or_400_responses ... ok\ntest verification::one_expert_matches_independent_dense_decoder_and_causality ... ok\ntest tests::training_changes_trunk_router_and_expert ... ok\ntest verification::checkpoint_rejects_hostile_headers_and_changed_resume_inputs ... ok\ntest tests::checkpoint_resume_is_exact ... ok\ntest verification::every_parameter_gradient_matches_finite_differences_away_from_ties ... ok\n\ntest result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running unittests src/main.rs (projects/ch56/target/debug/deps/ch56-641c7041b23a6e6f)\n\nrunning 1 test\ntest split_guard_rejects_equal_or_shared_passages ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests ch56\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.05,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/lib.rs (projects/ch56/target/debug/deps/ch56-24d3c8d203b2e41e)\n\nrunning 15 tests\ntest tests::capacity_rounds_after_division ... ok\ntest tests::parameter_span_abi_is_stable ... ok\ntest tests::request_boundary_is_strict ... ok\ntest tests::capacity_counts_attempts_and_drops ... ok\ntest verification::large_common_logits_and_tiny_temperature_are_stable ... ok\ntest verification::dropped_tokens_keep_task_loss_and_shared_decoder_gradients ... ok\ntest tests::one_expert_is_dense_feed_forward ... ok\ntest verification::failed_exclusive_save_keeps_existing_temporary_file ... ok\ntest verification::fragmented_requests_receive_complete_200_or_400_responses ... ok\ntest tests::router_and_expert_gradients_match_finite_differences ... ok\ntest verification::one_expert_matches_independent_dense_decoder_and_causality ... ok\ntest tests::training_changes_trunk_router_and_expert ... ok\ntest verification::checkpoint_rejects_hostile_headers_and_changed_resume_inputs ... ok\ntest tests::checkpoint_resume_is_exact ... ok\ntest verification::every_parameter_gradient_matches_finite_differences_away_from_ties ... ok\n\ntest result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running unittests src/main.rs (projects/ch56/target/debug/deps/ch56-641c7041b23a6e6f)\n\nrunning 1 test\ntest split_guard_rejects_equal_or_shared_passages ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests ch56\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch56/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.037,
+      "seconds": 0.038,
       "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch56/target/release/ch56`\nsame fixture: 160 SGD steps, 16 tokens/step, width 8, expert width 12; matched shared initialization\ndense parameters: total 2852, nonexpert+one-expert 2852\nMoE parameters: total 3303, nonexpert+one-expert 2879\nuncapped task cross-entropy, mean over ALL corpus targets:\ndense train loss 4.8493 -> 1.5412; held-out 2.0097\nMoE train loss 4.8489 -> 1.3686; held-out 1.8787\ncapped training probe: routes [2, 6, 8]; accepted [2, 6, 7]; dropped 1; capacity 7; mean gate 0.354\nparameter change norm1: L2=0.020991\nparameter change norm2: L2=0.002767\nparameter change norm_final: L2=2.540640\nparameter change token_embedding: L2=1.505311\nparameter change position_embedding: L2=0.890754\nparameter change qkv_weight: L2=0.322875\nparameter change qkv_bias: L2=0.025608\nparameter change attention_output_weight: L2=0.269020\nparameter change attention_output_bias: L2=0.189475\nparameter change router_weight: L2=0.038408\nparameter change router_bias: L2=0.005840\nparameter change expert.0.ff1_weight: L2=0.035952\nparameter change expert.0.ff1_bias: L2=0.004147\nparameter change expert.0.ff2_weight: L2=0.039778\nparameter change expert.0.ff2_bias: L2=0.058635\nparameter change expert.1.ff1_weight: L2=0.030342\nparameter change expert.1.ff1_bias: L2=0.004218\nparameter change expert.1.ff2_weight: L2=0.031817\nparameter change expert.1.ff2_bias: L2=0.089023\nparameter change expert.2.ff1_weight: L2=0.058558\nparameter change expert.2.ff1_bias: L2=0.014309\nparameter change expert.2.ff2_weight: L2=0.047569\nparameter change expert.2.ff2_bias: L2=0.232496\nparameter change output_weight: L2=4.208293\nparameter change output_bias: L2=0.981971\nsample: \"rust\\0ouse pernstttns trtout rtttutet\"\nTiny overlapping-vocabulary fixture checks mechanics, not language quality, privacy, or scale.\n"
     },
     {
@@ -35,46 +35,48 @@
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch56/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.148,
-      "output": "    Checking ch56 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch56)\n    Checking ch56-starter v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch56/starter)\n    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.12s\n"
+      "seconds": 0.038,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch56/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.029,
+      "seconds": 0.028,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch56/starter/target/debug/ch56-starter`\nexpert 1, selected full-softmax gate 0.6136\ncontextual LM task CE before: 4.8652\nafter one complete reference step: 4.8018\nComplete the local selected-gate derivative test, then inspect the library backward pass.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch56/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.015,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch56/starter/target/debug/deps/ch56_starter-de25caeae6cdea1f)\n\nrunning 1 test\ntest tests::selected_gate_keeps_router_gradient ... FAILED\n\nfailures:\n\n---- tests::selected_gate_keeps_router_gradient stdout ----\n\nthread 'tests::selected_gate_keeps_router_gradient' (18385) panicked at src/main.rs:43:5:\nnot yet implemented: use p * (1 - p)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::selected_gate_keeps_router_gradient\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch56-starter`\n",
+      "seconds": 0.016,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch56/starter/target/debug/deps/ch56_starter-de25caeae6cdea1f)\n\nrunning 1 test\ntest tests::selected_gate_keeps_router_gradient ... FAILED\n\nfailures:\n\n---- tests::selected_gate_keeps_router_gradient stdout ----\n\nthread 'tests::selected_gate_keeps_router_gradient' (18437) panicked at src/main.rs:44:5:\nnot yet implemented: use p * (1 - p)\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::selected_gate_keeps_router_gradient\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch56-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch56_01.rs -o /tmp/ml-check-r63srixl/solutionch56_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch56_01.rs -o /tmp/ml-check-opohz6be/solutionch56_01",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.045,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-r63srixl/solutionch56_01",
+      "command": "/tmp/ml-check-opohz6be/solutionch56_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest tests::rounds_up_and_keeps_one_slot ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch56_01.rs -o /tmp/ml-check-r63srixl/exercisech56_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch56_01.rs -o /tmp/ml-check-opohz6be/exercisech56_01",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.04,
       "output": "warning: unused variable: `tokens`\n --> /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch56_01.rs:1:13\n  |\n1 | fn capacity(tokens: usize, experts: usize, factor: f64) -> usize {\n  |             ^^^^^^ help: if this is intentional, prefix it with an underscore: `_tokens`\n  |\n  = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default\n\nwarning: unused variable: `experts`\n --> /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch56_01.rs:1:28\n  |\n1 | fn capacity(tokens: usize, experts: usize, factor: f64) -> usize {\n  |                            ^^^^^^^ help: if this is intentional, prefix it with an underscore: `_experts`\n\nwarning: unused variable: `factor`\n --> /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch56_01.rs:1:44\n  |\n1 | fn capacity(tokens: usize, experts: usize, factor: f64) -> usize {\n  |                                            ^^^^^^ help: if this is intentional, prefix it with an underscore: `_factor`\n\nwarning: 3 warnings emitted\n\n"
     },
     {
-      "command": "/tmp/ml-check-r63srixl/exercisech56_01",
+      "command": "/tmp/ml-check-opohz6be/exercisech56_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest tests::rounds_up_and_keeps_one_slot ... FAILED\n\nfailures:\n\n---- tests::rounds_up_and_keeps_one_slot stdout ----\n\nthread 'tests::rounds_up_and_keeps_one_slot' (18457) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch56_01.rs:3:5:\nnot yet implemented: convert after division, then call ceil\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::rounds_up_and_keeps_one_slot\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest tests::rounds_up_and_keeps_one_slot ... FAILED\n\nfailures:\n\n---- tests::rounds_up_and_keeps_one_slot stdout ----\n\nthread 'tests::rounds_up_and_keeps_one_slot' (18509) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch56_01.rs:3:5:\nnot yet implemented: convert after division, then call ceil\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    tests::rounds_up_and_keeps_one_slot\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

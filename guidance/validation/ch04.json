@@ -5,31 +5,31 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch04/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.027,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch04/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.041,
+      "seconds": 0.045,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch04/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.029,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch04/target/debug/deps/ch04-9b3276f6bdab8949)\n\nrunning 3 tests\ntest tests::analytical_gradient_matches_stable_loss_difference ... ok\ntest tests::stable_loss_handles_extreme_logits ... ok\ntest tests::classifier_learns_the_fixture ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.033,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch04/target/debug/deps/ch04-9b3276f6bdab8949)\n\nrunning 4 tests\ntest tests::analytical_gradient_matches_stable_loss_difference ... ok\ntest tests::score_probability_and_class_are_distinct ... ok\ntest tests::stable_loss_handles_extreme_logits ... ok\ntest tests::classifier_learns_the_fixture ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch04/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.016,
-      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch04/target/release/ch04`\ninitial BCE: 0.693147\ntrained BCE: 0.009286\n[-1.0, -0.5] -> probability 0.0038, class 0\n[0.1, 0.1] -> probability 0.5727, class 1\n[1.2, 0.7] -> probability 0.9979, class 1\n"
+      "seconds": 0.017,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch04/target/release/ch04`\ninitial BCE: 0.693147\ntrained BCE: 0.009286\n[-1.0, -0.5] -> logit -5.5761, probability 0.0038, class 0\n[0.1, 0.1] -> logit 0.2930, probability 0.5727, class 1\n[1.2, 0.7] -> logit 6.1620, probability 0.9979, class 1\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch04/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.027,
+      "seconds": 0.028,
       "output": ""
     },
     {
@@ -41,40 +41,42 @@
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch04/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.027,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch04/starter/target/debug/ch04-starter`\nprior checkpoint: logit=1.5\nRun cargo test to implement the new stable-BCE TODO.\n"
+      "seconds": 0.031,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch04/starter/target/debug/ch04-starter`\nprior checkpoint: logit=1.5, probability=0.8176, class=1\nRun cargo test to implement the new stable-BCE TODO.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch04/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.016,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch04/starter/target/debug/deps/ch04_starter-02bcfff305b7f78c)\n\nrunning 1 test\ntest loss_is_finite_for_confident_predictions ... FAILED\n\nfailures:\n\n---- loss_is_finite_for_confident_predictions stdout ----\n\nthread 'loss_is_finite_for_confident_predictions' (840) panicked at src/main.rs:3:5:\nnot yet implemented: use max(logit, 0) - logit * target + ln(1 + exp(-abs(logit)))\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    loss_is_finite_for_confident_predictions\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch04-starter`\n",
+      "seconds": 0.018,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch04/starter/target/debug/deps/ch04_starter-02bcfff305b7f78c)\n\nrunning 1 test\ntest loss_is_stable_and_checks_targets ... FAILED\n\nfailures:\n\n---- loss_is_stable_and_checks_targets stdout ----\n\nthread 'loss_is_stable_and_checks_targets' (813) panicked at src/main.rs:19:5:\nnot yet implemented: use max(logit, 0) - logit * target + ln(1 + exp(-abs(logit)))\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    loss_is_stable_and_checks_targets\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch04-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch04_01.rs -o /tmp/ml-check-ox8u_6z_/solutionch04_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch04_01.rs -o /tmp/ml-check-0r99y3g1/solutionch04_01",
       "returncode": 0,
-      "seconds": 0.041,
+      "seconds": 0.042,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-ox8u_6z_/solutionch04_01",
+      "command": "/tmp/ml-check-0r99y3g1/solutionch04_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest sigmoid_is_stable ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch04_01.rs -o /tmp/ml-check-ox8u_6z_/exercisech04_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch04_01.rs -o /tmp/ml-check-0r99y3g1/exercisech04_01",
       "returncode": 0,
-      "seconds": 0.043,
+      "seconds": 0.044,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-ox8u_6z_/exercisech04_01",
+      "command": "/tmp/ml-check-0r99y3g1/exercisech04_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest sigmoid_is_stable ... FAILED\n\nfailures:\n\n---- sigmoid_is_stable stdout ----\n\nthread 'sigmoid_is_stable' (912) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch04_01.rs:4:5:\nnot yet implemented: compute sigmoid with separate nonnegative and negative branches\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    sigmoid_is_stable\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest sigmoid_is_stable ... FAILED\n\nfailures:\n\n---- sigmoid_is_stable stdout ----\n\nthread 'sigmoid_is_stable' (885) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch04_01.rs:4:5:\nnot yet implemented: compute sigmoid with separate nonnegative and negative branches\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    sigmoid_is_stable\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

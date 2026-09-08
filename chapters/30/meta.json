@@ -4,7 +4,7 @@
     "Derive a tiled row-major matrix multiplication for rectangular matrices",
     "Guard partial tiles without allowing any lane to skip a barrier",
     "Validate dimensions, checked products, device limits, and input lengths",
-    "Use the reusable Gpu matmul API and compare it with a scalar oracle"
+    "Use Gpu::matmul and Gpu::reduce_sum with their named scalar oracles"
   ],
   "lessons": [
     "Why neighboring invocations must cooperate",
@@ -18,7 +18,7 @@
     "reduction": {
       "name": "reduction",
       "definition": "An operation that combines many values into fewer values using an associative rule.",
-      "explanation": "A sum reduction repeatedly combines pairs until one subtotal remains. GPUs perform the early levels in parallel: each invocation contributes one value, then progressively fewer lanes add neighboring subtotals. Addition is mathematically associative over real numbers but not exactly associative in floating-point arithmetic, so parallel and scalar accumulation may differ in low-order bits. A multi-workgroup input also needs another reduction stage because workgroup memory is local."
+      "explanation": "A sum reduction repeatedly combines values until one subtotal remains. Gpu::reduce_sum maps an input shaped [L] to [ceil(L/512)] partial sums at each stage, while reduce_sum_scalar maps the original [N] directly to one f32. The operation sums all values and does not average them. Addition is associative over real numbers but not exactly associative in floating-point arithmetic, so the staged and scalar accumulation orders may differ in low-order bits."
     },
     "workgroup-memory": {
       "name": "workgroup memory",
@@ -28,7 +28,7 @@
     "workgroup-barrier": {
       "name": "workgroup barrier",
       "definition": "A synchronization point that all active invocations in a workgroup must reach in uniform control flow.",
-      "explanation": "A workgroup barrier makes earlier workgroup-memory writes visible before later reads proceed. In tiled multiplication, one barrier follows tile loading and another prevents fast lanes overwriting a tile while slow lanes still consume it. Returning early before a barrier is unsafe because remaining lanes may wait forever. Edge lanes instead write the additive identity zero, participate in every barrier, and skip only the final global output store."
+      "explanation": "A workgroup barrier makes earlier workgroup-memory writes visible before later reads proceed. In tiled multiplication, one barrier follows tile loading and another prevents fast lanes overwriting a tile while slow lanes still consume it. The barrier does not synchronize different workgroups; ordered compute-pass boundaries separate global reduction stages. Returning early before a barrier is unsafe, so edge lanes write zero, participate in every barrier, and skip only the final global output store."
     },
     "tile": {
       "name": "tile",
@@ -48,11 +48,12 @@
     {"title": "wgpu synchronization example", "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/features/src/hello_synchronization/README.md", "note": "First-party synchronization guidance."}
   ],
   "checks": [
-    "The scalar oracle handles a nonsquare 3×17 by 17×5 product",
+    "matmul_scalar handles a nonsquare 3×17 by 17×5 product",
     "The ignored hardware test matches that odd-tile product within absolute-plus-relative tolerance",
-    "A 777-value staged reduction matches the scalar sum",
+    "reduce_sum_scalar validates finite nonempty input, and a 777-value staged reduction matches it",
     "Zero, overflowing, malformed, nonfinite, or device-exceeding shapes return errors",
-    "Gpu stores a persistent device, queue, matmul pipeline, and reduction pipeline"
+    "Gpu stores a persistent device, queue, matmul pipeline, and reduction pipeline",
+    "The lesson distinguishes per-workgroup dimensions from the padded global dispatch grid"
   ],
   "limitations": [
     "Each reduction workgroup handles up to 512 inputs; larger arrays require multiple dispatch stages",

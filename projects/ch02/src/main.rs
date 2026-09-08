@@ -1,4 +1,4 @@
-//! Analytical gradients for the scalar line model, checked with central differences.
+//! The Chapter 1 scalar neuron, now trained with an analytical gradient.
 
 const TRAIN: [(f64, f64); 5] = [
     (-2.0, -3.0),
@@ -8,13 +8,13 @@ const TRAIN: [(f64, f64); 5] = [
     (2.0, 5.0),
 ];
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct Model {
+#[derive(Clone, Copy, Debug)]
+struct Neuron {
     weight: f64,
     bias: f64,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 struct Gradient {
     weight: f64,
     bias: f64,
@@ -24,34 +24,52 @@ fn validate(data: &[(f64, f64)]) -> Result<(), &'static str> {
     if data.is_empty() {
         return Err("at least one example is required");
     }
-    if data.iter().any(|(x, y)| !x.is_finite() || !y.is_finite()) {
+    if data
+        .iter()
+        .any(|(input, target)| !input.is_finite() || !target.is_finite())
+    {
         return Err("examples must be finite");
     }
     Ok(())
 }
 
-impl Model {
-    fn predict(self, x: f64) -> f64 {
-        self.weight * x + self.bias
+impl Neuron {
+    fn predict(&self, input: f64) -> f64 {
+        self.weight * input + self.bias
     }
 
-    fn mse(self, data: &[(f64, f64)]) -> Result<f64, &'static str> {
-        validate(data)?;
-        let value = data
+    fn loss(&self, data: &[(f64, f64)]) -> Result<f64, &'static str> {
+        if data.is_empty() {
+            return Err("loss requires at least one example");
+        }
+        if !self.weight.is_finite()
+            || !self.bias.is_finite()
+            || data
+                .iter()
+                .any(|(input, target)| !input.is_finite() || !target.is_finite())
+        {
+            return Err("model and examples must contain finite numbers");
+        }
+        let loss = data
             .iter()
-            .map(|&(x, y)| (self.predict(x) - y).powi(2))
+            .map(|&(input, target)| (self.predict(input) - target).powi(2))
             .sum::<f64>()
             / data.len() as f64;
-        value.is_finite().then_some(value).ok_or("loss overflowed")
+        if !loss.is_finite() {
+            return Err("loss overflowed; reduce input scale or learning rate");
+        }
+        Ok(loss)
     }
 
-    fn gradient(self, data: &[(f64, f64)]) -> Result<Gradient, &'static str> {
+    fn gradient(&self, data: &[(f64, f64)]) -> Result<Gradient, &'static str> {
         validate(data)?;
         let n = data.len() as f64;
-        let (weight, bias) = data.iter().fold((0.0, 0.0), |(dw, db), &(x, y)| {
-            let error = self.predict(x) - y;
-            (dw + 2.0 * error * x / n, db + 2.0 * error / n)
-        });
+        let (weight, bias) = data
+            .iter()
+            .fold((0.0, 0.0), |(weight, bias), &(input, target)| {
+                let error = self.predict(input) - target;
+                (weight + 2.0 * error * input / n, bias + 2.0 * error / n)
+            });
         if weight.is_finite() && bias.is_finite() {
             Ok(Gradient { weight, bias })
         } else {
@@ -59,44 +77,64 @@ impl Model {
         }
     }
 
-    fn numerical_gradient(self, data: &[(f64, f64)]) -> Result<Gradient, &'static str> {
+    fn numerical_gradient(&self, data: &[(f64, f64)]) -> Result<Gradient, &'static str> {
         const H: f64 = 1e-5;
         let weight = (Self {
             weight: self.weight + H,
-            ..self
+            ..*self
         }
-        .mse(data)?
+        .loss(data)?
             - Self {
                 weight: self.weight - H,
-                ..self
+                ..*self
             }
-            .mse(data)?)
+            .loss(data)?)
             / (2.0 * H);
         let bias = (Self {
             bias: self.bias + H,
-            ..self
+            ..*self
         }
-        .mse(data)?
+        .loss(data)?
             - Self {
                 bias: self.bias - H,
-                ..self
+                ..*self
             }
-            .mse(data)?)
+            .loss(data)?)
             / (2.0 * H);
+        if !weight.is_finite() || !bias.is_finite() {
+            return Err("numerical gradient overflowed; reduce input scale");
+        }
         Ok(Gradient { weight, bias })
     }
 
-    fn step(self, data: &[(f64, f64)], rate: f64) -> Result<Self, &'static str> {
-        if !rate.is_finite() || rate <= 0.0 {
+    fn step(self, data: &[(f64, f64)], learning_rate: f64) -> Result<Self, &'static str> {
+        if !learning_rate.is_finite() || learning_rate <= 0.0 {
             return Err("learning rate must be finite and positive");
         }
         let gradient = self.gradient(data)?;
         let next = Self {
-            weight: self.weight - rate * gradient.weight,
-            bias: self.bias - rate * gradient.bias,
+            weight: self.weight - learning_rate * gradient.weight,
+            bias: self.bias - learning_rate * gradient.bias,
         };
-        next.mse(data)?;
+        next.loss(data)?;
         Ok(next)
+    }
+
+    fn train(
+        self,
+        data: &[(f64, f64)],
+        steps: usize,
+        learning_rate: f64,
+    ) -> Result<Self, &'static str> {
+        if !learning_rate.is_finite() || learning_rate <= 0.0 {
+            return Err("learning rate must be finite and positive");
+        }
+        self.loss(data)?;
+        let mut model = self;
+        for _ in 0..steps {
+            model = model.step(data, learning_rate)?;
+        }
+        Ok(model)
     }
 }
 
@@ -105,32 +143,30 @@ fn close(a: f64, b: f64) -> bool {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let mut model = Model {
+    let initial = Neuron {
         weight: 0.0,
         bias: 0.0,
     };
-    let analytic = model.gradient(&TRAIN)?;
-    let numerical = model.numerical_gradient(&TRAIN)?;
+    let analytical = initial.gradient(&TRAIN)?;
+    let numerical = initial.numerical_gradient(&TRAIN)?;
     println!(
-        "analytic  dw={:.6}, db={:.6}",
-        analytic.weight, analytic.bias
+        "analytical weight={:.6}, bias={:.6}",
+        analytical.weight, analytical.bias
     );
     println!(
-        "numerical dw={:.6}, db={:.6}",
+        "numerical  weight={:.6}, bias={:.6}",
         numerical.weight, numerical.bias
     );
     println!(
         "check: {}",
-        close(analytic.weight, numerical.weight) && close(analytic.bias, numerical.bias)
+        close(analytical.weight, numerical.weight) && close(analytical.bias, numerical.bias)
     );
-    for _ in 0..100 {
-        model = model.step(&TRAIN, 0.1)?;
-    }
+    let model = initial.train(&TRAIN, 100, 0.1)?;
     println!(
-        "trained weight={:.6}, bias={:.6}, mse={:.10}",
+        "trained weight={:.6}, bias={:.6}, loss={:.10}",
         model.weight,
         model.bias,
-        model.mse(&TRAIN)?
+        model.loss(&TRAIN)?
     );
     Ok(())
 }
@@ -142,36 +178,49 @@ mod tests {
     #[test]
     fn analytical_gradient_matches_central_difference() -> Result<(), &'static str> {
         for model in [
-            Model {
+            Neuron {
                 weight: 0.0,
                 bias: 0.0,
             },
-            Model {
+            Neuron {
                 weight: 1.3,
                 bias: -0.4,
             },
         ] {
-            let a = model.gradient(&TRAIN)?;
-            let n = model.numerical_gradient(&TRAIN)?;
-            assert!(close(a.weight, n.weight));
-            assert!(close(a.bias, n.bias));
+            let analytical = model.gradient(&TRAIN)?;
+            let numerical = model.numerical_gradient(&TRAIN)?;
+            assert!(close(analytical.weight, numerical.weight));
+            assert!(close(analytical.bias, numerical.bias));
         }
         Ok(())
     }
 
     #[test]
-    fn one_step_uses_the_expected_derivative() -> Result<(), &'static str> {
-        let start = Model {
+    fn one_step_and_training_use_the_expected_derivative() -> Result<(), &'static str> {
+        let initial = Neuron {
             weight: 0.0,
             bias: 0.0,
         };
-        let gradient = start.gradient(&TRAIN)?;
+        assert!(close(initial.loss(&TRAIN)?, 9.0));
+        let gradient = initial.gradient(&TRAIN)?;
         assert!(close(gradient.weight, -8.0));
         assert!(close(gradient.bias, -2.0));
-        let next = start.step(&TRAIN, 0.1)?;
+        let next = initial.step(&TRAIN, 0.1)?;
         assert!(close(next.weight, 0.8));
         assert!(close(next.bias, 0.2));
-        assert!(start.mse(&[]).is_err());
+        let model = initial.train(&TRAIN, 100, 0.1)?;
+        assert!(model.loss(&TRAIN)? < 1e-12);
+        assert!(initial.loss(&[]).is_err());
+        assert!(initial.gradient(&[(f64::NAN, 1.0)]).is_err());
+        assert!(initial.train(&[], 0, 0.1).is_err());
+        assert!(initial.train(&TRAIN, 0, f64::NAN).is_err());
+        assert!(Neuron {
+            weight: 0.1,
+            bias: 0.0,
+        }
+        .numerical_gradient(&[(1e155, 0.0)])
+        .is_err());
+        assert!(initial.step(&TRAIN, -1.0).is_err());
         Ok(())
     }
 }

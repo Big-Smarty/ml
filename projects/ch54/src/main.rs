@@ -2,7 +2,7 @@
 
 #[derive(Clone, Copy, Debug)]
 struct Row {
-    x: [f64; 2],
+    features: [f64; 2],
     group: char,
     label: bool,
     member: bool,
@@ -10,80 +10,80 @@ struct Row {
 
 const ROWS: [Row; 12] = [
     Row {
-        x: [1.0, 1.0],
+        features: [1.0, 1.0],
         group: 'A',
         label: true,
         member: true,
     },
     Row {
-        x: [0.8, 0.0],
+        features: [0.8, 0.0],
         group: 'A',
         label: true,
         member: true,
     },
     Row {
-        x: [0.4, 0.0],
+        features: [0.4, 0.0],
         group: 'A',
         label: false,
         member: false,
     },
     Row {
-        x: [-0.8, 0.0],
+        features: [-0.8, 0.0],
         group: 'A',
         label: false,
         member: true,
     },
     Row {
-        x: [-1.0, 1.0],
+        features: [-1.0, 1.0],
         group: 'A',
         label: false,
         member: true,
     },
     Row {
-        x: [0.2, -0.5],
+        features: [0.2, -0.5],
         group: 'A',
         label: true,
         member: false,
     },
     Row {
-        x: [1.0, -1.0],
+        features: [1.0, -1.0],
         group: 'B',
         label: true,
         member: true,
     },
     Row {
-        x: [0.5, -1.0],
+        features: [0.5, -1.0],
         group: 'B',
         label: true,
         member: false,
     },
     Row {
-        x: [0.3, -0.5],
+        features: [0.3, -0.5],
         group: 'B',
         label: false,
         member: true,
     },
     Row {
-        x: [-0.5, 1.0],
+        features: [-0.5, 1.0],
         group: 'B',
         label: false,
         member: true,
     },
     Row {
-        x: [0.7, 0.5],
+        features: [0.7, 0.5],
         group: 'B',
         label: false,
         member: false,
     },
     Row {
-        x: [-1.0, -1.0],
+        features: [-1.0, -1.0],
         group: 'B',
         label: false,
         member: true,
     },
 ];
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 struct Model {
     weights: [f64; 2],
     bias: f64,
@@ -91,7 +91,7 @@ struct Model {
 }
 
 impl Model {
-    fn logit(self, x: [f64; 2]) -> Result<f64, &'static str> {
+    fn logit(&self, features: [f64; 2]) -> Result<f64, &'static str> {
         if self.weights.iter().any(|value| !value.is_finite())
             || !self.bias.is_finite()
             || !self.threshold.is_finite()
@@ -99,42 +99,46 @@ impl Model {
         {
             return Err("model parameters and threshold are invalid");
         }
-        if x.iter()
+        if features
+            .iter()
             .any(|v| !v.is_finite() || !(-5.0..=5.0).contains(v))
         {
             return Err("features must be finite and within [-5,5]");
         }
-        let output = self.weights[0] * x[0] + self.weights[1] * x[1] + self.bias;
+        let output = self.weights[0] * features[0] + self.weights[1] * features[1] + self.bias;
         output
             .is_finite()
             .then_some(output)
             .ok_or("logit is nonfinite")
     }
 
-    fn probability(self, x: [f64; 2]) -> Result<f64, &'static str> {
-        Ok(1.0 / (1.0 + (-self.logit(x)?).exp()))
+    fn probability(&self, features: [f64; 2]) -> Result<f64, &'static str> {
+        Ok(sigmoid(self.logit(features)?))
     }
 
-    fn predicts_positive(self, x: [f64; 2]) -> Result<bool, &'static str> {
-        Ok(self.probability(x)? >= self.threshold)
+    fn predict(&self, features: [f64; 2]) -> Result<bool, &'static str> {
+        Ok(self.probability(features)? >= self.threshold)
     }
 
-    fn loss(self, row: Row) -> Result<f64, &'static str> {
-        let logit = self.logit(row.x)?;
-        Ok(if row.label {
-            softplus(-logit)
-        } else {
-            softplus(logit)
-        })
+    fn loss(&self, row: Row) -> Result<f64, &'static str> {
+        binary_cross_entropy_from_logit(self.logit(row.features)?, f64::from(row.label))
     }
 }
 
-fn softplus(value: f64) -> f64 {
-    if value > 0.0 {
-        value + (-value).exp().ln_1p()
+fn sigmoid(logit: f64) -> f64 {
+    if logit >= 0.0 {
+        1.0 / (1.0 + (-logit).exp())
     } else {
-        value.exp().ln_1p()
+        let exp = logit.exp();
+        exp / (1.0 + exp)
     }
+}
+
+fn binary_cross_entropy_from_logit(logit: f64, target: f64) -> Result<f64, &'static str> {
+    if !logit.is_finite() || !target.is_finite() || !(0.0..=1.0).contains(&target) {
+        return Err("logit must be finite and target must be in [0, 1]");
+    }
+    Ok(logit.max(0.0) - logit * target + (-logit.abs()).exp().ln_1p())
 }
 
 fn train_on_members(rows: &[Row]) -> Result<Model, &'static str> {
@@ -147,19 +151,20 @@ fn train_on_members(rows: &[Row]) -> Result<Model, &'static str> {
         bias: 0.0,
         threshold: 0.5,
     };
+    let learning_rate = 0.05;
     for _ in 0..400 {
-        let mut dw = [0.0; 2];
-        let mut db = 0.0;
+        let mut weight_gradient = [0.0; 2];
+        let mut bias_gradient = 0.0;
         for row in &training {
-            let error = model.probability(row.x)? - f64::from(row.label);
-            dw[0] += error * row.x[0];
-            dw[1] += error * row.x[1];
-            db += error;
+            let error = model.probability(row.features)? - f64::from(row.label);
+            weight_gradient[0] += error * row.features[0];
+            weight_gradient[1] += error * row.features[1];
+            bias_gradient += error;
         }
-        let scale = 0.05 / training.len() as f64;
-        model.weights[0] -= scale * dw[0];
-        model.weights[1] -= scale * dw[1];
-        model.bias -= scale * db;
+        let n = training.len() as f64;
+        model.weights[0] -= learning_rate * weight_gradient[0] / n;
+        model.weights[1] -= learning_rate * weight_gradient[1] / n;
+        model.bias -= learning_rate * bias_gradient / n;
     }
     Ok(model)
 }
@@ -178,7 +183,7 @@ fn rate(numerator: usize, denominator: usize) -> Option<f64> {
     (denominator > 0).then_some(numerator as f64 / denominator as f64)
 }
 
-fn group_metrics(model: Model, rows: &[Row], group: char) -> Result<GroupMetrics, &'static str> {
+fn group_metrics(model: &Model, rows: &[Row], group: char) -> Result<GroupMetrics, &'static str> {
     let selected: Vec<_> = rows
         .iter()
         .copied()
@@ -194,7 +199,7 @@ fn group_metrics(model: Model, rows: &[Row], group: char) -> Result<GroupMetrics
     let mut true_positives = 0;
     let mut false_positives = 0;
     for row in &selected {
-        let prediction = model.predicts_positive(row.x)?;
+        let prediction = model.predict(row.features)?;
         correct += usize::from(prediction == row.label);
         predicted_positive += usize::from(prediction);
         positives += usize::from(row.label);
@@ -213,30 +218,30 @@ fn group_metrics(model: Model, rows: &[Row], group: char) -> Result<GroupMetrics
 }
 
 fn local_attribution(
-    model: Model,
-    x: [f64; 2],
+    model: &Model,
+    features: [f64; 2],
     baseline: [f64; 2],
 ) -> Result<[f64; 2], &'static str> {
-    let original = model.logit(x)?;
+    let original = model.logit(features)?;
     let mut result = [0.0; 2];
     for feature in 0..2 {
-        let mut ablated = x;
+        let mut ablated = features;
         ablated[feature] = baseline[feature];
         result[feature] = original - model.logit(ablated)?;
     }
     Ok(result)
 }
 
-fn robustness(model: Model, rows: &[Row], radius: f64) -> Result<(usize, f64), &'static str> {
+fn robustness(model: &Model, rows: &[Row], radius: f64) -> Result<(usize, f64), &'static str> {
     if !radius.is_finite() || radius < 0.0 {
         return Err("radius must be finite and nonnegative");
     }
     let mut flips = 0;
     let mut maximum_change = 0.0_f64;
     for row in rows {
-        let original = model.probability(row.x)?;
+        let original = model.probability(row.features)?;
         for delta in [-radius, radius] {
-            let changed = model.probability([row.x[0] + delta, row.x[1]])?;
+            let changed = model.probability([row.features[0] + delta, row.features[1]])?;
             flips += usize::from((original >= model.threshold) != (changed >= model.threshold));
             maximum_change = maximum_change.max((original - changed).abs());
         }
@@ -252,7 +257,7 @@ struct MembershipAudit {
 }
 
 fn membership_attack(
-    model: Model,
+    model: &Model,
     rows: &[Row],
     loss_threshold: f64,
 ) -> Result<MembershipAudit, &'static str> {
@@ -349,7 +354,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         threshold: 0.5,
     };
     for group in ['A', 'B'] {
-        let metrics = group_metrics(model, &ROWS, group)?;
+        let metrics = group_metrics(&model, &ROWS, group)?;
         println!(
             "group {} n={} accuracy={:.3} positive_rate={:.3} TPR={:.3} FPR={:.3}",
             metrics.group,
@@ -360,16 +365,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             metrics.false_positive_rate.ok_or("FPR undefined")?
         );
     }
-    let attribution = local_attribution(model, ROWS[0].x, [0.0, 0.0])?;
+    let attribution = local_attribution(&model, ROWS[0].features, [0.0, 0.0])?;
     println!(
         "local logit ablation contributions: feature0={:.3}, feature1={:.3}",
         attribution[0], attribution[1]
     );
-    let (flips, change) = robustness(model, &ROWS, 0.25)?;
+    let (flips, change) = robustness(&model, &ROWS, 0.25)?;
     println!(
         "robustness at radius 0.25: {flips} boundary flips, max probability change {change:.3}"
     );
-    let privacy = membership_attack(train_on_members(&ROWS)?, &ROWS, 0.45)?;
+    let member_model = train_on_members(&ROWS)?;
+    let privacy = membership_attack(&member_model, &ROWS, 0.45)?;
     println!(
         "loss-threshold membership attack: TPR={:.3} FPR={:.3} advantage={:.3}",
         privacy.true_positive_rate, privacy.false_positive_rate, privacy.advantage
@@ -411,20 +417,38 @@ mod tests {
             bias: -0.2,
             threshold: 0.5,
         };
-        let a = group_metrics(model, &ROWS, 'A')?;
-        let b = group_metrics(model, &ROWS, 'B')?;
-        assert_ne!(a.positive_rate, b.positive_rate);
-        assert_ne!(a.true_positive_rate, b.true_positive_rate);
-        let privacy = membership_attack(train_on_members(&ROWS)?, &ROWS, 0.45)?;
-        assert!(privacy.advantage.is_finite());
+        let a = group_metrics(&model, &ROWS, 'A')?;
+        let b = group_metrics(&model, &ROWS, 'B')?;
+        assert!((a.accuracy - 2.0 / 3.0).abs() < 1e-12);
+        assert!((a.positive_rate - 0.5).abs() < 1e-12);
+        assert_eq!(a.true_positive_rate, Some(2.0 / 3.0));
+        assert_eq!(a.false_positive_rate, Some(1.0 / 3.0));
+        assert!((b.accuracy - 2.0 / 3.0).abs() < 1e-12);
+        assert!((b.positive_rate - 1.0 / 3.0).abs() < 1e-12);
+        assert_eq!(b.true_positive_rate, Some(0.5));
+        assert_eq!(b.false_positive_rate, Some(0.25));
+        let attribution = local_attribution(&model, ROWS[0].features, [0.0; 2])?;
+        assert!((attribution[0] - 0.8).abs() < 1e-12);
+        assert!((attribution[1] - 0.4).abs() < 1e-12);
+        let (flips, maximum_change) = robustness(&model, &ROWS, 0.25)?;
+        assert_eq!(flips, 4);
+        assert!((maximum_change - 0.049_953_391_920_153_47).abs() < 1e-12);
+        let member_model = train_on_members(&ROWS)?;
+        let privacy = membership_attack(&member_model, &ROWS, 0.45)?;
+        assert_eq!(privacy.true_positive_rate, 0.875);
+        assert_eq!(privacy.false_positive_rate, 0.0);
+        assert_eq!(privacy.advantage, 0.875);
         Ok(())
     }
 
     #[test]
     fn boundaries_and_causal_adjustment_change_the_conclusion() -> Result<(), &'static str> {
         assert_eq!(parse_input("schema=1,f0=1.0,f1=-2.0")?, [1.0, -2.0]);
+        assert!(parse_input("schema=1&x=1.0").is_err());
         assert!(parse_input("schema=1,f0=inf,f1=0").is_err());
         assert!(parse_input("schema=2,f0=1,f1=0").is_err());
+        assert_eq!(sigmoid(-1_000.0), 0.0);
+        assert_eq!(binary_cross_entropy_from_logit(1_000.0, 0.0)?, 1_000.0);
         let strata = [
             Stratum {
                 treated_total: 10,

@@ -1,8 +1,8 @@
 //! k-nearest neighbors and Gaussian naive Bayes on one tiny three-class fixture.
 #[derive(Clone, Copy, Debug)]
 struct Point {
-    x: [f64; 2],
-    class: usize,
+    features: [f64; 2],
+    label: usize,
 }
 
 #[derive(Debug)]
@@ -11,27 +11,31 @@ struct Scaler {
     scale: [f64; 2],
 }
 impl Scaler {
-    fn fit(data: &[Point]) -> Result<Self, &'static str> {
-        if data.len() < 2 || data.iter().any(|p| p.x.iter().any(|v| !v.is_finite())) {
+    fn fit(train_data: &[Point]) -> Result<Self, &'static str> {
+        if train_data.len() < 2
+            || train_data
+                .iter()
+                .any(|point| point.features.iter().any(|value| !value.is_finite()))
+        {
             return Err("scaling needs at least two finite points");
         }
         let mut mean = [0.0; 2];
-        for p in data {
-            for (sum, value) in mean.iter_mut().zip(p.x) {
+        for point in train_data {
+            for (sum, value) in mean.iter_mut().zip(point.features) {
                 *sum += value;
             }
         }
         for m in &mut mean {
-            *m /= data.len() as f64;
+            *m /= train_data.len() as f64;
         }
         let mut scale = [0.0; 2];
-        for p in data {
-            for ((sum, value), center) in scale.iter_mut().zip(p.x).zip(mean) {
+        for point in train_data {
+            for ((sum, value), center) in scale.iter_mut().zip(point.features).zip(mean) {
                 *sum += (value - center).powi(2);
             }
         }
         for s in &mut scale {
-            *s = (*s / data.len() as f64).sqrt();
+            *s = (*s / train_data.len() as f64).sqrt();
             if *s == 0.0 {
                 *s = 1.0;
             }
@@ -41,114 +45,140 @@ impl Scaler {
         }
         Ok(Self { mean, scale })
     }
-    fn transform(&self, x: [f64; 2]) -> [f64; 2] {
+    fn transform(&self, features: [f64; 2]) -> [f64; 2] {
         [
-            (x[0] - self.mean[0]) / self.scale[0],
-            (x[1] - self.mean[1]) / self.scale[1],
+            (features[0] - self.mean[0]) / self.scale[0],
+            (features[1] - self.mean[1]) / self.scale[1],
         ]
     }
 }
 
-fn knn(train: &[Point], query: [f64; 2], k: usize, classes: usize) -> Result<usize, &'static str> {
-    if k == 0
-        || k > train.len()
-        || classes == 0
-        || query.iter().any(|v| !v.is_finite())
-        || train
-            .iter()
-            .any(|p| p.class >= classes || p.x.iter().any(|v| !v.is_finite()))
-    {
-        return Err("k, classes, and finite features must match the training data");
-    }
-    let mut distances: Vec<(f64, usize)> = train
-        .iter()
-        .map(|p| {
-            (
-                (p.x[0] - query[0]).powi(2) + (p.x[1] - query[1]).powi(2),
-                p.class,
-            )
+fn squared_distance(features: [f64; 2], other_features: [f64; 2]) -> f64 {
+    features
+        .into_iter()
+        .zip(other_features)
+        .map(|(value, other_value)| (value - other_value).powi(2))
+        .sum()
+}
+
+#[derive(Debug)]
+struct Knn<'a> {
+    train_data: &'a [Point],
+    k: usize,
+    classes: usize,
+}
+impl<'a> Knn<'a> {
+    fn fit(train_data: &'a [Point], k: usize, classes: usize) -> Result<Self, &'static str> {
+        if k == 0
+            || k > train_data.len()
+            || classes == 0
+            || train_data.iter().any(|point| {
+                point.label >= classes || point.features.iter().any(|value| !value.is_finite())
+            })
+        {
+            return Err("k, classes, and finite features must match the training data");
+        }
+        Ok(Self {
+            train_data,
+            k,
+            classes,
         })
-        .collect();
-    if distances.iter().any(|(distance, _)| !distance.is_finite()) {
-        return Err("distance overflowed; scale features before comparison");
     }
-    // ponytail: a full sort is clear for six rows; use partial selection for large training sets.
-    distances.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
-    let mut votes = vec![0usize; classes];
-    for &(_, class) in distances.iter().take(k) {
-        votes[class] += 1;
+
+    fn predict(&self, features: [f64; 2]) -> Result<usize, &'static str> {
+        if features.iter().any(|value| !value.is_finite()) {
+            return Err("k, classes, and finite features must match the training data");
+        }
+        let mut distances: Vec<(f64, usize)> = self
+            .train_data
+            .iter()
+            .map(|point| (squared_distance(point.features, features), point.label))
+            .collect();
+        if distances.iter().any(|(distance, _)| !distance.is_finite()) {
+            return Err("distance overflowed; scale features before comparison");
+        }
+        // ponytail: a full sort is clear for six rows; use partial selection for large training sets.
+        distances.sort_by(|a, b| a.0.total_cmp(&b.0).then(a.1.cmp(&b.1)));
+        let mut votes = vec![0usize; self.classes];
+        for &(_, label) in distances.iter().take(self.k) {
+            votes[label] += 1;
+        }
+        (0..self.classes)
+            .max_by_key(|&label| (votes[label], std::cmp::Reverse(label)))
+            .ok_or("kNN model has no classes")
     }
-    Ok((0..classes)
-        .max_by_key(|&c| (votes[c], std::cmp::Reverse(c)))
-        .unwrap())
 }
 
 #[derive(Debug)]
 struct GaussianNb {
-    prior: Vec<f64>,
-    mean: Vec<[f64; 2]>,
-    variance: Vec<[f64; 2]>,
+    priors: Vec<f64>,
+    means: Vec<[f64; 2]>,
+    variances: Vec<[f64; 2]>,
 }
 impl GaussianNb {
-    fn fit(data: &[Point], classes: usize) -> Result<Self, &'static str> {
-        if data.is_empty()
+    fn fit(train_data: &[Point], classes: usize) -> Result<Self, &'static str> {
+        if train_data.is_empty()
             || classes == 0
-            || data
-                .iter()
-                .any(|p| p.class >= classes || p.x.iter().any(|v| !v.is_finite()))
+            || train_data.iter().any(|point| {
+                point.label >= classes || point.features.iter().any(|value| !value.is_finite())
+            })
         {
             return Err("Gaussian NB needs finite labelled training data");
         }
         let mut count = vec![0usize; classes];
-        let mut mean = vec![[0.0; 2]; classes];
-        for p in data {
-            count[p.class] += 1;
-            for (sum, value) in mean[p.class].iter_mut().zip(p.x) {
+        let mut means = vec![[0.0; 2]; classes];
+        for point in train_data {
+            count[point.label] += 1;
+            for (sum, value) in means[point.label].iter_mut().zip(point.features) {
                 *sum += value;
             }
         }
         if count.contains(&0) {
             return Err("every class needs a training point");
         }
-        for (class, class_mean) in mean.iter_mut().enumerate() {
+        for (label, class_mean) in means.iter_mut().enumerate() {
             for value in class_mean {
-                *value /= count[class] as f64;
+                *value /= count[label] as f64;
             }
         }
-        let mut variance = vec![[0.0; 2]; classes];
-        for p in data {
-            for ((sum, value), center) in variance[p.class].iter_mut().zip(p.x).zip(mean[p.class]) {
+        let mut variances = vec![[0.0; 2]; classes];
+        for point in train_data {
+            for ((sum, value), center) in variances[point.label]
+                .iter_mut()
+                .zip(point.features)
+                .zip(means[point.label])
+            {
                 *sum += (value - center).powi(2);
             }
         }
-        for (class, class_variance) in variance.iter_mut().enumerate() {
+        for (label, class_variance) in variances.iter_mut().enumerate() {
             for value in class_variance {
-                *value = *value / count[class] as f64 + 1e-9;
+                *value = *value / count[label] as f64 + 1e-9;
             }
         }
-        if mean
+        if means
             .iter()
             .flatten()
-            .chain(variance.iter().flatten())
+            .chain(variances.iter().flatten())
             .any(|v| !v.is_finite())
         {
             return Err("Gaussian statistics overflowed; scale features before fitting");
         }
         Ok(Self {
-            prior: count
+            priors: count
                 .iter()
-                .map(|&n| n as f64 / data.len() as f64)
+                .map(|&n| n as f64 / train_data.len() as f64)
                 .collect(),
-            mean,
-            variance,
+            means,
+            variances,
         })
     }
-    fn predict(&self, x: [f64; 2]) -> Result<usize, &'static str> {
-        if x.iter().any(|v| !v.is_finite()) {
+    fn predict(&self, features: [f64; 2]) -> Result<usize, &'static str> {
+        if features.iter().any(|value| !value.is_finite()) {
             return Err("query coordinates must be finite");
         }
-        let scores: Vec<_> = (0..self.prior.len())
-            .map(|c| self.log_score(c, x))
+        let scores: Vec<_> = (0..self.priors.len())
+            .map(|label| self.log_score(label, features))
             .collect();
         if scores.iter().any(|v| !v.is_finite()) {
             return Err("Gaussian score overflowed; scale features before prediction");
@@ -157,61 +187,58 @@ impl GaussianNb {
             .max_by(|&a, &b| scores[a].total_cmp(&scores[b]))
             .ok_or("Gaussian model has no classes")
     }
-    fn log_score(&self, c: usize, x: [f64; 2]) -> f64 {
-        let mut score = self.prior[c].ln();
-        for (j, value) in x.into_iter().enumerate() {
+    fn log_score(&self, label: usize, features: [f64; 2]) -> f64 {
+        let mut score = self.priors[label].ln();
+        for (feature, value) in features.into_iter().enumerate() {
             score += -0.5
-                * ((2.0 * std::f64::consts::PI * self.variance[c][j]).ln()
-                    + (value - self.mean[c][j]).powi(2) / self.variance[c][j]);
+                * ((2.0 * std::f64::consts::PI * self.variances[label][feature]).ln()
+                    + (value - self.means[label][feature]).powi(2)
+                        / self.variances[label][feature]);
         }
         score
     }
 }
 
 fn main() -> Result<(), &'static str> {
-    let raw = [
+    let raw_data = [
         Point {
-            x: [1.0, 10.0],
-            class: 0,
+            features: [1.0, 10.0],
+            label: 0,
         },
         Point {
-            x: [1.2, 11.0],
-            class: 0,
+            features: [1.2, 11.0],
+            label: 0,
         },
         Point {
-            x: [3.0, 30.0],
-            class: 1,
+            features: [3.0, 30.0],
+            label: 1,
         },
         Point {
-            x: [3.2, 29.0],
-            class: 1,
+            features: [3.2, 29.0],
+            label: 1,
         },
         Point {
-            x: [5.0, 50.0],
-            class: 2,
+            features: [5.0, 50.0],
+            label: 2,
         },
         Point {
-            x: [5.2, 49.0],
-            class: 2,
+            features: [5.2, 49.0],
+            label: 2,
         },
     ];
-    let scaler = Scaler::fit(&raw)?;
-    let train: Vec<Point> = raw
+    let scaler = Scaler::fit(&raw_data)?;
+    let train_data: Vec<Point> = raw_data
         .iter()
-        .map(|p| Point {
-            x: scaler.transform(p.x),
-            class: p.class,
+        .map(|point| Point {
+            features: scaler.transform(point.features),
+            label: point.label,
         })
         .collect();
     let query = scaler.transform([3.1, 31.0]);
-    println!(
-        "scaled query {query:?}; kNN class {}",
-        knn(&train, query, 3, 3)?
-    );
-    println!(
-        "Gaussian NB class {}",
-        GaussianNb::fit(&train, 3)?.predict(query)?
-    );
+    let knn = Knn::fit(&train_data, 3, 3)?;
+    let gaussian_nb = GaussianNb::fit(&train_data, 3)?;
+    println!("scaled query {query:?}; kNN class {}", knn.predict(query)?);
+    println!("Gaussian NB class {}", gaussian_nb.predict(query)?);
     Ok(())
 }
 
@@ -220,59 +247,89 @@ mod tests {
     use super::*;
     #[test]
     fn both_models_find_middle_cluster() {
-        let d = [
+        let train_data = [
             Point {
-                x: [0., 0.],
-                class: 0,
+                features: [0., 0.],
+                label: 0,
             },
             Point {
-                x: [0.2, 0.1],
-                class: 0,
+                features: [0.2, 0.1],
+                label: 0,
             },
             Point {
-                x: [2., 2.],
-                class: 1,
+                features: [2., 2.],
+                label: 1,
             },
             Point {
-                x: [2.2, 1.9],
-                class: 1,
+                features: [2.2, 1.9],
+                label: 1,
             },
             Point {
-                x: [4., 4.],
-                class: 2,
+                features: [4., 4.],
+                label: 2,
             },
             Point {
-                x: [4.2, 3.9],
-                class: 2,
+                features: [4.2, 3.9],
+                label: 2,
             },
         ];
-        assert_eq!(knn(&d, [2.1, 2.1], 3, 3).unwrap(), 1);
+        assert_eq!(squared_distance([1.0, 2.0], [4.0, 6.0]), 25.0);
         assert_eq!(
-            GaussianNb::fit(&d, 3).unwrap().predict([2.1, 2.1]).unwrap(),
+            Knn::fit(&train_data, 3, 3)
+                .unwrap()
+                .predict([2.1, 2.1])
+                .unwrap(),
             1
         );
-        assert!(knn(&d, [0., 0.], 0, 3).is_err());
+        assert_eq!(
+            GaussianNb::fit(&train_data, 3)
+                .unwrap()
+                .predict([2.1, 2.1])
+                .unwrap(),
+            1
+        );
+        assert!(Knn::fit(&train_data, 0, 3).is_err());
+        let scaler = Scaler::fit(&[
+            Point {
+                features: [1.0, 10.0],
+                label: 0,
+            },
+            Point {
+                features: [3.0, 30.0],
+                label: 1,
+            },
+        ])
+        .unwrap();
+        assert_eq!(scaler.transform([3.0, 30.0]), [1.0, 1.0]);
     }
     #[test]
     fn rejects_nonfinite_queries_and_overflow_instead_of_voting() {
         let point = Point {
-            x: [0.0, 0.0],
-            class: 0,
+            features: [0.0, 0.0],
+            label: 0,
         };
+        let invalid_label = Point {
+            features: [0.0, 0.0],
+            label: 1,
+        };
+        assert!(Knn::fit(&[invalid_label], 1, 1).is_err());
         let model = GaussianNb::fit(&[point], 1).unwrap();
         assert!(model.predict([f64::NAN, 0.0]).is_err());
         assert!(model.predict([f64::MAX, 0.0]).is_err());
-        assert!(knn(&[point], [f64::MAX, 0.0], 1, 1).is_err());
+        assert!(Knn::fit(&[point], 1, 1)
+            .unwrap()
+            .predict([f64::MAX, 0.0])
+            .is_err());
         let huge = Point {
-            x: [f64::MAX, f64::MAX],
-            class: 0,
+            features: [f64::MAX, f64::MAX],
+            label: 0,
         };
         assert!(Scaler::fit(&[huge, huge]).is_err());
         assert!(GaussianNb::fit(&[huge, huge], 1).is_err());
         let hand = GaussianNb {
-            prior: vec![1.0],
-            mean: vec![[2.0, 0.0]],
-            variance: vec![[1.0, 1.0]],
+            priors: vec![1.0],
+            means: vec![[2.0, 0.0]],
+            variances: vec![[1.0, 1.0]],
         };
         assert!(
             (hand.log_score(0, [3.0, 0.0]) + (2.0 * std::f64::consts::PI).ln() + 0.5).abs() < 1e-12
@@ -280,10 +337,13 @@ mod tests {
         let tied = [
             point,
             Point {
-                x: [0.0, 0.0],
-                class: 1,
+                features: [0.0, 0.0],
+                label: 1,
             },
         ];
-        assert_eq!(knn(&tied, [0.0, 0.0], 2, 2).unwrap(), 0);
+        assert_eq!(
+            Knn::fit(&tied, 2, 2).unwrap().predict([0.0, 0.0]).unwrap(),
+            0
+        );
     }
 }

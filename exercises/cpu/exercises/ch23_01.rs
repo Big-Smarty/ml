@@ -1,4 +1,10 @@
-fn rnn_state(_input: f64, _previous: f64, _wx: f64, _wh: f64, _bias: f64) -> f64 {
+fn rnn_state(
+    _input: f64,
+    _previous_state: f64,
+    _input_weight: f64,
+    _recurrent_weight: f64,
+    _bias: f64,
+) -> f64 {
     // TODO: compute the next tanh state.
     todo!()
 }

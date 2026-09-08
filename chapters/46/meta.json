@@ -1,7 +1,7 @@
 {
   "outcomes": [
     "Compute DPO loss from chosen, rejected, policy, and frozen-reference log probabilities",
-    "Derive and check a DPO logit gradient",
+    "Derive and check a mean DPO logit gradient stored separately from policy parameters",
     "Train a toy preference policy and a separate verifiable-reward policy",
     "Explain what the reference policy and beta control"
   ],
@@ -17,12 +17,12 @@
     "preference-pair": {
       "name": "Preference pair",
       "definition": "Two responses to the same prompt labeled chosen and rejected.",
-      "explanation": "A pair says which of two answers should rank higher without assigning either answer an absolute numerical reward. Pair quality depends on the comparison rule and annotator reliability. DPO uses the log-probability difference between the chosen and rejected responses, so both must share a prompt. A tiny categorical fixture can check this arithmetic, while real language-model data also needs correct token masks, sequence likelihoods, and careful sampling."
+      "explanation": "A pair says which of two answers should rank higher without assigning either answer an absolute numerical reward. Pair quality depends on the comparison rule and annotator reliability. DPO forms a policy log ratio and a frozen-reference log ratio from the chosen and rejected responses, which must share a prompt. A tiny categorical fixture can check this arithmetic, while real language-model data also needs correct token masks, sequence likelihoods, and careful sampling."
     },
     "direct-preference-optimization": {
       "name": "Direct preference optimization",
       "definition": "A classification-style objective that fits preferences relative to a frozen reference policy.",
-      "explanation": "DPO transforms a KL-regularized reward maximization problem into a loss over chosen and rejected responses. It raises the policy's chosen-versus-rejected log-probability margin relative to the same margin under a reference policy. The sigmoid gives larger updates to pairs ranked poorly by the current policy. This removes an explicit learned reward model and online RL loop, but it does not remove dependence on preference data quality or objective choices."
+      "explanation": "DPO transforms a KL-regularized reward maximization problem into a loss over chosen and rejected responses. It raises the policy's chosen-versus-rejected log ratio relative to the same log ratio under a reference policy. The chapter averages this loss and its gradient over the supplied pairs. The sigmoid gives larger updates to pairs ranked poorly by the current policy. This removes an explicit learned reward model and online RL loop, but it does not remove dependence on preference data quality or objective choices."
     },
     "reference-policy": {
       "name": "Reference policy",
@@ -42,7 +42,7 @@
     "verifiable-reward": {
       "name": "Verifiable reward",
       "definition": "A reward computed by an automatic checker with a clear pass or score rule.",
-      "explanation": "Arithmetic equality, program tests, and formal proof checking can provide feedback without a subjective preference label. The chapter's one-step task rewards exactly one correct categorical answer, so its expected policy gradient can be calculated without sampling noise. Real verifiers can be incomplete, exploitable, or insensitive to reasoning quality. A policy that optimizes the checker may still fail the broader user goal, so held-out tasks and adversarial checks remain necessary."
+      "explanation": "Arithmetic equality, program tests, and formal proof checking can provide feedback without a subjective preference label. The chapter's one-prompt task rewards exactly one correct categorical answer, so its objective is a probability-weighted sum over all three candidate rewards and its exact policy gradient has no sampling noise. This is not an arithmetic mean across candidates. Real verifiers can be incomplete, exploitable, or insensitive to reasoning quality. A policy that optimizes the checker may still fail the broader user goal, so held-out tasks and adversarial checks remain necessary."
     }
   },
   "sources": [
@@ -73,6 +73,7 @@
     "One DPO logit gradient matches a central difference within 1e-6",
     "Stable log-softmax retains normalization at large common offsets",
     "Reversing a shared-prompt pair batch preserves its update",
+    "The fused loss_and_gradient returns a distinct Gradient with the policy-logit shape",
     "Invalid rows and overflowing arithmetic are rejected; failed overflowing updates preserve old logits",
     "Verifiable-reward training assigns the correct action probability above 0.99"
   ],

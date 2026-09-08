@@ -1,0 +1,95 @@
+{
+  "reference_hover": {
+    "contents": {
+      "kind": "plaintext",
+      "value": "ch01::Neuron\n\nweight: f64"
+    },
+    "range": {
+      "start": {
+        "line": 15,
+        "character": 13
+      },
+      "end": {
+        "line": 15,
+        "character": 19
+      }
+    }
+  },
+  "dependency_definition": [
+    {
+      "originSelectionRange": {
+        "start": {
+          "line": 21,
+          "character": 28
+        },
+        "end": {
+          "line": 21,
+          "character": 35
+        }
+      },
+      "targetUri": "file:///home/bigsmarty/Projects/ml/projects/ch56/src/lib.rs",
+      "targetRange": {
+        "start": {
+          "line": 903,
+          "character": 0
+        },
+        "end": {
+          "line": 910,
+          "character": 1
+        }
+      },
+      "targetSelectionRange": {
+        "start": {
+          "line": 904,
+          "character": 11
+        },
+        "end": {
+          "line": 904,
+          "character": 18
+        }
+      }
+    }
+  ],
+  "stdlib_definition": [
+    {
+      "originSelectionRange": {
+        "start": {
+          "line": 5,
+          "character": 10
+        },
+        "end": {
+          "line": 5,
+          "character": 13
+        }
+      },
+      "targetUri": "file:///home/bigsmarty/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc/src/vec/mod.rs",
+      "targetRange": {
+        "start": {
+          "line": 174,
+          "character": 0
+        },
+        "end": {
+          "line": 440,
+          "character": 1
+        }
+      },
+      "targetSelectionRange": {
+        "start": {
+          "line": 437,
+          "character": 11
+        },
+        "end": {
+          "line": 437,
+          "character": 14
+        }
+      }
+    }
+  ],
+  "status": "Workspaces:\nLoaded 3990 packages across 114 workspaces.",
+  "linked_projects": 114,
+  "server": {
+    "name": "rust-analyzer",
+    "version": "1.96.0 (ac68faa 2026-05-25)"
+  },
+  "configuration_validation": "No configuration validation errors reported"
+}

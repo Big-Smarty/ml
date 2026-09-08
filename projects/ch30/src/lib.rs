@@ -166,18 +166,7 @@ impl Gpu {
 
     /// Reduces finite values through as many workgroup stages as needed.
     pub fn reduce_sum(&self, values: &[f32]) -> Result<f32, Box<dyn Error>> {
-        if values.is_empty() {
-            return Err(io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "reduction requires at least one value",
-            )
-            .into());
-        }
-        if values.iter().any(|value| !value.is_finite()) {
-            return Err(
-                io::Error::new(io::ErrorKind::InvalidInput, "values must be finite").into(),
-            );
-        }
+        validate_reduction_values(values)?;
         self.check_buffer_len(values.len())?;
         let mut current = self
             .device
@@ -207,14 +196,14 @@ impl Gpu {
                 usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_SRC,
                 mapped_at_creation: false,
             });
-            let params = [u32::try_from(current_len)?, 0, 0, 0];
-            let params_buffer = self
-                .device
-                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                    label: Some("reduction length"),
-                    contents: bytemuck::cast_slice(&params),
-                    usage: wgpu::BufferUsages::UNIFORM,
-                });
+            let dispatch_params = [u32::try_from(current_len)?, 0, 0, 0];
+            let dispatch_params_buffer =
+                self.device
+                    .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                        label: Some("reduction length"),
+                        contents: bytemuck::cast_slice(&dispatch_params),
+                        usage: wgpu::BufferUsages::UNIFORM,
+                    });
             let bind_group = self.device.create_bind_group(&wgpu::BindGroupDescriptor {
                 label: Some("reduction bindings"),
                 layout: &self.reduce_pipeline.get_bind_group_layout(0),
@@ -229,7 +218,7 @@ impl Gpu {
                     },
                     wgpu::BindGroupEntry {
                         binding: 2,
-                        resource: params_buffer.as_entire_binding(),
+                        resource: dispatch_params_buffer.as_entire_binding(),
                     },
                 ],
             });
@@ -299,6 +288,20 @@ impl Gpu {
         self.queue.submit([encoder.finish()]);
         readback_f32(&self.device, &readback, output_len)
     }
+}
+
+fn validate_reduction_values(values: &[f32]) -> Result<(), Box<dyn Error>> {
+    if values.is_empty() {
+        return Err(io::Error::new(
+            io::ErrorKind::InvalidInput,
+            "reduction requires at least one value",
+        )
+        .into());
+    }
+    if values.iter().any(|value| !value.is_finite()) {
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "values must be finite").into());
+    }
+    Ok(())
 }
 
 fn create_pipeline(
@@ -375,7 +378,7 @@ fn readback_f32(
 }
 
 /// Scalar oracle with the same row-major contract as [`Gpu::matmul`].
-pub fn cpu_matmul(
+pub fn matmul_scalar(
     a: &[f32],
     b: &[f32],
     m: usize,
@@ -406,6 +409,12 @@ pub fn cpu_matmul(
     Ok(c)
 }
 
+/// Scalar oracle for [`Gpu::reduce_sum`].
+pub fn reduce_sum_scalar(values: &[f32]) -> Result<f32, Box<dyn Error>> {
+    validate_reduction_values(values)?;
+    Ok(values.iter().sum())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -425,9 +434,9 @@ mod tests {
     fn scalar_oracle_handles_nonsquare_odd_shapes() -> Result<(), Box<dyn Error>> {
         let a: Vec<f32> = (0..51).map(|i| i as f32 / 10.0 - 2.0).collect();
         let b: Vec<f32> = (0..85).map(|i| (i % 9) as f32 * 0.2 - 0.7).collect();
-        let c = cpu_matmul(&a, &b, 3, 17, 5)?;
+        let c = matmul_scalar(&a, &b, 3, 17, 5)?;
         assert_eq!(
-            cpu_matmul(
+            matmul_scalar(
                 &[1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
                 &[7.0, 8.0, 9.0, 10.0, 11.0, 12.0],
                 2,
@@ -438,6 +447,9 @@ mod tests {
         );
         assert_eq!(c.len(), 15);
         assert!(c.iter().all(|value| value.is_finite()));
+        assert_eq!(reduce_sum_scalar(&[1.0, 2.0, 3.0])?, 6.0);
+        assert!(reduce_sum_scalar(&[]).is_err());
+        assert!(reduce_sum_scalar(&[f32::NAN]).is_err());
         Ok(())
     }
 
@@ -455,16 +467,16 @@ mod tests {
         let b: Vec<f32> = (0..85).map(|i| (i % 9) as f32 * 0.2 - 0.7).collect();
         close(
             &gpu.matmul(&a, &b, 3, 17, 5)?,
-            &cpu_matmul(&a, &b, 3, 17, 5)?,
+            &matmul_scalar(&a, &b, 3, 17, 5)?,
         );
         let a_large: Vec<f32> = (0..323).map(|i| i as f32 / 10.0 - 2.0).collect();
         let b_large: Vec<f32> = (0..627).map(|i| (i % 11) as f32 * 0.1 - 0.5).collect();
         close(
             &gpu.matmul(&a_large, &b_large, 17, 19, 33)?,
-            &cpu_matmul(&a_large, &b_large, 17, 19, 33)?,
+            &matmul_scalar(&a_large, &b_large, 17, 19, 33)?,
         );
         let values: Vec<f32> = (0..777).map(|i| i as f32 * 0.125 - 1.0).collect();
-        let expected: f32 = values.iter().sum();
+        let expected = reduce_sum_scalar(&values)?;
         assert!((gpu.reduce_sum(&values)? - expected).abs() < 1e-4);
         Ok(())
     }

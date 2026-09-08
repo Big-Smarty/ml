@@ -8,8 +8,8 @@ use std::{
 
 #[derive(Clone, Copy, Debug)]
 pub struct TrainConfig {
-    pub peak_rate: f32,
-    pub min_rate: f32,
+    pub peak_learning_rate: f32,
+    pub min_learning_rate: f32,
     pub warmup_steps: u64,
     pub total_steps: u64,
     pub weight_decay: f32,
@@ -21,8 +21,8 @@ pub struct TrainConfig {
 impl Default for TrainConfig {
     fn default() -> Self {
         Self {
-            peak_rate: 2e-3,
-            min_rate: 2e-4,
+            peak_learning_rate: 2e-3,
+            min_learning_rate: 2e-4,
             warmup_steps: 5,
             total_steps: 100,
             weight_decay: 0.01,
@@ -72,7 +72,7 @@ impl Trainer {
         micro_batches: usize,
     ) -> Result<f32, Box<dyn Error>> {
         self.accumulate(data, tokens, micro_batches, |model, x, y| {
-            model.loss_and_grad(x, y)
+            model.loss_and_gradient(x, y)
         })
     }
     #[cfg(feature = "gpu")]
@@ -84,7 +84,7 @@ impl Trainer {
         gpu: &ch30::Gpu,
     ) -> Result<f32, Box<dyn Error>> {
         self.accumulate(data, tokens, micro_batches, |model, x, y| {
-            model.loss_and_grad_with_gpu(x, y, gpu)
+            model.loss_and_gradient_with_gpu(x, y, gpu)
         })
     }
     fn accumulate<F>(
@@ -136,25 +136,12 @@ impl Trainer {
     }
     fn adamw(&mut self, g: &mut [f32]) -> Result<(), Box<dyn Error>> {
         self.validate_state()?;
-        if g.len() != self.model.parameter_count() || g.iter().any(|x| !x.is_finite()) {
-            return Err("gradient shape or values are invalid".into());
+        if g.len() != self.model.parameter_count() {
+            return Err("gradient shape is invalid".into());
         }
-        let norm = g
-            .iter()
-            .map(|&x| f64::from(x) * f64::from(x))
-            .sum::<f64>()
-            .sqrt();
-        if !norm.is_finite() {
-            return Err("nonfinite gradient norm".into());
-        }
-        if norm > f64::from(self.config.clip_norm) {
-            let scale = (f64::from(self.config.clip_norm) / norm) as f32;
-            for x in g.iter_mut() {
-                *x *= scale;
-            }
-        }
+        clip_global_norm(g, self.config.clip_norm)?;
         let next_step = self.step.checked_add(1).ok_or("optimizer step overflow")?;
-        let lr = schedule(self.config, self.step);
+        let learning_rate = schedule(self.config, self.step);
         let b1t = 1.0 - self.config.beta1.powf(next_step as f32);
         let b2t = 1.0 - self.config.beta2.powf(next_step as f32);
         for (i, &gradient) in g.iter().enumerate() {
@@ -162,7 +149,7 @@ impl Trainer {
             let v = self.config.beta2 * self.v[i] + (1.0 - self.config.beta2) * gradient * gradient;
             let update = m / b1t / ((v / b2t).sqrt() + self.config.epsilon)
                 + self.config.weight_decay * self.model.parameters()[i];
-            let next = self.model.parameters()[i] - lr * update;
+            let next = self.model.parameters()[i] - learning_rate * update;
             if !m.is_finite() || !v.is_finite() || v < 0.0 || !next.is_finite() {
                 return Err("AdamW produced a nonfinite parameter".into());
             }
@@ -173,7 +160,7 @@ impl Trainer {
                 self.config.beta2 * self.v[i] + (1.0 - self.config.beta2) * gradient * gradient;
             let update = self.m[i] / b1t / ((self.v[i] / b2t).sqrt() + self.config.epsilon)
                 + self.config.weight_decay * self.model.parameters()[i];
-            self.model.parameters_mut()[i] -= lr * update;
+            self.model.parameters_mut()[i] -= learning_rate * update;
         }
         self.step = next_step;
         Ok(())
@@ -212,8 +199,8 @@ impl Trainer {
             b.extend_from_slice(&u64::try_from(x)?.to_le_bytes());
         }
         for x in [
-            self.config.peak_rate,
-            self.config.min_rate,
+            self.config.peak_learning_rate,
+            self.config.min_learning_rate,
             self.config.weight_decay,
             self.config.beta1,
             self.config.beta2,
@@ -269,8 +256,8 @@ impl Trainer {
             ff_width: r.usize()?,
         };
         let tc = TrainConfig {
-            peak_rate: r.f32()?,
-            min_rate: r.f32()?,
+            peak_learning_rate: r.f32()?,
+            min_learning_rate: r.f32()?,
             weight_decay: r.f32()?,
             beta1: r.f32()?,
             beta2: r.f32()?,
@@ -320,10 +307,30 @@ impl Trainer {
         Ok(trainer)
     }
 }
+fn clip_global_norm(gradient: &mut [f32], limit: f32) -> Result<(), &'static str> {
+    if !limit.is_finite() || limit <= 0.0 || gradient.iter().any(|value| !value.is_finite()) {
+        return Err("gradient values or clipping limit are invalid");
+    }
+    let norm = gradient
+        .iter()
+        .map(|&value| f64::from(value) * f64::from(value))
+        .sum::<f64>()
+        .sqrt();
+    if !norm.is_finite() {
+        return Err("nonfinite gradient norm");
+    }
+    if norm > f64::from(limit) {
+        let scale = (f64::from(limit) / norm) as f32;
+        for value in gradient {
+            *value *= scale;
+        }
+    }
+    Ok(())
+}
 fn validate_train(c: TrainConfig) -> Result<(), &'static str> {
     if [
-        c.peak_rate,
-        c.min_rate,
+        c.peak_learning_rate,
+        c.min_learning_rate,
         c.weight_decay,
         c.beta1,
         c.beta2,
@@ -332,9 +339,9 @@ fn validate_train(c: TrainConfig) -> Result<(), &'static str> {
     ]
     .iter()
     .any(|x| !x.is_finite())
-        || c.peak_rate <= 0.0
-        || c.min_rate < 0.0
-        || c.min_rate > c.peak_rate
+        || c.peak_learning_rate <= 0.0
+        || c.min_learning_rate < 0.0
+        || c.min_learning_rate > c.peak_learning_rate
         || c.weight_decay < 0.0
         || c.beta1 < 0.0
         || c.beta1 >= 1.0
@@ -351,14 +358,17 @@ fn validate_train(c: TrainConfig) -> Result<(), &'static str> {
 }
 fn schedule(c: TrainConfig, step: u64) -> f32 {
     if step >= c.total_steps {
-        return c.min_rate;
+        return c.min_learning_rate;
     }
     if c.warmup_steps > 0 && step < c.warmup_steps {
-        return c.peak_rate * (step as f32 + 1.0) / c.warmup_steps as f32;
+        return c.peak_learning_rate * (step as f32 + 1.0) / c.warmup_steps as f32;
     }
     let span = c.total_steps.saturating_sub(c.warmup_steps).max(1);
     let progress = step.saturating_sub(c.warmup_steps).min(span) as f32 / span as f32;
-    c.min_rate + 0.5 * (c.peak_rate - c.min_rate) * (1.0 + (std::f32::consts::PI * progress).cos())
+    c.min_learning_rate
+        + 0.5
+            * (c.peak_learning_rate - c.min_learning_rate)
+            * (1.0 + (std::f32::consts::PI * progress).cos())
 }
 fn fingerprint(data: &[usize]) -> u64 {
     let mut h = 0xcbf29ce484222325u64;
@@ -457,8 +467,8 @@ mod tests {
     #[test]
     fn schedule_includes_first_warmup_and_decay_end() {
         let c = TrainConfig {
-            peak_rate: 1.0,
-            min_rate: 0.1,
+            peak_learning_rate: 1.0,
+            min_learning_rate: 0.1,
             warmup_steps: 4,
             total_steps: 12,
             ..TrainConfig::default()
@@ -490,8 +500,8 @@ mod tests {
         .unwrap();
         model.parameters_mut().fill(2.0);
         let config = TrainConfig {
-            peak_rate: 0.001,
-            min_rate: 0.001,
+            peak_learning_rate: 0.001,
+            min_learning_rate: 0.001,
             warmup_steps: 0,
             total_steps: 1,
             weight_decay: 0.01,
@@ -505,6 +515,15 @@ mod tests {
         trainer.adamw(&mut g).unwrap();
         assert!((trainer.model.parameters()[0] - 1.99898).abs() < 2e-6);
         assert_eq!(trainer.step, 1);
+    }
+    #[test]
+    fn clipping_uses_f64_norm_and_rejects_invalid_values() {
+        let mut large = [f32::MAX, f32::MAX];
+        clip_global_norm(&mut large, 1.0).unwrap();
+        assert!((large[0] - std::f32::consts::FRAC_1_SQRT_2).abs() < 1e-6);
+        assert!((large[1] - std::f32::consts::FRAC_1_SQRT_2).abs() < 1e-6);
+        assert!(clip_global_norm(&mut [f32::NAN], 1.0).is_err());
+        assert!(clip_global_norm(&mut [1.0], 0.0).is_err());
     }
     #[test]
     fn accumulation_equals_explicit_average() {
@@ -522,8 +541,8 @@ mod tests {
         )
         .unwrap();
         let mut accumulated = Trainer::new(model.clone(), TrainConfig::default(), 2).unwrap();
-        let g1 = model.loss_and_grad(&data[0..4], &data[1..5]).unwrap();
-        let g2 = model.loss_and_grad(&data[4..8], &data[5..9]).unwrap();
+        let g1 = model.loss_and_gradient(&data[0..4], &data[1..5]).unwrap();
+        let g2 = model.loss_and_gradient(&data[4..8], &data[5..9]).unwrap();
         let mut average = g1
             .values
             .iter()
@@ -532,7 +551,11 @@ mod tests {
             .collect::<Vec<_>>();
         let mut explicit = Trainer::new(model, TrainConfig::default(), 2).unwrap();
         explicit.adamw(&mut average).unwrap();
-        accumulated.train_accumulated(&data, 4, 2).unwrap();
+        let accumulated_loss = accumulated.train_accumulated(&data, 4, 2).unwrap();
+        assert_eq!(
+            accumulated_loss.to_bits(),
+            ((g1.loss + g2.loss) / 2.0).to_bits()
+        );
         assert_eq!(accumulated.model.parameters(), explicit.model.parameters());
     }
     #[test]

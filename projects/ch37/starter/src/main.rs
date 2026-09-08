@@ -10,10 +10,10 @@ fn main() {
     for text in [" a  small\n document ", "another document"] {
         println!("cleaned: {:?}", clean(text));
     }
-    println!("Complete document-level split, then run cargo test.");
+    println!("Complete whole-document splits, then run cargo test; windowing comes later.");
 }
 #[test]
-fn split_is_stable_and_disjoint() {
+fn whole_document_split_is_stable() {
     assert_eq!(split(20), "test");
     assert_eq!(split(21), "validation");
     assert_eq!(split(22), "train");

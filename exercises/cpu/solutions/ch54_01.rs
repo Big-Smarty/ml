@@ -1,5 +1,5 @@
-fn rate(successes: usize, eligible: usize) -> Option<f64> {
-    (eligible > 0).then_some(successes as f64 / eligible as f64)
+fn rate(numerator: usize, denominator: usize) -> Option<f64> {
+    (denominator > 0).then_some(numerator as f64 / denominator as f64)
 }
 fn main() {
     println!("Every fairness rate needs its denominator named.");

@@ -5,76 +5,78 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch08/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.029,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch08/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.039,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+      "seconds": 0.043,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch08/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.029,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch08/target/debug/deps/ch08-04f0d7467e53474c)\n\nrunning 4 tests\ntest tests::backward_clears_old_gradients ... ok\ntest tests::finite_output_does_not_hide_nonfinite_graph_or_gradient ... ok\ntest tests::shared_node_accumulates_every_path ... ok\ntest tests::chain_rule_matches_finite_difference ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.039,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch08/target/debug/deps/ch08-04f0d7467e53474c)\n\nrunning 4 tests\ntest tests::chain_rule_matches_finite_difference ... ok\ntest tests::backward_clears_old_gradients ... ok\ntest tests::finite_output_does_not_hide_nonfinite_graph_or_gradient ... ok\ntest tests::shared_node_accumulates_every_path ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch08/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.107,
-      "output": "   Compiling ch08 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch08)\n    Finished `release` profile [optimized] target(s) in 0.09s\n     Running `projects/ch08/target/release/ch08`\ny = x*x+x at x=3: 12.0\ndy/dx: 7.0 (expected 7)\ntanh(1): 0.761594\n"
+      "seconds": 0.017,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch08/target/release/ch08`\ny = x*x+x at x=3: 12.0\ndy/dx: 7.0 (expected 7)\ntanh(1): 0.761594\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch08/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.028,
+      "seconds": 0.026,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch08/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.04,
+      "seconds": 0.041,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch08/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.028,
+      "seconds": 0.031,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch08/starter/target/debug/ch08-starter`\nprior checkpoint: x*x+x = 12\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch08/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.016,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch08/starter/target/debug/deps/ch08_starter-8347ee24c767d2aa)\n\nrunning 1 test\ntest shared_paths_add ... FAILED\n\nfailures:\n\n---- shared_paths_add stdout ----\n\nthread 'shared_paths_add' (1844) panicked at src/main.rs:3:5:\nnot yet implemented: shared graph paths must add their gradient contributions\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    shared_paths_add\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch08-starter`\n",
+      "seconds": 0.02,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch08/starter/target/debug/deps/ch08_starter-8347ee24c767d2aa)\n\nrunning 1 test\ntest shared_paths_add ... FAILED\n\nfailures:\n\n---- shared_paths_add stdout ----\n\nthread 'shared_paths_add' (1694) panicked at src/main.rs:3:5:\nnot yet implemented: shared graph paths must add their gradient contributions\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    shared_paths_add\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch08-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch08_01.rs -o /tmp/ml-check-xagbt6f0/solutionch08_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch08_01.rs -o /tmp/ml-check-q7owxisj/solutionch08_01",
       "returncode": 0,
-      "seconds": 0.047,
+      "seconds": 0.043,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-xagbt6f0/solutionch08_01",
+      "command": "/tmp/ml-check-q7owxisj/solutionch08_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest shared_use ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch08_01.rs -o /tmp/ml-check-xagbt6f0/exercisech08_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch08_01.rs -o /tmp/ml-check-q7owxisj/exercisech08_01",
       "returncode": 0,
-      "seconds": 0.042,
+      "seconds": 0.044,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-xagbt6f0/exercisech08_01",
+      "command": "/tmp/ml-check-q7owxisj/exercisech08_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest shared_use ... FAILED\n\nfailures:\n\n---- shared_use stdout ----\n\nthread 'shared_use' (1916) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch08_01.rs:4:5:\nnot yet implemented: accumulate\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    shared_use\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest shared_use ... FAILED\n\nfailures:\n\n---- shared_use stdout ----\n\nthread 'shared_use' (1766) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch08_01.rs:4:5:\nnot yet implemented: add the gradient contribution\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    shared_use\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

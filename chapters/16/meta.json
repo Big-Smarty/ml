@@ -1,6 +1,6 @@
 {
   "outcomes": [
-    "Compute signed margins and hinge loss for labels encoded as -1 and +1",
+    "Convert binary class labels to -1 and +1, then compute signed margins and hinge loss",
     "Train and evaluate a two-feature linear soft-margin SVM",
     "Explain how an RBF kernel turns distances into nonlinear influence",
     "Diagnose label-encoding and kernel-inference bugs"
@@ -42,7 +42,7 @@
     {"title": "Stanford Statistics 202: Support Vector Machines", "url": "https://web.stanford.edu/class/stats202/slides/Support-vector-machines.html", "note": "University teaching source for margin, hinge loss, and kernels."}
   ],
   "checks": [
-    "The zero model has average hinge objective 1 on the linear fixture",
+    "The zero model has regularized objective 1 on the linear fixture because its mean hinge loss is 1 and its L2 penalty is 0",
     "The trained linear SVM classifies all eight linearly separated fixture points",
     "The linear model reaches at most 75% on XOR while the RBF classifier reaches 100%",
     "Empty data and invalid gamma are rejected"

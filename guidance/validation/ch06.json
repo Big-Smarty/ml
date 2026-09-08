@@ -5,76 +5,78 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch06/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.028,
+      "seconds": 0.027,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch06/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.042,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch06/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.033,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s\n     Running unittests src/main.rs (projects/ch06/target/debug/deps/ch06-df07ea0944766acf)\n\nrunning 3 tests\ntest tests::short_batch_and_zero_epoch_validation ... ok\ntest tests::a_reliable_setting_improves_held_out_error ... ok\ntest tests::l2_shrinks_the_weight_without_penalizing_bias ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.03,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch06/target/debug/deps/ch06-df07ea0944766acf)\n\nrunning 3 tests\ntest tests::short_batch_and_zero_epoch_validation ... ok\ntest tests::a_reliable_setting_improves_held_out_error ... ok\ntest tests::l2_shrinks_the_weight_without_penalizing_bias ... ok\n\ntest result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch06/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.09,
-      "output": "   Compiling ch06 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch06)\n    Finished `release` profile [optimized] target(s) in 0.07s\n     Running `projects/ch06/target/release/ch06`\n        slow: start train/val=12.687/14.797, end=1.286/1.347, w=1.509, b=0.303\n      steady: start train/val=12.687/14.797, end=0.081/0.025, w=2.032, b=1.057\n          L2: start train/val=12.687/14.797, end=0.093/0.007, w=1.969, b=1.049\nCurves are measured on fixed synthetic splits; compare validation, not training alone.\n"
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch06/target/release/ch06`\n        slow: start train/val=12.687/14.797, end=1.286/1.347, w=1.509, b=0.303\n      steady: start train/val=12.687/14.797, end=0.081/0.025, w=2.032, b=1.057\n          L2: start train/val=12.687/14.797, end=0.093/0.007, w=1.969, b=1.049\nCurves are measured on fixed synthetic splits; compare validation, not training alone.\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch06/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.025,
+      "seconds": 0.026,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch06/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.04,
+      "seconds": 0.041,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch06/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.027,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch06/starter/target/debug/ch06-starter`\nprior checkpoint: unregularized data gradient is -3\nRun cargo test to implement the new L2-gradient TODO.\n"
+      "seconds": 0.029,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch06/starter/target/debug/ch06-starter`\nprior checkpoint: data loss is 5.000\nworked data gradient for the next weight update: -3\nRun cargo test to implement the new L2-gradient TODO.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch06/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.017,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch06/starter/target/debug/deps/ch06_starter-a1ef6b34d3ad000d)\n\nrunning 1 test\ntest l2_adds_two_lambda_weight ... FAILED\n\nfailures:\n\n---- l2_adds_two_lambda_weight stdout ----\n\nthread 'l2_adds_two_lambda_weight' (1339) panicked at src/main.rs:3:5:\nnot yet implemented: add the derivative of lambda * weight^2\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    l2_adds_two_lambda_weight\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch06-starter`\n",
+      "seconds": 0.019,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch06/starter/target/debug/deps/ch06_starter-a1ef6b34d3ad000d)\n\nrunning 1 test\ntest l2_adds_two_lambda_weight ... FAILED\n\nfailures:\n\n---- l2_adds_two_lambda_weight stdout ----\n\nthread 'l2_adds_two_lambda_weight' (1252) panicked at src/main.rs:38:5:\nnot yet implemented: add the derivative of l2 * weight^2\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    l2_adds_two_lambda_weight\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch06-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch06_01.rs -o /tmp/ml-check-gdfc039n/solutionch06_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch06_01.rs -o /tmp/ml-check-4zirh6zd/solutionch06_01",
       "returncode": 0,
-      "seconds": 0.042,
+      "seconds": 0.045,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-gdfc039n/solutionch06_01",
+      "command": "/tmp/ml-check-4zirh6zd/solutionch06_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest regularization_pushes_toward_zero ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch06_01.rs -o /tmp/ml-check-gdfc039n/exercisech06_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch06_01.rs -o /tmp/ml-check-4zirh6zd/exercisech06_01",
       "returncode": 0,
-      "seconds": 0.041,
+      "seconds": 0.043,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-gdfc039n/exercisech06_01",
+      "command": "/tmp/ml-check-4zirh6zd/exercisech06_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest regularization_pushes_toward_zero ... FAILED\n\nfailures:\n\n---- regularization_pushes_toward_zero stdout ----\n\nthread 'regularization_pushes_toward_zero' (1411) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch06_01.rs:4:5:\nnot yet implemented: differentiate lambda * weight squared and add it\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    regularization_pushes_toward_zero\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest regularization_pushes_toward_zero ... FAILED\n\nfailures:\n\n---- regularization_pushes_toward_zero stdout ----\n\nthread 'regularization_pushes_toward_zero' (1324) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch06_01.rs:4:5:\nnot yet implemented: differentiate l2 * weight squared and add it\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    regularization_pushes_toward_zero\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

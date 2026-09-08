@@ -1,5 +1,7 @@
 # Authoring contract
 
+For the current consistency revision, read `guidance/CONSISTENCY.md` first. The learner now requests a separate GPT-5.6 Sol High author for every chapter; Luna High/Max handles bounded research. This supersedes the earlier Astra authorship routing for this revision.
+
 Read this file, `course.json`, `guidance/CHAPTER_TEMPLATE.md`, `guidance/NUMERICS.md`, and **all of chapters/01/lesson.html and projects/ch01/src/main.rs** before authoring. Chapter 1 is the quality reference, not text to mechanically repeat.
 
 ## Audience and completion

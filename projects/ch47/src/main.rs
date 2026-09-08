@@ -4,26 +4,33 @@ use std::time::{Duration, Instant};
 
 #[derive(Debug)]
 struct CsrMatrix {
-    rows: usize,
-    cols: usize,
+    out_features: usize,
+    in_features: usize,
     row_ptr: Vec<usize>,
     col_idx: Vec<usize>,
     values: Vec<f64>,
 }
 
 impl CsrMatrix {
-    fn from_dense(dense: &[f64], rows: usize, cols: usize) -> Result<Self, &'static str> {
-        if rows == 0 || cols == 0 || rows.checked_mul(cols) != Some(dense.len()) {
+    fn from_dense(
+        weights: &[f64],
+        out_features: usize,
+        in_features: usize,
+    ) -> Result<Self, &'static str> {
+        if out_features == 0
+            || in_features == 0
+            || out_features.checked_mul(in_features) != Some(weights.len())
+        {
             return Err("dense shape must be nonzero and match its data");
         }
-        if dense.iter().any(|value| !value.is_finite()) {
+        if weights.iter().any(|value| !value.is_finite()) {
             return Err("matrix values must be finite");
         }
-        let mut row_ptr = Vec::with_capacity(rows + 1);
+        let mut row_ptr = Vec::with_capacity(out_features + 1);
         let mut col_idx = Vec::new();
         let mut values = Vec::new();
         row_ptr.push(0);
-        for row in dense.chunks_exact(cols) {
+        for row in weights.chunks_exact(in_features) {
             for (column, &value) in row.iter().enumerate() {
                 if value != 0.0 {
                     col_idx.push(column);
@@ -33,8 +40,8 @@ impl CsrMatrix {
             row_ptr.push(values.len());
         }
         Ok(Self {
-            rows,
-            cols,
+            out_features,
+            in_features,
             row_ptr,
             col_idx,
             values,
@@ -42,10 +49,10 @@ impl CsrMatrix {
     }
 
     fn matvec(&self, input: &[f64]) -> Result<Vec<f64>, &'static str> {
-        if input.len() != self.cols || input.iter().any(|value| !value.is_finite()) {
+        if input.len() != self.in_features || input.iter().any(|value| !value.is_finite()) {
             return Err("input length must match columns and values must be finite");
         }
-        Ok((0..self.rows)
+        Ok((0..self.out_features)
             .map(|row| {
                 (self.row_ptr[row]..self.row_ptr[row + 1])
                     .map(|i| self.values[i] * input[self.col_idx[i]])
@@ -55,7 +62,7 @@ impl CsrMatrix {
     }
 
     fn matvec_into(&self, input: &[f64], output: &mut [f64]) -> Result<(), &'static str> {
-        if input.len() != self.cols || output.len() != self.rows {
+        if input.len() != self.in_features || output.len() != self.out_features {
             return Err("matvec buffers do not match the matrix shape");
         }
         for (row, value) in output.iter_mut().enumerate() {
@@ -67,26 +74,26 @@ impl CsrMatrix {
     }
 
     fn density(&self) -> f64 {
-        self.values.len() as f64 / (self.rows * self.cols) as f64
+        self.values.len() as f64 / (self.out_features * self.in_features) as f64
     }
 }
 
-fn dense_matvec(
-    matrix: &[f64],
-    rows: usize,
-    cols: usize,
+fn dense_matvec_reference(
+    weights: &[f64],
+    out_features: usize,
+    in_features: usize,
     input: &[f64],
 ) -> Result<Vec<f64>, &'static str> {
-    if rows == 0
-        || cols == 0
-        || rows.checked_mul(cols) != Some(matrix.len())
-        || input.len() != cols
-        || matrix.iter().chain(input).any(|value| !value.is_finite())
+    if out_features == 0
+        || in_features == 0
+        || out_features.checked_mul(in_features) != Some(weights.len())
+        || input.len() != in_features
+        || weights.iter().chain(input).any(|value| !value.is_finite())
     {
         return Err("matrix and input shapes do not align");
     }
-    Ok(matrix
-        .chunks_exact(cols)
+    Ok(weights
+        .chunks_exact(in_features)
         .map(|row| row.iter().zip(input).map(|(weight, x)| weight * x).sum())
         .collect())
 }
@@ -136,21 +143,21 @@ fn median_range(mut samples: Vec<Duration>) -> (Duration, Duration, Duration) {
     )
 }
 
-fn dense_matvec_into(matrix: &[f64], cols: usize, input: &[f64], output: &mut [f64]) {
-    for (value, row) in output.iter_mut().zip(matrix.chunks_exact(cols)) {
+fn dense_matvec_into(weights: &[f64], in_features: usize, input: &[f64], output: &mut [f64]) {
+    for (value, row) in output.iter_mut().zip(weights.chunks_exact(in_features)) {
         *value = row.iter().zip(input).map(|(weight, x)| weight * x).sum();
     }
 }
 
 fn benchmark(
-    dense: &[f64],
+    pruned_weights: &[f64],
     csr: &CsrMatrix,
     input: &[f64],
     repeats: usize,
 ) -> (Duration, Duration, Duration, Duration, Duration, Duration) {
-    let mut dense_output = vec![0.0; csr.rows];
-    let mut sparse_output = vec![0.0; csr.rows];
-    dense_matvec_into(dense, csr.cols, input, &mut dense_output);
+    let mut dense_output = vec![0.0; csr.out_features];
+    let mut sparse_output = vec![0.0; csr.out_features];
+    dense_matvec_into(pruned_weights, csr.in_features, input, &mut dense_output);
     csr.matvec_into(input, &mut sparse_output)
         .expect("validated fixture");
     black_box(&dense_output);
@@ -159,7 +166,7 @@ fn benchmark(
     let mut sparse_samples = Vec::with_capacity(repeats);
     for _ in 0..repeats {
         let start = Instant::now();
-        dense_matvec_into(dense, csr.cols, input, &mut dense_output);
+        dense_matvec_into(pruned_weights, csr.in_features, input, &mut dense_output);
         black_box(&dense_output);
         dense_samples.push(start.elapsed());
         let start = Instant::now();
@@ -180,8 +187,8 @@ fn benchmark(
     )
 }
 
-fn fixture(rows: usize, cols: usize) -> Vec<f64> {
-    (0..rows * cols)
+fn fixture(out_features: usize, in_features: usize) -> Vec<f64> {
+    (0..out_features * in_features)
         .map(|i| (((i * 73 + 19) % 211) as f64 - 105.0) / 105.0)
         .collect()
 }
@@ -197,18 +204,18 @@ fn root_mean_square_error(left: &[f64], right: &[f64]) -> f64 {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let (rows, cols) = (192, 192);
-    let weights = fixture(rows, cols);
-    let input: Vec<_> = (0..cols).map(|i| (i as f64 * 0.03).sin()).collect();
-    let unpruned_output = dense_matvec(&weights, rows, cols, &input)?;
+    let (out_features, in_features) = (192, 192);
+    let weights = fixture(out_features, in_features);
+    let input: Vec<_> = (0..in_features).map(|i| (i as f64 * 0.03).sin()).collect();
+    let unpruned_output = dense_matvec_reference(&weights, out_features, in_features, &input)?;
     println!(
-        "scalar CPU, f64, {rows}x{cols}, release={}",
+        "scalar CPU, f64, {out_features}x{in_features}, release={}",
         !cfg!(debug_assertions)
     );
     for requested in [1.0, 0.5, 0.2, 0.05] {
         let pruned = prune_to_density(&weights, requested)?;
-        let csr = CsrMatrix::from_dense(&pruned, rows, cols)?;
-        let dense_output = dense_matvec(&pruned, rows, cols, &input)?;
+        let csr = CsrMatrix::from_dense(&pruned, out_features, in_features)?;
+        let dense_output = dense_matvec_reference(&pruned, out_features, in_features, &input)?;
         let sparse_output = csr.matvec(&input)?;
         if !close(&dense_output, &sparse_output) {
             return Err("dense and sparse kernels disagree".into());
@@ -230,8 +237,10 @@ mod tests {
         let dense = vec![0.0, 2.0, 0.0, 0.0, 0.0, 0.0, -3.0, 0.0, 4.0];
         let csr = CsrMatrix::from_dense(&dense, 3, 3)?;
         assert_eq!(csr.row_ptr, [0, 1, 1, 3]);
+        assert_eq!(csr.col_idx, [1, 0, 2]);
+        assert_eq!(csr.values, [2.0, -3.0, 4.0]);
         assert!(close(
-            &dense_matvec(&dense, 3, 3, &[1.0, 2.0, 3.0])?,
+            &dense_matvec_reference(&dense, 3, 3, &[1.0, 2.0, 3.0])?,
             &csr.matvec(&[1.0, 2.0, 3.0])?
         ));
         let mut dense_output = [0.0; 3];
@@ -247,12 +256,13 @@ mod tests {
     fn pruning_keeps_requested_largest_magnitudes() -> Result<(), &'static str> {
         let pruned = prune_to_density(&[-1.0, 0.2, 3.0, -2.0], 0.5)?;
         assert_eq!(pruned, [0.0, 0.0, 3.0, -2.0]);
+        assert_eq!(prune_to_density(&[2.0, -2.0], 0.5)?, [2.0, 0.0]);
         Ok(())
     }
 
     #[test]
     fn invalid_shapes_are_rejected() {
         assert!(CsrMatrix::from_dense(&[1.0], 1, 2).is_err());
-        assert!(dense_matvec(&[1.0], 1, 1, &[]).is_err());
+        assert!(dense_matvec_reference(&[1.0], 1, 1, &[]).is_err());
     }
 }

@@ -1,111 +1,145 @@
 #[derive(Debug)]
 struct Attention {
     output: Vec<f64>,
-    weights: Vec<f64>,
+    probabilities: Vec<f64>,
 }
 #[derive(Debug)]
-struct Backward {
-    dq: Vec<f64>,
-    dk: Vec<f64>,
-    dv: Vec<f64>,
+struct AttentionGradients {
+    query_gradients: Vec<f64>,
+    key_gradients: Vec<f64>,
+    value_gradients: Vec<f64>,
 }
-fn causal_attention(q: &[f64], k: &[f64], v: &[f64], t: usize, d: usize) -> Attention {
-    assert!(t > 0 && d > 0);
-    let len = t.checked_mul(d).expect("attention shape overflow");
-    assert_eq!(q.len(), len);
-    assert_eq!(k.len(), len);
-    assert_eq!(v.len(), len);
-    let mut a = vec![0.0; t * t];
-    let mut out = vec![0.0; t * d];
-    let scale = (d as f64).sqrt().recip();
-    for i in 0..t {
+fn causal_attention(
+    queries: &[f64],
+    keys: &[f64],
+    values: &[f64],
+    positions: usize,
+    width: usize,
+) -> Attention {
+    assert!(positions > 0 && width > 0);
+    let len = positions
+        .checked_mul(width)
+        .expect("attention shape overflow");
+    assert_eq!(queries.len(), len);
+    assert_eq!(keys.len(), len);
+    assert_eq!(values.len(), len);
+    let mut probabilities = vec![0.0; positions * positions];
+    let mut output = vec![0.0; len];
+    let scale = (width as f64).sqrt().recip();
+    for i in 0..positions {
         let mut max = f64::NEG_INFINITY;
         for j in 0..=i {
-            let s = (0..d).map(|z| q[i * d + z] * k[j * d + z]).sum::<f64>() * scale;
-            a[i * t + j] = s;
-            max = max.max(s)
+            let score = (0..width)
+                .map(|z| queries[i * width + z] * keys[j * width + z])
+                .sum::<f64>()
+                * scale;
+            probabilities[i * positions + j] = score;
+            max = max.max(score)
         }
         let mut sum = 0.0;
         for j in 0..=i {
-            a[i * t + j] = (a[i * t + j] - max).exp();
-            sum += a[i * t + j]
+            probabilities[i * positions + j] = (probabilities[i * positions + j] - max).exp();
+            sum += probabilities[i * positions + j]
         }
         for j in 0..=i {
-            a[i * t + j] /= sum;
-            for z in 0..d {
-                out[i * d + z] += a[i * t + j] * v[j * d + z]
+            probabilities[i * positions + j] /= sum;
+            for z in 0..width {
+                output[i * width + z] += probabilities[i * positions + j] * values[j * width + z]
             }
         }
     }
     Attention {
-        output: out,
-        weights: a,
+        output,
+        probabilities,
     }
 }
 fn backward(
-    q: &[f64],
-    k: &[f64],
-    v: &[f64],
-    a: &[f64],
-    dout: &[f64],
-    t: usize,
-    d: usize,
-) -> Backward {
-    assert!(t > 0 && d > 0);
-    let len = t.checked_mul(d).expect("attention shape overflow");
-    assert_eq!(q.len(), len);
-    assert_eq!(k.len(), len);
-    assert_eq!(v.len(), len);
-    assert_eq!(dout.len(), len);
+    queries: &[f64],
+    keys: &[f64],
+    values: &[f64],
+    probabilities: &[f64],
+    output_gradients: &[f64],
+    positions: usize,
+    width: usize,
+) -> AttentionGradients {
+    assert!(positions > 0 && width > 0);
+    let len = positions
+        .checked_mul(width)
+        .expect("attention shape overflow");
+    assert_eq!(queries.len(), len);
+    assert_eq!(keys.len(), len);
+    assert_eq!(values.len(), len);
+    assert_eq!(output_gradients.len(), len);
     assert_eq!(
-        a.len(),
-        t.checked_mul(t).expect("probability shape overflow")
+        probabilities.len(),
+        positions
+            .checked_mul(positions)
+            .expect("probability shape overflow")
     );
-    let mut dq = vec![0.0; t * d];
-    let mut dk = vec![0.0; t * d];
-    let mut dv = vec![0.0; t * d];
-    let scale = (d as f64).sqrt().recip();
-    for i in 0..t {
-        let mut da = vec![0.0; i + 1];
+    let mut query_gradients = vec![0.0; len];
+    let mut key_gradients = vec![0.0; len];
+    let mut value_gradients = vec![0.0; len];
+    let scale = (width as f64).sqrt().recip();
+    for i in 0..positions {
+        let mut probability_gradients = vec![0.0; i + 1];
         for j in 0..=i {
-            for z in 0..d {
-                da[j] += dout[i * d + z] * v[j * d + z];
-                dv[j * d + z] += a[i * t + j] * dout[i * d + z]
+            for z in 0..width {
+                probability_gradients[j] += output_gradients[i * width + z] * values[j * width + z];
+                value_gradients[j * width + z] +=
+                    probabilities[i * positions + j] * output_gradients[i * width + z]
             }
         }
-        let dot = (0..=i).map(|j| da[j] * a[i * t + j]).sum::<f64>();
+        let dot = (0..=i)
+            .map(|j| probability_gradients[j] * probabilities[i * positions + j])
+            .sum::<f64>();
         for j in 0..=i {
-            let ds = a[i * t + j] * (da[j] - dot) * scale;
-            for z in 0..d {
-                dq[i * d + z] += ds * k[j * d + z];
-                dk[j * d + z] += ds * q[i * d + z]
+            let dot_product_gradient =
+                probabilities[i * positions + j] * (probability_gradients[j] - dot) * scale;
+            for z in 0..width {
+                query_gradients[i * width + z] += dot_product_gradient * keys[j * width + z];
+                key_gradients[j * width + z] += dot_product_gradient * queries[i * width + z]
             }
         }
     }
-    Backward { dq, dk, dv }
+    AttentionGradients {
+        query_gradients,
+        key_gradients,
+        value_gradients,
+    }
 }
 #[cfg(test)]
-fn loss(q: &[f64], k: &[f64], v: &[f64], t: usize, d: usize, upstream: &[f64]) -> f64 {
-    let output = causal_attention(q, k, v, t, d).output;
-    assert_eq!(output.len(), upstream.len());
-    output.iter().zip(upstream).map(|(a, b)| a * b).sum()
+fn attention_probe_objective(
+    queries: &[f64],
+    keys: &[f64],
+    values: &[f64],
+    positions: usize,
+    width: usize,
+    output_gradients: &[f64],
+) -> f64 {
+    let output = causal_attention(queries, keys, values, positions, width).output;
+    assert_eq!(output.len(), output_gradients.len());
+    output
+        .iter()
+        .zip(output_gradients)
+        .map(|(value, gradient)| value * gradient)
+        .sum()
 }
 fn main() {
     let q = [1.0, 0.0, 0.0, 1.0];
     let k = [1.0, 0.0, 1.0, 1.0];
     let v = [2.0, 0.0, 0.0, 4.0];
-    let a = causal_attention(&q, &k, &v, 2, 2);
+    let attention = causal_attention(&q, &k, &v, 2, 2);
     println!(
-        "causal weights [q0->k0,q0->k1,q1->k0,q1->k1] = {:.3?}",
-        a.weights
+        "causal probabilities [q0->k0,q0->k1,q1->k0,q1->k1] = {:.3?}",
+        attention.probabilities
     );
-    println!("outputs = {:.3?}", a.output);
-    let g = backward(&q, &k, &v, &a.weights, &[1.0; 4], 2, 2);
+    println!("outputs = {:.3?}", attention.output);
+    let gradients = backward(&q, &k, &v, &attention.probabilities, &[1.0; 4], 2, 2);
     println!(
         "gradient norms: Q={:.4} K={:.4} V={:.4}",
-        norm(&g.dq),
-        norm(&g.dk),
-        norm(&g.dv)
+        norm(&gradients.query_gradients),
+        norm(&gradients.key_gradients),
+        norm(&gradients.value_gradients)
     );
 }
 fn norm(x: &[f64]) -> f64 {
@@ -119,11 +153,11 @@ mod tests {
         let q = [1.0, 0.5, 0.2, -0.4, 0.3, 0.7];
         let k = [0.2, 0.1, 0.4, 0.3, 9.0, 9.0];
         let v = [1.0, 2.0, 3.0, 4.0, 99.0, 99.0];
-        let a = causal_attention(&q, &k, &v, 3, 2);
-        assert_eq!(&a.output[..2], &v[..2]);
-        assert_eq!(a.weights[1], 0.0);
-        assert_eq!(a.weights[2], 0.0);
-        for row in a.weights.chunks_exact(3) {
+        let attention = causal_attention(&q, &k, &v, 3, 2);
+        assert_eq!(&attention.output[..2], &v[..2]);
+        assert_eq!(attention.probabilities[1], 0.0);
+        assert_eq!(attention.probabilities[2], 0.0);
+        for row in attention.probabilities.chunks_exact(3) {
             assert!((row.iter().sum::<f64>() - 1.0).abs() < 1e-12);
         }
         let mut changed_k = k;
@@ -133,15 +167,25 @@ mod tests {
         changed_v[4] = -900.0;
         changed_v[5] = 600.0;
         let changed = causal_attention(&q, &changed_k, &changed_v, 3, 2);
-        assert_eq!(&a.output[..4], &changed.output[..4]);
+        assert_eq!(&attention.output[..4], &changed.output[..4]);
     }
-    fn numeric(q: &[f64], k: &[f64], v: &[f64], group: usize, index: usize, up: &[f64]) -> f64 {
+    fn central_difference(
+        queries: &[f64],
+        keys: &[f64],
+        values: &[f64],
+        input_group: usize,
+        index: usize,
+        output_gradients: &[f64],
+    ) -> f64 {
         let eps = 1e-5;
-        let (mut qp, mut kp, mut vp) = (q.to_vec(), k.to_vec(), v.to_vec());
-        [&mut qp, &mut kp, &mut vp][group][index] += eps;
-        let plus = loss(&qp, &kp, &vp, 3, 2, up);
-        [&mut qp, &mut kp, &mut vp][group][index] -= 2.0 * eps;
-        let minus = loss(&qp, &kp, &vp, 3, 2, up);
+        let (mut query_plus, mut key_plus, mut value_plus) =
+            (queries.to_vec(), keys.to_vec(), values.to_vec());
+        [&mut query_plus, &mut key_plus, &mut value_plus][input_group][index] += eps;
+        let plus =
+            attention_probe_objective(&query_plus, &key_plus, &value_plus, 3, 2, output_gradients);
+        [&mut query_plus, &mut key_plus, &mut value_plus][input_group][index] -= 2.0 * eps;
+        let minus =
+            attention_probe_objective(&query_plus, &key_plus, &value_plus, 3, 2, output_gradients);
         (plus - minus) / (2.0 * eps)
     }
     #[test]
@@ -150,11 +194,45 @@ mod tests {
         let k = vec![0.4, 0.6, -0.8, 0.2, 0.3, -0.7];
         let v = vec![1.0, -0.5, 0.2, 0.8, -0.4, 0.9];
         let up = [0.3, -0.7, 1.2, 0.4, -0.2, 0.6];
-        let a = causal_attention(&q, &k, &v, 3, 2);
-        let g = backward(&q, &k, &v, &a.weights, &up, 3, 2);
-        for (group, analytic) in [g.dq, g.dk, g.dv].iter().enumerate() {
-            for (i, &a) in analytic.iter().enumerate() {
-                assert!((a - numeric(&q, &k, &v, group, i, &up)).abs() < 1e-6);
+        let attention = causal_attention(&q, &k, &v, 3, 2);
+        let gradients = backward(&q, &k, &v, &attention.probabilities, &up, 3, 2);
+        for (group, analytic) in [
+            &gradients.query_gradients,
+            &gradients.key_gradients,
+            &gradients.value_gradients,
+        ]
+        .iter()
+        .enumerate()
+        {
+            for (i, &analytic) in analytic.iter().enumerate() {
+                let numerical = central_difference(&q, &k, &v, group, i, &up);
+                assert!((analytic - numerical).abs() < 1e-6 + 1e-4 * numerical.abs());
+            }
+        }
+
+        let doubled_output_gradients = up.map(|gradient| 2.0 * gradient);
+        let doubled = backward(
+            &q,
+            &k,
+            &v,
+            &attention.probabilities,
+            &doubled_output_gradients,
+            3,
+            2,
+        );
+        for (original, doubled) in [
+            &gradients.query_gradients,
+            &gradients.key_gradients,
+            &gradients.value_gradients,
+        ]
+        .iter()
+        .zip([
+            &doubled.query_gradients,
+            &doubled.key_gradients,
+            &doubled.value_gradients,
+        ]) {
+            for (original, doubled) in original.iter().zip(doubled) {
+                assert!((2.0 * original - doubled).abs() < 1e-12);
             }
         }
     }

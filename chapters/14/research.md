@@ -14,7 +14,7 @@ Authored by Sol High after a bounded GPT-5.6 Luna High researcher browsed canoni
 
 ## Author decisions
 
-The two-feature implementation uses a full distance sort because it reveals the algorithm and is adequate for six rows. Gaussian scores are accumulated in log space and variance has an explicit floor. Both classifiers consume the same training-scaled vectors. The lesson treats output agreement as a mechanism check, not evidence of predictive quality.
+The fixed two-feature implementation uses a full distance sort because it reveals the algorithm and is adequate for six rows. `Point.features` is kept separate from its discrete `Point.label`, matching the prior chapter's boundary while making the narrower array shape explicit. `Scaler::fit` estimates training-only state and `transform` reuses it. `Knn::fit` stores the transformed rows and chosen hyperparameters; `GaussianNb::fit` instead estimates priors, means, and population variances. Both `predict` methods return a label. Squared distances and Gaussian log scores remain unnormalized internal comparison values.
 
 
 ## Astra High review — 2026-09-08

@@ -8,11 +8,11 @@ const IMAGES: [[f64; SIDE * SIDE]; 2] = [
     ],
 ];
 
-fn stable_softmax(logits: [f64; 2]) -> [f64; 2] {
-    let m = logits[0].max(logits[1]);
-    let exp = [(logits[0] - m).exp(), (logits[1] - m).exp()];
-    let sum = exp[0] + exp[1];
-    [exp[0] / sum, exp[1] / sum]
+fn probabilities(logits: [f64; 2]) -> [f64; 2] {
+    let maximum = logits[0].max(logits[1]);
+    let exponentials = [(logits[0] - maximum).exp(), (logits[1] - maximum).exp()];
+    let sum = exponentials[0] + exponentials[1];
+    [exponentials[0] / sum, exponentials[1] / sum]
 }
 
 fn linear_logits(image: &[f64; SIDE * SIDE]) -> [f64; 2] {
@@ -44,7 +44,7 @@ fn main() {
         let logits = linear_logits(image);
         println!(
             "linear logits {logits:?}, probabilities {:?}",
-            stable_softmax(logits)
+            probabilities(logits)
         );
     }
 }

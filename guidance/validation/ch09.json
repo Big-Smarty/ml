@@ -5,13 +5,13 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch09/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.029,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch09/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.04,
+      "seconds": 0.041,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
@@ -23,8 +23,8 @@
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch09/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.027,
-      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch09/target/release/ch09`\nforward [batch=2,out=2]: [-1.5, 3.5, -1.5, 12.5]\ndx=[5.0, 2.0, -1.0, 11.0, 4.0, -3.0]\ndw=[13.0, 17.0, 21.0, 18.0, 24.0, 30.0]\ndb=[4.0, 6.0]\n"
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch09/target/release/ch09`\nforward [batch=2,out_features=2]: [-1.5, 3.5, -1.5, 12.5]\ninput_gradients=[5.0, 2.0, -1.0, 11.0, 4.0, -3.0]\nweight_gradients=[13.0, 17.0, 21.0, 18.0, 24.0, 30.0]\nbias_gradients=[4.0, 6.0]\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch09/starter/Cargo.toml --check",
@@ -35,46 +35,48 @@
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch09/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.04,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch09/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.028,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch09/starter/target/debug/ch09-starter`\nprior checkpoint: dot = 6\n"
+      "seconds": 0.029,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch09/starter/target/debug/ch09-starter`\ncheckpoint: inputs=[2,3], weights=[2,3], outputs=[2,2], first input=1, first weight=1, first bias=0.5\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch09/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.017,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch09/starter/target/debug/deps/ch09_starter-b582829d906d6436)\n\nrunning 1 test\ntest row_major_offset ... FAILED\n\nfailures:\n\n---- row_major_offset stdout ----\n\nthread 'row_major_offset' (2064) panicked at src/main.rs:3:5:\nnot yet implemented: map a row-major coordinate to its contiguous offset\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    row_major_offset\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch09-starter`\n",
+      "seconds": 0.019,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch09/starter/target/debug/deps/ch09_starter-b582829d906d6436)\n\nrunning 1 test\ntest dense_forward_matches_worked_example ... FAILED\n\nfailures:\n\n---- dense_forward_matches_worked_example stdout ----\n\nthread 'dense_forward_matches_worked_example' (1914) panicked at src/main.rs:89:9:\nnot yet implemented: compute inputs times weights-transpose plus bias\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    dense_forward_matches_worked_example\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch09-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch09_01.rs -o /tmp/ml-check-ablnnbt5/solutionch09_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch09_01.rs -o /tmp/ml-check-0zf1f9xf/solutionch09_01",
       "returncode": 0,
       "seconds": 0.041,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-ablnnbt5/solutionch09_01",
+      "command": "/tmp/ml-check-0zf1f9xf/solutionch09_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest layout ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch09_01.rs -o /tmp/ml-check-ablnnbt5/exercisech09_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch09_01.rs -o /tmp/ml-check-0zf1f9xf/exercisech09_01",
       "returncode": 0,
-      "seconds": 0.042,
+      "seconds": 0.044,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-ablnnbt5/exercisech09_01",
+      "command": "/tmp/ml-check-0zf1f9xf/exercisech09_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest layout ... FAILED\n\nfailures:\n\n---- layout stdout ----\n\nthread 'layout' (2136) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch09_01.rs:4:5:\nnot yet implemented: row-major offset\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    layout\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest layout ... FAILED\n\nfailures:\n\n---- layout stdout ----\n\nthread 'layout' (1986) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch09_01.rs:4:5:\nnot yet implemented: row-major offset\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    layout\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

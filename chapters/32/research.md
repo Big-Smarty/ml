@@ -2,9 +2,11 @@
 
 Route: authored by Sol High after bounded Luna High research. Feature names, timestamp APIs, and f16 syntax were checked against installed wgpu/wgpu-types/naga 29.0.4 and official Vulkan references.
 
-`Features::TIMESTAMP_QUERY` permits beginning/end pass timestamps through `ComputePassTimestampWrites`. Results must be resolved to a `QUERY_RESOLVE` buffer and then copied to `MAP_READ`; `Queue::get_timestamp_period()` converts ticks to nanoseconds. This device duration differs from the host boundary that includes encoding, submit, polling, copy, and map. The program reports repeated median/range wall measurements and timestamp sums separately.
+`Features::TIMESTAMP_QUERY` permits beginning/end pass timestamps through `ComputePassTimestampWrites`. Results must be resolved to a `QUERY_RESOLVE` buffer and then copied to `MAP_READ`; `Queue::get_timestamp_period()` converts ticks to nanoseconds. This device duration differs from the CPU wall-clock boundary that includes encoding, submit, polling, output copy, and output map. The CPU wall clock ends before the host maps and decodes the timestamp staging buffer. The program reports repeated median/range CPU wall measurements and device timestamp sums separately.
 
 `Features::SHADER_F16` is queried before device creation and requested only if supported. WGSL requires `enable f16;` before global declarations. The optional shader converts f32 input to f16 arithmetic and back to f32 output. A range check prevents overflow; unsupported or unsafe input uses the f32 path.
+
+The executable pairs `affine_relu_scalar(input)` with `Gpu::affine_relu_with_gpu(input, plan)`. It carries forward Chapter 29's `dispatch_count(element_count, workgroup_size)` and names the uniform `dispatch_params`; its `element_count` field is dispatch metadata rather than learned state. The starter and CPU exercise use `storage_value_access_count(element_count, fused)` only for the 4N-versus-2N operation-graph model, avoiding a claim that these counts are measured bus transfers.
 
 The Vulkan extension distinction is concrete: `VK_KHR_shader_float16_int8` supplies 16-bit arithmetic, `VK_KHR_16bit_storage` supplies storage/interface capability, and `VK_KHR_cooperative_matrix` supplies subgroup-cooperative matrix operations. wgpu abstracts normal half arithmetic through SHADER_F16.
 

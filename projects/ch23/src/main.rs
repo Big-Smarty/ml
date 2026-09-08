@@ -7,89 +7,108 @@ fn signal(n: usize) -> Vec<f64> {
 
 #[derive(Clone, Copy)]
 struct Rnn {
-    wx: f64,
-    wh: f64,
-    b: f64,
-    wy: f64,
-    by: f64,
+    input_weight: f64,
+    recurrent_weight: f64,
+    bias: f64,
+    output_weight: f64,
+    output_bias: f64,
 }
 #[derive(Default)]
-struct RnnGrad {
-    wx: f64,
-    wh: f64,
-    b: f64,
-    wy: f64,
-    by: f64,
+struct RnnGradient {
+    input_weight: f64,
+    recurrent_weight: f64,
+    bias: f64,
+    output_weight: f64,
+    output_bias: f64,
+}
+
+struct RnnCache {
+    states: Vec<f64>,
+    predictions: Vec<f64>,
 }
 
 impl Rnn {
     fn new() -> Self {
         Self {
-            wx: 0.3,
-            wh: 0.2,
-            b: 0.0,
-            wy: 0.4,
-            by: 0.0,
+            input_weight: 0.3,
+            recurrent_weight: 0.2,
+            bias: 0.0,
+            output_weight: 0.4,
+            output_bias: 0.0,
         }
     }
-    fn loss_grad(&self, values: &[f64]) -> (f64, RnnGrad) {
+    fn forward(&self, inputs: &[f64]) -> RnnCache {
+        let mut states = Vec::with_capacity(inputs.len() + 1);
+        states.push(0.0);
+        let mut predictions = Vec::with_capacity(inputs.len());
+        for (t, &input) in inputs.iter().enumerate() {
+            let state =
+                (self.input_weight * input + self.recurrent_weight * states[t] + self.bias).tanh();
+            states.push(state);
+            predictions.push(self.output_weight * state + self.output_bias);
+        }
+        RnnCache {
+            states,
+            predictions,
+        }
+    }
+    fn loss_and_gradient(&self, values: &[f64]) -> (f64, RnnGradient) {
         assert!(
             values.len() >= 2 && values.iter().all(|x| x.is_finite()),
             "sequence needs two finite observations"
         );
-        let n = values.len() - 1;
-        let mut states = Vec::with_capacity(n + 1);
-        states.push(0.0);
-        let mut predictions = Vec::with_capacity(n);
-        for t in 0..n {
-            let h = (self.wx * values[t] + self.wh * states[t] + self.b).tanh();
-            states.push(h);
-            predictions.push(self.wy * h + self.by);
-        }
-        let loss = predictions
+        let target_count = values.len() - 1;
+        let inputs = &values[..target_count];
+        let targets = &values[1..];
+        let cache = self.forward(inputs);
+        let loss = cache
+            .predictions
             .iter()
-            .enumerate()
-            .map(|(t, p)| (p - values[t + 1]).powi(2))
+            .zip(targets)
+            .map(|(prediction, target)| (prediction - target).powi(2))
             .sum::<f64>()
-            / n as f64;
-        let mut g = RnnGrad::default();
-        let mut dh_next = 0.0;
-        for t in (0..n).rev() {
-            let dp = 2.0 * (predictions[t] - values[t + 1]) / n as f64;
-            g.wy += dp * states[t + 1];
-            g.by += dp;
-            let da = (dp * self.wy + dh_next) * (1.0 - states[t + 1].powi(2));
-            g.wx += da * values[t];
-            g.wh += da * states[t];
-            g.b += da;
-            dh_next = da * self.wh;
+            / target_count as f64;
+        let mut gradient = RnnGradient::default();
+        let mut next_state_gradient = 0.0;
+        for t in (0..target_count).rev() {
+            let prediction_gradient =
+                2.0 * (cache.predictions[t] - targets[t]) / target_count as f64;
+            gradient.output_weight += prediction_gradient * cache.states[t + 1];
+            gradient.output_bias += prediction_gradient;
+            let preactivation_gradient = (prediction_gradient * self.output_weight
+                + next_state_gradient)
+                * (1.0 - cache.states[t + 1].powi(2));
+            gradient.input_weight += preactivation_gradient * inputs[t];
+            gradient.recurrent_weight += preactivation_gradient * cache.states[t];
+            gradient.bias += preactivation_gradient;
+            next_state_gradient = preactivation_gradient * self.recurrent_weight;
         }
-        (loss, g)
+        (loss, gradient)
     }
-    fn train(&mut self, values: &[f64], epochs: usize, rate: f64) {
+    fn train(&mut self, values: &[f64], epochs: usize, learning_rate: f64) {
         assert!(
-            epochs > 0 && rate.is_finite() && rate > 0.0,
+            epochs > 0 && learning_rate.is_finite() && learning_rate > 0.0,
             "positive finite training settings required"
         );
         for _ in 0..epochs {
-            let (_, g) = self.loss_grad(values);
-            self.wx -= rate * g.wx;
-            self.wh -= rate * g.wh;
-            self.b -= rate * g.b;
-            self.wy -= rate * g.wy;
-            self.by -= rate * g.by;
+            let (_, gradient) = self.loss_and_gradient(values);
+            self.input_weight -= learning_rate * gradient.input_weight;
+            self.recurrent_weight -= learning_rate * gradient.recurrent_weight;
+            self.bias -= learning_rate * gradient.bias;
+            self.output_weight -= learning_rate * gradient.output_weight;
+            self.output_bias -= learning_rate * gradient.output_bias;
         }
     }
-    fn mse(&self, values: &[f64]) -> f64 {
-        self.loss_grad(values).0
+    fn loss(&self, values: &[f64]) -> f64 {
+        self.loss_and_gradient(values).0
     }
 }
 
 #[derive(Clone, Copy)]
 struct Gate {
-    wx: f64,
-    wh: f64,
-    b: f64,
+    input_weight: f64,
+    recurrent_weight: f64,
+    bias: f64,
 }
 #[derive(Clone, Copy)]
 struct Lstm {
@@ -97,27 +116,27 @@ struct Lstm {
     forget: Gate,
     output: Gate,
     candidate: Gate,
-    wy: f64,
-    by: f64,
+    output_weight: f64,
+    output_bias: f64,
 }
 #[derive(Default, Clone, Copy)]
-struct GateGrad {
-    wx: f64,
-    wh: f64,
-    b: f64,
+struct GateGradient {
+    input_weight: f64,
+    recurrent_weight: f64,
+    bias: f64,
 }
 #[derive(Default)]
-struct LstmGrad {
-    input: GateGrad,
-    forget: GateGrad,
-    output: GateGrad,
-    candidate: GateGrad,
-    wy: f64,
-    by: f64,
+struct LstmGradient {
+    input: GateGradient,
+    forget: GateGradient,
+    output: GateGradient,
+    candidate: GateGradient,
+    output_weight: f64,
+    output_bias: f64,
 }
 #[derive(Clone, Copy)]
-struct Step {
-    x: f64,
+struct LstmStep {
+    input: f64,
     h_prev: f64,
     c_prev: f64,
     i: f64,
@@ -126,7 +145,7 @@ struct Step {
     g: f64,
     c: f64,
     h: f64,
-    pred: f64,
+    prediction: f64,
 }
 
 fn sigmoid(x: f64) -> f64 {
@@ -142,126 +161,136 @@ impl Lstm {
     fn new() -> Self {
         Self {
             input: Gate {
-                wx: 0.4,
-                wh: 0.1,
-                b: 0.0,
+                input_weight: 0.4,
+                recurrent_weight: 0.1,
+                bias: 0.0,
             },
             forget: Gate {
-                wx: -0.2,
-                wh: 0.1,
-                b: 1.0,
+                input_weight: -0.2,
+                recurrent_weight: 0.1,
+                bias: 1.0,
             },
             output: Gate {
-                wx: 0.3,
-                wh: -0.1,
-                b: 0.0,
+                input_weight: 0.3,
+                recurrent_weight: -0.1,
+                bias: 0.0,
             },
             candidate: Gate {
-                wx: 0.5,
-                wh: 0.2,
-                b: 0.0,
+                input_weight: 0.5,
+                recurrent_weight: 0.2,
+                bias: 0.0,
             },
-            wy: 0.6,
-            by: 0.0,
+            output_weight: 0.6,
+            output_bias: 0.0,
         }
     }
-    fn gate(g: Gate, x: f64, h: f64) -> f64 {
-        sigmoid(g.wx * x + g.wh * h + g.b)
+    fn gate(gate: Gate, input: f64, previous_state: f64) -> f64 {
+        sigmoid(gate.input_weight * input + gate.recurrent_weight * previous_state + gate.bias)
     }
-    fn loss_grad(&self, values: &[f64]) -> (f64, LstmGrad) {
-        assert!(
-            values.len() >= 2 && values.iter().all(|x| x.is_finite()),
-            "sequence needs two finite observations"
-        );
-        let n = values.len() - 1;
-        let (mut h, mut c) = (0.0, 0.0);
-        let mut steps = Vec::with_capacity(n);
-        for &x in values.iter().take(n) {
-            let h_prev = h;
-            let c_prev = c;
-            let i = Self::gate(self.input, x, h_prev);
-            let f = Self::gate(self.forget, x, h_prev);
-            let o = Self::gate(self.output, x, h_prev);
-            let g = (self.candidate.wx * x + self.candidate.wh * h_prev + self.candidate.b).tanh();
-            c = f * c_prev + i * g;
-            h = o * c.tanh();
-            steps.push(Step {
-                x,
+    fn forward(&self, inputs: &[f64]) -> Vec<LstmStep> {
+        let (mut hidden, mut cell) = (0.0, 0.0);
+        let mut cache = Vec::with_capacity(inputs.len());
+        for &input in inputs {
+            let h_prev = hidden;
+            let c_prev = cell;
+            let i = Self::gate(self.input, input, h_prev);
+            let f = Self::gate(self.forget, input, h_prev);
+            let o = Self::gate(self.output, input, h_prev);
+            let g = (self.candidate.input_weight * input
+                + self.candidate.recurrent_weight * h_prev
+                + self.candidate.bias)
+                .tanh();
+            cell = f * c_prev + i * g;
+            hidden = o * cell.tanh();
+            cache.push(LstmStep {
+                input,
                 h_prev,
                 c_prev,
                 i,
                 f,
                 o,
                 g,
-                c,
-                h,
-                pred: self.wy * h + self.by,
+                c: cell,
+                h: hidden,
+                prediction: self.output_weight * hidden + self.output_bias,
             });
         }
-        let loss = steps
-            .iter()
-            .enumerate()
-            .map(|(t, s)| (s.pred - values[t + 1]).powi(2))
-            .sum::<f64>()
-            / n as f64;
-        let mut grad = LstmGrad::default();
-        let (mut dh_next, mut dc_next) = (0.0, 0.0);
-        for t in (0..n).rev() {
-            let s = steps[t];
-            let dp = 2.0 * (s.pred - values[t + 1]) / n as f64;
-            grad.wy += dp * s.h;
-            grad.by += dp;
-            let dh = dp * self.wy + dh_next;
-            let tanh_c = s.c.tanh();
-            let d_o = dh * tanh_c;
-            let dc = dh * s.o * (1.0 - tanh_c * tanh_c) + dc_next;
-            let d_f = dc * s.c_prev;
-            let d_i = dc * s.g;
-            let d_g = dc * s.i;
-            dc_next = dc * s.f;
-            let da_i = d_i * s.i * (1.0 - s.i);
-            let da_f = d_f * s.f * (1.0 - s.f);
-            let da_o = d_o * s.o * (1.0 - s.o);
-            let da_g = d_g * (1.0 - s.g * s.g);
-            for (gg, da) in [
-                (&mut grad.input, da_i),
-                (&mut grad.forget, da_f),
-                (&mut grad.output, da_o),
-                (&mut grad.candidate, da_g),
-            ] {
-                gg.wx += da * s.x;
-                gg.wh += da * s.h_prev;
-                gg.b += da;
-            }
-            dh_next = da_i * self.input.wh
-                + da_f * self.forget.wh
-                + da_o * self.output.wh
-                + da_g * self.candidate.wh;
-        }
-        (loss, grad)
+        cache
     }
-    fn apply_gate(g: &mut Gate, dg: GateGrad, rate: f64) {
-        g.wx -= rate * dg.wx;
-        g.wh -= rate * dg.wh;
-        g.b -= rate * dg.b;
-    }
-    fn train(&mut self, values: &[f64], epochs: usize, rate: f64) {
+    fn loss_and_gradient(&self, values: &[f64]) -> (f64, LstmGradient) {
         assert!(
-            epochs > 0 && rate.is_finite() && rate > 0.0,
+            values.len() >= 2 && values.iter().all(|x| x.is_finite()),
+            "sequence needs two finite observations"
+        );
+        let target_count = values.len() - 1;
+        let inputs = &values[..target_count];
+        let targets = &values[1..];
+        let cache = self.forward(inputs);
+        let loss = cache
+            .iter()
+            .zip(targets)
+            .map(|(step, target)| (step.prediction - target).powi(2))
+            .sum::<f64>()
+            / target_count as f64;
+        let mut gradient = LstmGradient::default();
+        let (mut next_hidden_gradient, mut next_cell_gradient) = (0.0, 0.0);
+        for t in (0..target_count).rev() {
+            let step = cache[t];
+            let prediction_gradient = 2.0 * (step.prediction - targets[t]) / target_count as f64;
+            gradient.output_weight += prediction_gradient * step.h;
+            gradient.output_bias += prediction_gradient;
+            let hidden_gradient = prediction_gradient * self.output_weight + next_hidden_gradient;
+            let tanh_c = step.c.tanh();
+            let output_gradient = hidden_gradient * tanh_c;
+            let cell_gradient =
+                hidden_gradient * step.o * (1.0 - tanh_c * tanh_c) + next_cell_gradient;
+            let forget_gradient = cell_gradient * step.c_prev;
+            let input_gradient = cell_gradient * step.g;
+            let candidate_gradient = cell_gradient * step.i;
+            next_cell_gradient = cell_gradient * step.f;
+            let input_preactivation_gradient = input_gradient * step.i * (1.0 - step.i);
+            let forget_preactivation_gradient = forget_gradient * step.f * (1.0 - step.f);
+            let output_preactivation_gradient = output_gradient * step.o * (1.0 - step.o);
+            let candidate_preactivation_gradient = candidate_gradient * (1.0 - step.g * step.g);
+            for (gate_gradient, preactivation_gradient) in [
+                (&mut gradient.input, input_preactivation_gradient),
+                (&mut gradient.forget, forget_preactivation_gradient),
+                (&mut gradient.output, output_preactivation_gradient),
+                (&mut gradient.candidate, candidate_preactivation_gradient),
+            ] {
+                gate_gradient.input_weight += preactivation_gradient * step.input;
+                gate_gradient.recurrent_weight += preactivation_gradient * step.h_prev;
+                gate_gradient.bias += preactivation_gradient;
+            }
+            next_hidden_gradient = input_preactivation_gradient * self.input.recurrent_weight
+                + forget_preactivation_gradient * self.forget.recurrent_weight
+                + output_preactivation_gradient * self.output.recurrent_weight
+                + candidate_preactivation_gradient * self.candidate.recurrent_weight;
+        }
+        (loss, gradient)
+    }
+    fn apply_gate(gate: &mut Gate, gradient: GateGradient, learning_rate: f64) {
+        gate.input_weight -= learning_rate * gradient.input_weight;
+        gate.recurrent_weight -= learning_rate * gradient.recurrent_weight;
+        gate.bias -= learning_rate * gradient.bias;
+    }
+    fn train(&mut self, values: &[f64], epochs: usize, learning_rate: f64) {
+        assert!(
+            epochs > 0 && learning_rate.is_finite() && learning_rate > 0.0,
             "positive finite training settings required"
         );
         for _ in 0..epochs {
-            let (_, g) = self.loss_grad(values);
-            Self::apply_gate(&mut self.input, g.input, rate);
-            Self::apply_gate(&mut self.forget, g.forget, rate);
-            Self::apply_gate(&mut self.output, g.output, rate);
-            Self::apply_gate(&mut self.candidate, g.candidate, rate);
-            self.wy -= rate * g.wy;
-            self.by -= rate * g.by;
+            let (_, gradient) = self.loss_and_gradient(values);
+            Self::apply_gate(&mut self.input, gradient.input, learning_rate);
+            Self::apply_gate(&mut self.forget, gradient.forget, learning_rate);
+            Self::apply_gate(&mut self.output, gradient.output, learning_rate);
+            Self::apply_gate(&mut self.candidate, gradient.candidate, learning_rate);
+            self.output_weight -= learning_rate * gradient.output_weight;
+            self.output_bias -= learning_rate * gradient.output_bias;
         }
     }
-    fn mse(&self, values: &[f64]) -> f64 {
-        self.loss_grad(values).0
+    fn loss(&self, values: &[f64]) -> f64 {
+        self.loss_and_gradient(values).0
     }
 }
 
@@ -280,20 +309,20 @@ fn persistence_mse(values: &[f64]) -> f64 {
 
 fn main() {
     let series = signal(121);
-    let (train, valid) = split(&series, 80);
-    let baseline = persistence_mse(valid);
+    let (train_values, validation_values) = split(&series, 80);
+    let baseline = persistence_mse(validation_values);
     let mut rnn = Rnn::new();
-    let rnn_before = rnn.mse(valid);
-    rnn.train(train, 700, 0.03);
-    let rnn_after = rnn.mse(valid);
+    let rnn_before = rnn.loss(validation_values);
+    rnn.train(train_values, 700, 0.03);
+    let rnn_after = rnn.loss(validation_values);
     let mut lstm = Lstm::new();
-    let lstm_before = lstm.mse(valid);
-    lstm.train(train, 900, 0.04);
-    let lstm_after = lstm.mse(valid);
+    let lstm_before = lstm.loss(validation_values);
+    lstm.train(train_values, 900, 0.04);
+    let lstm_after = lstm.loss(validation_values);
     println!(
         "chronological split: {} training targets, {} later validation targets",
-        train.len() - 1,
-        valid.len() - 1
+        train_values.len() - 1,
+        validation_values.len() - 1
     );
     println!("persistence validation one-step MSE {baseline:.5}");
     println!("RNN validation one-step MSE {rnn_before:.5} -> {rnn_after:.5}");
@@ -307,31 +336,31 @@ mod tests {
     fn rnn_recurrent_gradient_matches_central_difference() {
         let values = signal(9);
         let mut model = Rnn::new();
-        let analytic = model.loss_grad(&values).1.wh;
+        let analytic = model.loss_and_gradient(&values).1.recurrent_weight;
         let h = 1e-5;
-        model.wh += h;
-        let plus = model.mse(&values);
-        model.wh -= 2.0 * h;
-        let minus = model.mse(&values);
+        model.recurrent_weight += h;
+        let plus = model.loss(&values);
+        model.recurrent_weight -= 2.0 * h;
+        let minus = model.loss(&values);
         let numeric = (plus - minus) / (2.0 * h);
         assert!((analytic - numeric).abs() < 1e-6 + 1e-4 * numeric.abs());
     }
     #[test]
     fn short_or_nonfinite_sequences_are_rejected() {
-        assert!(std::panic::catch_unwind(|| Rnn::new().mse(&[1.0])).is_err());
-        assert!(std::panic::catch_unwind(|| Lstm::new().mse(&[0.0, f64::NAN])).is_err());
+        assert!(std::panic::catch_unwind(|| Rnn::new().loss(&[1.0])).is_err());
+        assert!(std::panic::catch_unwind(|| Lstm::new().loss(&[0.0, f64::NAN])).is_err());
     }
 
     #[test]
     fn lstm_bptt_gradient_matches_central_difference() {
         let values = signal(9);
         let mut model = Lstm::new();
-        let analytic = model.loss_grad(&values).1.candidate.wx;
+        let analytic = model.loss_and_gradient(&values).1.candidate.input_weight;
         let h = 1e-5;
-        model.candidate.wx += h;
-        let plus = model.mse(&values);
-        model.candidate.wx -= 2.0 * h;
-        let minus = model.mse(&values);
+        model.candidate.input_weight += h;
+        let plus = model.loss(&values);
+        model.candidate.input_weight -= 2.0 * h;
+        let minus = model.loss(&values);
         let numeric = (plus - minus) / (2.0 * h);
         assert!(
             (analytic - numeric).abs() < 1e-6 + 1e-4 * numeric.abs(),
@@ -341,21 +370,24 @@ mod tests {
     #[test]
     fn both_recurrent_models_learn_prefix_and_improve_future() {
         let series = signal(121);
-        let (train, valid) = split(&series, 80);
+        let (train_values, validation_values) = split(&series, 80);
         let mut rnn = Rnn::new();
-        let rb = rnn.mse(valid);
-        rnn.train(train, 700, 0.03);
+        let rb = rnn.loss(validation_values);
+        rnn.train(train_values, 700, 0.03);
         let mut lstm = Lstm::new();
-        let lb = lstm.mse(valid);
-        lstm.train(train, 900, 0.04);
-        assert!(rnn.mse(valid) < rb * 0.5);
-        assert!(lstm.mse(valid) < lb * 0.5);
+        let lb = lstm.loss(validation_values);
+        lstm.train(train_values, 900, 0.04);
+        assert!(rnn.loss(validation_values) < rb * 0.5);
+        assert!(lstm.loss(validation_values) < lb * 0.5);
     }
     #[test]
     fn temporal_split_has_no_future_training_targets() {
         let series = signal(121);
-        let (train, valid) = split(&series, 80);
-        assert_eq!(train.last(), valid.first());
-        assert_eq!((train.len() - 1, valid.len() - 1), (80, 40));
+        let (train_values, validation_values) = split(&series, 80);
+        assert_eq!(train_values.last(), validation_values.first());
+        assert_eq!(
+            (train_values.len() - 1, validation_values.len() - 1),
+            (80, 40)
+        );
     }
 }

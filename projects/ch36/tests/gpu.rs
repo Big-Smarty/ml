@@ -36,8 +36,8 @@ fn gpu_forward_backward_and_updates_match_cpu() -> Result<(), Box<dyn std::error
             &gpu.forward_with_gpu(&input, &device)?,
             &cpu.forward(&input)?,
         );
-        let oracle = cpu.loss_and_grad(&input, &targets)?;
-        let actual = gpu.loss_and_grad_with_gpu(&input, &targets, &device)?;
+        let oracle = cpu.loss_and_gradient(&input, &targets)?;
+        let actual = gpu.loss_and_gradient_with_gpu(&input, &targets, &device)?;
         close(&[actual.loss], &[oracle.loss]);
         close(&actual.values, &oracle.values);
         cpu.apply_sgd(&oracle, 0.02)?;

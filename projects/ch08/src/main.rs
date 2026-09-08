@@ -43,8 +43,8 @@ impl Value {
             op: Op::Tanh(self),
         })))
     }
-    fn add_grad(&self, g: f64) {
-        self.0.borrow_mut().grad += g;
+    fn add_gradient(&self, contribution: f64) {
+        self.0.borrow_mut().grad += contribution;
     }
     fn id(&self) -> usize {
         Rc::as_ptr(&self.0) as usize
@@ -88,16 +88,16 @@ impl Value {
             match op {
                 Op::Leaf => {}
                 Op::Add(a, b) => {
-                    a.add_grad(g);
-                    b.add_grad(g);
+                    a.add_gradient(g);
+                    b.add_gradient(g);
                 }
                 Op::Mul(a, b) => {
                     let ad = a.data();
                     let bd = b.data();
-                    a.add_grad(g * bd);
-                    b.add_grad(g * ad);
+                    a.add_gradient(g * bd);
+                    b.add_gradient(g * ad);
                 }
-                Op::Tanh(a) => a.add_grad(g * (1.0 - v.data() * v.data())),
+                Op::Tanh(a) => a.add_gradient(g * (1.0 - v.data() * v.data())),
             }
         }
         Ok(())

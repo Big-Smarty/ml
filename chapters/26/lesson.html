@@ -1,35 +1,68 @@
 <p class="lead">Chapter 25 gave us a benchmark that can tell the truth. Now we change the work it measures. Matrix multiplication performs the same products under several legal loop orders, but those orders visit memory very differently. This chapter begins with the scalar formula, measures two loop organizations, adds cache blocking, and keeps every output allocation outside the timed kernel.</p>
-<div class="callout"><strong>Milestone</strong><p>You will multiply nonsquare row-major matrices with <code>i-j-k</code>, <code>i-k-j</code>, and blocked kernels. Every version handles odd edge sizes, writes into a reused buffer, and agrees with an <code>f64</code> reference before any timing is trusted.</p></div>
+<div class="callout"><strong>Milestone</strong><p>You will multiply nonsquare row-major matrices with scalar row-col-inner, scalar row-inner-col, and blocked row-inner-col kernels. Every version handles odd edge sizes, writes into a reused buffer, and agrees with an <code>f64</code> reference before any timing is trusted.</p></div>
+
+<section id="continuity"><h2>Code and terminology carried forward</h2>
+<p><a href="/chapters/25.html">Chapter 25</a> measured dense inference with <code>inputs</code> shaped <code>[batch,in_features]</code>, <code>weights</code> shaped <code>[out_features,in_features]</code>, and caller-owned <code>outputs</code> shaped <code>[batch,out_features]</code>. That layout and the operation Y=inputs×weights<sup>T</sup>+bias came from <a href="/chapters/09.html">Chapter 9</a>. This chapter keeps the <code>f32</code> timed kernel, the untimed <code>f64</code> oracle, the release benchmark protocol, and output-buffer reuse. See the <a href="/conventions.html">course code and terminology conventions</a>.</p>
+<p>General matrix multiplication, or GEMM, writes A<code>[m,k]</code>×B<code>[k,n]</code>=C<code>[m,n]</code>. To express Chapter 25's dense operation as this GEMM, set <code>m=batch</code>, <code>k=in_features</code>, <code>n=out_features</code>, and A=<code>inputs</code>. Chapter 25 stores a dense weight at <code>weights[col*k+inner]</code> because weights are <code>[out_features,in_features]</code>. GEMM needs the explicit transpose B=weights<sup>T</sup>, stored contiguously as <code>b[inner*n+col] = weights[col*k+inner]</code>. GEMM then writes C=<code>outputs</code>; dense inference adds <code>bias[col]</code> separately. The benchmark here measures GEMM itself, so it does not time that one-time layout conversion or bias addition.</p>
+<p>The code names the three logical indices <code>row</code>, <code>col</code>, and <code>inner</code> before showing any loop. <code>row</code> selects one of the <code>m</code> C rows, <code>col</code> selects one of its <code>n</code> columns, and <code>inner</code> reduces the shared dimension of length <code>k</code>. Textbooks often call the same orders i-j-k and i-k-j; the Rust names spell out the roles because <code>k</code> already stores a dimension length.</p>
+<div class="table-wrap"><table><caption>Chapter 26 operations and boundaries</caption><thead><tr><th>Operation</th><th>Arguments → result</th><th>Role</th></tr></thead><tbody><tr><td><code>matmul_scalar_row_col_inner</code></td><td><code>(a, b, c, m, k, n) → Result&lt;(), String&gt;</code></td><td>Validates A<code>[m,k]</code>, B<code>[k,n]</code>, and C<code>[m,n]</code>, then computes one output at a time.</td></tr><tr><td><code>matmul_scalar_row_inner_col</code></td><td>The same slices and dimensions → <code>Result&lt;(), String&gt;</code></td><td>Validates the same boundary, then walks contiguous B and C rows.</td></tr><tr><td><code>matmul_blocked_row_inner_col</code></td><td>The same values plus <code>block</code> → <code>Result&lt;(), String&gt;</code></td><td>Adds one level of row-inner-col tiles and rejects a zero block.</td></tr></tbody></table></div>
+<p>The starter, Rustlings exercise, and reference use the same <code>matmul_scalar_row_inner_col(a, b, c, m, k, n) -&gt; Result&lt;(), String&gt;</code> interface. The shape validation and output reset are supplied in the exercise; you implement the loop body and finish with <code>Ok(())</code>.</p>
+</section>
 
 <section id="formula"><h2>1. One product, several traversals</h2>
 <p>Let A have shape [m,k], B shape [k,n], and C shape [m,n]. Matrix multiplication defines each output by reducing the shared k dimension:</p>
-<div class="equation">C<sub>i,j</sub> = Σ<sub>p=0…k−1</sub> A<sub>i,p</sub>B<sub>p,j</sub></div>
-<p>Here i chooses one of m output rows, j chooses one of n output columns, and p visits the k paired values. In contiguous <a class="term" data-term="row-major" href="/glossary/row-major.html">row-major</a> storage, A[i,p] is <code>a[i*k+p]</code>, B[p,j] is <code>b[p*n+j]</code>, and C[i,j] is <code>c[i*n+j]</code>. The dimensions are intentionally nonsquare so a hidden transpose cannot pass by coincidence.</p>
+<div class="equation">C<sub>row,col</sub> = Σ<sub>inner=0…k−1</sub> A<sub>row,inner</sub>B<sub>inner,col</sub></div>
+<p>In contiguous <a class="term" data-term="row-major" href="/glossary/row-major.html">row-major</a> storage, A[row,inner] is <code>a[row*k+inner]</code>, B[inner,col] is <code>b[inner*n+col]</code>, and C[row,col] is <code>c[row*n+col]</code>. Chapter 9 owns the glossary definition; here the layout is applied to GEMM. The dimensions are intentionally nonsquare so a hidden transpose cannot pass by coincidence.</p>
 <div class="worked-example"><h3>Multiply [2,3] by [3,2]</h3><p>Let A=[[1,2,3],[4,5,6]] and B=[[1,2],[3,4],[5,6]]. C₀₀=1×1+2×3+3×5=22. C₀₁=1×2+2×4+3×6=28. The second row gives C₁₀=4×1+5×3+6×5=49 and C₁₁=4×2+5×4+6×6=64. The flat answer is [22,28,49,64]. Every optimized kernel must reproduce this mapping.</p></div>
-<p>The direct <code>i-j-p</code> loop computes one C element at a time. Its inner loop walks one contiguous row of A, but B[p*n+j] jumps by n values as p changes. A cache line fetched for one B value contains neighboring columns that this inner loop does not immediately use.</p>
-<pre><code class="language-rust">for i in 0..m {
-    for j in 0..n {
-        for p in 0..k {
-            c[i*n+j] += a[i*k+p] * b[p*n+j];
+<p>The scalar row-col-inner loop computes one C element at a time. Its inner loop walks one contiguous row of A, but <code>b[inner*n+col]</code> jumps by n values as <code>inner</code> changes. A cache line fetched for one B value contains neighboring columns that this inner loop does not immediately use.</p>
+<pre><code class="language-rust" data-source="projects/ch26/src/main.rs">fn matmul_scalar_row_col_inner(
+    a: &amp;[f32],
+    b: &amp;[f32],
+    c: &amp;mut [f32],
+    m: usize,
+    k: usize,
+    n: usize,
+) -&gt; Result&lt;(), String&gt; {
+    validate_matmul_shapes(a, b, c, m, k, n)?;
+    c.fill(0.0);
+    for row in 0..m {
+        for col in 0..n {
+            let mut sum = 0.0;
+            for inner in 0..k {
+                sum += a[row * k + inner] * b[inner * n + col];
+            }
+            c[row * n + col] = sum;
         }
     }
+    Ok(())
 }</code></pre>
 <p>The formula fixes which products must contribute to each C element. It does not require one particular traversal. We can reorder independent loops as long as we initialize C once and preserve every contribution.</p>
 </section>
 
 <section id="ordering"><h2>2. Put contiguous rows in the inner loop</h2>
-<p>The <code>i-p-j</code> organization loads A[i,p] once, then walks j across a complete B row and the matching C row:</p>
-<pre><code class="language-rust">c.fill(0.0);
-for i in 0..m {
-    for p in 0..k {
-        let av = a[i*k+p];
-        for j in 0..n {
-            c[i*n+j] += av * b[p*n+j];
+<p>The scalar row-inner-col organization loads A[row,inner] once, then walks <code>col</code> across a complete B row and the matching C row:</p>
+<pre><code class="language-rust" data-source="projects/ch26/src/main.rs">fn matmul_scalar_row_inner_col(
+    a: &amp;[f32],
+    b: &amp;[f32],
+    c: &amp;mut [f32],
+    m: usize,
+    k: usize,
+    n: usize,
+) -&gt; Result&lt;(), String&gt; {
+    validate_matmul_shapes(a, b, c, m, k, n)?;
+    c.fill(0.0);
+    for row in 0..m {
+        for inner in 0..k {
+            let a_value = a[row * k + inner];
+            for col in 0..n {
+                c[row * n + col] += a_value * b[inner * n + col];
+            }
         }
     }
+    Ok(())
 }</code></pre>
-<p><a class="term" data-term="cache-locality" href="/glossary/cache-locality.html">Cache locality</a> describes access that reuses nearby or recently used data. The inner j loop has spatial locality: successive B and C offsets are adjacent. A cache line brings several useful <code>f32</code> values. The A scalar stays in a local variable while it contributes across the row.</p>
-<p>These source loops retain the same increasing p order for each output. Compiler vectorization and fused operations can still affect rounding, so the chapter compares both to an <code>f64</code> accumulator with tolerance rather than asserting bit equality.</p>
+<p><a class="term" data-term="cache-locality" href="/glossary/cache-locality.html">Cache locality</a> describes access that reuses nearby or recently used data. The inner <code>col</code> loop has spatial locality: successive B and C offsets are adjacent. A cache line brings several useful <code>f32</code> values. The A scalar stays in a local variable while it contributes across the row.</p>
+<p>These source loops retain the same increasing <code>inner</code> order for each output. Compiler vectorization and fused operations can still affect rounding, so the chapter compares both to an <code>f64</code> accumulator with tolerance rather than asserting bit equality.</p>
 <p>“Contiguous is faster” is a hypothesis until measured. Tiny matrices can fit in cache, and loop overhead or compiler choices may dominate. Some shapes favor transposition or packing, which this chapter does not implement. Run the Chapter 25 protocol in release mode and report observed values for your machine:</p>
 <pre><code class="language-bash">cargo test --manifest-path projects/ch26/Cargo.toml
 cargo run --release --manifest-path projects/ch26/Cargo.toml
@@ -38,36 +71,67 @@ cargo run --release --manifest-path projects/ch26/Cargo.toml -- --large</code></
 </section>
 
 <section id="blocking"><h2>3. Reuse a working set before it leaves cache</h2>
-<p>Loop ordering improves the direction of access, but a large B row and C row may still exceed a nearby cache. <a class="term" data-term="cache-blocking" href="/glossary/cache-blocking.html">Cache blocking</a>, also called tiling, divides matrix axes into smaller ranges. The reference steps ii, pp, and jj by a block size, then runs the same i-p-j work inside each tile.</p>
-<p>For block=2 and dimensions m=3, k=5, n=4, the first tile covers i=0..2, p=0..2, j=0..2. The next jj tile keeps i and p but moves to columns 2..4. When pp reaches 4, only one shared-dimension value remains. Each upper bound uses <code>start.saturating_add(block).min(dimension)</code>, so edge tiles are smaller, even an enormous requested block cannot overflow, and no padding or out-of-bounds read is needed.</p>
+<p>Loop ordering improves the direction of access, but a large B row and C row may still exceed a nearby cache. <a class="term" data-term="cache-blocking" href="/glossary/cache-blocking.html">Cache blocking</a>, also called tiling, divides matrix axes into smaller ranges. The reference steps <code>row_start</code>, <code>inner_start</code>, and <code>col_start</code> by a block size, then runs the same row-inner-col work inside each tile.</p>
+<p>For block=2 and dimensions m=3, k=5, n=4, the first tile covers rows 0..2, inner indices 0..2, and columns 0..2. The next column tile keeps the row and inner ranges but moves to columns 2..4. When <code>inner_start</code> reaches 4, only one shared-dimension value remains. Each upper bound uses <code>start.saturating_add(block).min(dimension)</code>, so edge tiles are smaller, even an enormous requested block cannot overflow, and no padding or out-of-bounds read is needed.</p>
+<pre><code class="language-rust" data-source="projects/ch26/src/main.rs">fn matmul_blocked_row_inner_col(
+    a: &amp;[f32],
+    b: &amp;[f32],
+    c: &amp;mut [f32],
+    m: usize,
+    k: usize,
+    n: usize,
+    block: usize,
+) -&gt; Result&lt;(), String&gt; {
+    // ponytail: one scalar tile level; add packing/register kernels only after measurements justify them.
+    validate_matmul_shapes(a, b, c, m, k, n)?;
+    if block == 0 {
+        return Err("block size must be positive".into());
+    }
+    c.fill(0.0);
+    for row_start in (0..m).step_by(block) {
+        for inner_start in (0..k).step_by(block) {
+            for col_start in (0..n).step_by(block) {
+                for row in row_start..row_start.saturating_add(block).min(m) {
+                    for inner in inner_start..inner_start.saturating_add(block).min(k) {
+                        let a_value = a[row * k + inner];
+                        for col in col_start..col_start.saturating_add(block).min(n) {
+                            c[row * n + col] += a_value * b[inner * n + col];
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}</code></pre>
 <p>A tile aims to keep useful pieces of A, B, and C near the core while accumulating several operations. Its size is a calibration knob, not a mathematical constant. The reference uses 32 as one reasonable experiment. Real high-performance GEMM uses multiple levels of blocking, packed panels, register microkernels, architecture-specific instructions, and careful scheduling. Adding all of that would hide the central lesson; first prove whether this single tile level helps your actual shape.</p>
-<div class="worked-example"><h3>Why edge arithmetic stays exact</h3><p>For n=7 and block=4, jj takes values 0 and 4. The first inner j range is 0..4, four columns. The second is 4..min(8,7)=4..7, three columns. Together they cover each column exactly once. The same reasoning applies independently to m and k, so an odd 3×5 times 5×7 test exercises partial tiles on all three axes. The test also uses <code>usize::MAX</code> as a block to prove saturating bounds safely reduce it to each dimension.</p></div>
+<div class="worked-example"><h3>Why edge arithmetic stays exact</h3><p>For n=7 and block=4, <code>col_start</code> takes values 0 and 4. The first inner column range is 0..4, four columns. The second is 4..min(8,7)=4..7, three columns. Together they cover each column exactly once. The same reasoning applies independently to m and k, so an odd 3×5 times 5×7 test exercises partial tiles on all three axes. The test also uses <code>usize::MAX</code> as a block to prove saturating bounds safely reduce it to each dimension.</p></div>
 <p>Blocking can lose. A tile that is too small adds loop overhead; one too large behaves like the unblocked kernel. Cache topology, simultaneous threads, matrix shapes, and other live data affect the best size. Keep the benchmark and tune from evidence rather than naming one universal block.</p>
 </section>
 
 <section id="allocation"><h2>4. Reuse storage so the kernel comparison stays clean</h2>
-<p>Each kernel accepts <code>&amp;mut [f32]</code> for C. The caller allocates that vector once. Before multiplication, the kernel calls <code>fill(0.0)</code> because both <code>i-p-j</code> and the blocked form add contributions into existing values. Forgetting the reset silently mixes the current result with the previous repetition.</p>
+<p>Each kernel accepts <code>&amp;mut [f32]</code> for C. The caller allocates that vector once and passes the same allocation to every timed repetition. Before multiplication, the kernel calls <code>fill(0.0)</code> because both row-inner-col forms add contributions into existing values. Forgetting the reset silently mixes the current result with the previous repetition.</p>
 <p><a class="term" data-term="allocation-reuse" href="/glossary/allocation-reuse.html">Allocation reuse</a> separates memory ownership from repeated computation. Training repeatedly creates activations and gradients of known shapes; inference repeatedly writes outputs for similar batches. Holding a correctly sized buffer avoids allocator work and makes latency more predictable. It does not mean stale values may survive. Overwrite every output or clear accumulators at a deliberate boundary.</p>
 <p>The timer includes <code>c.fill(0.0)</code> because zero initialization is required by these accumulating kernels. It excludes allocating C because all variants can reuse it. If an application genuinely allocates on every request, measure that end-to-end path separately. Fair comparison requires identical boundaries.</p>
 <p>The project’s shape guard checks positive dimensions, checked products, and exact slice lengths before indexing. Block size zero is rejected before <code>step_by</code>. These checks are outside the inner arithmetic and protect the public boundary without putting a branch on every multiply.</p>
 </section>
 
 <section id="practice"><h2>5. Practice locality without losing correctness</h2>
-<div class="exercise"><h3>Guided exercise: reorder the loops</h3><p>Open <a href="/code/exercises/cpu/exercises/ch26_01.rs">ch26_01.rs</a>. Implement <code>i-p-j</code> traversal for the worked 2×3 and 3×2 matrices.</p><details><summary>Hint 1</summary><p>Clear C, then make i the outer loop and p the middle loop. Save A[i,p] before entering j.</p></details><details><summary>Hint 2</summary><p>Inside j, add <code>av * b[p*n+j]</code> into <code>c[i*n+j]</code>.</p></details><details><summary>Solution</summary><pre><code class="language-rust">for i in 0..m {
-    for p in 0..k {
-        let av = a[i*k+p];
-        for j in 0..n { c[i*n+j] += av*b[p*n+j]; }
+<div class="exercise"><h3>Guided exercise: reorder the loops</h3><p>Open <a href="/code/exercises/cpu/exercises/ch26_01.rs">ch26_01.rs</a>. Implement the row-inner-col traversal for the worked 2×3 and 3×2 matrices. Keep the supplied validation, output reset, and <code>Result</code> return type.</p><details><summary>Hint 1</summary><p>Keep the supplied C reset, then make <code>row</code> the outer loop and <code>inner</code> the middle loop. Save A[row,inner] before entering <code>col</code>.</p></details><details><summary>Hint 2</summary><p>Inside <code>col</code>, add <code>a_value * b[inner*n+col]</code> into <code>c[row*n+col]</code>.</p></details><details><summary>Solution</summary><pre><code class="language-rust">for row in 0..m {
+    for inner in 0..k {
+        let a_value = a[row*k+inner];
+        for col in 0..n { c[row*n+col] += a_value*b[inner*n+col]; }
     }
-}</code></pre><p>The assignment must be <code>+=</code> because each p contributes one term to the same output.</p></details></div>
-<div class="exercise"><h3>Project checkpoint: add tiles</h3><p>Run <code>cargo run --manifest-path projects/ch26/starter/Cargo.toml</code>; its prior <code>i-j-p</code> implementation produces [22,28,49,64]. Then run its tests to reach the guided <code>TODO</code>. After <code>i-p-j</code> passes, add three outer tile loops and partial-edge bounds. Compare with <a href="/code/projects/ch26/src/main.rs">the complete project</a>.</p><details><summary>Progressive hint</summary><p>Use <code>(0..dimension).step_by(block)</code> for ii, pp, jj. Inside, use the original loops over <code>start..start.saturating_add(block).min(dimension)</code>. Keep exactly one clear before all tiles, since each pp tile adds another portion of the shared reduction.</p></details><details><summary>Worked checkpoint</summary><p>Test blocks 1, 4, 16, and <code>usize::MAX</code> on m=3, k=5, n=7. Block 1 is slow but structurally useful; 4 creates partial edges; 16 creates one tile larger than every axis; the maximum value checks overflow-safe bounds. All must match the same <code>f64</code> reference.</p></details></div>
-<div class="exercise"><h3>Debugging: blocked answers are too small</h3><p>A learner calls <code>c.fill(0.0)</code> inside the pp loop. Why does only the last part of each dot product remain?</p><details><summary>Answer</summary><p>The shared k dimension is split across pp tiles. Each tile contributes a partial sum to the same C entries. Clearing inside pp erases earlier partial sums. Initialize C once before any tile loop, then accumulate through every pp range.</p></details></div>
+}</code></pre><p>The assignment must be <code>+=</code> because each <code>inner</code> value contributes one term to the same output. After these loops, return <code>Ok(())</code>.</p></details></div>
+<div class="exercise"><h3>Project checkpoint: add tiles</h3><p>Run <code>cargo run --manifest-path projects/ch26/starter/Cargo.toml</code>; its prior <code>matmul_scalar_row_col_inner</code> implementation produces [22,28,49,64]. Then run its tests to reach the guided <code>TODO</code>. After row-inner-col passes, add three outer tile loops and partial-edge bounds. Retain the supplied slice-length and positive-dimension validation, and add the block-size check before stepping through tiles. Compare with <a href="/code/projects/ch26/src/main.rs">the complete project</a>.</p><details><summary>Progressive hint</summary><p>Use <code>(0..dimension).step_by(block)</code> for <code>row_start</code>, <code>inner_start</code>, and <code>col_start</code>. Inside, use the original loops over <code>start..start.saturating_add(block).min(dimension)</code>. Keep exactly one clear before all tiles, since each inner tile adds another portion of the shared reduction.</p></details><details><summary>Worked checkpoint</summary><p>Test blocks 1, 4, 16, and <code>usize::MAX</code> on m=3, k=5, n=7. Block 1 is slow but structurally useful; 4 creates partial edges; 16 creates one tile larger than every axis; the maximum value checks overflow-safe bounds. All must match the same <code>f64</code> reference.</p></details></div>
+<div class="exercise"><h3>Debugging: blocked answers are too small</h3><p>A learner calls <code>c.fill(0.0)</code> inside the <code>inner_start</code> loop. Why does only the last part of each dot product remain?</p><details><summary>Answer</summary><p>The shared k dimension is split across inner tiles. Each tile contributes a partial sum to the same C entries. Clearing inside the tile loop erases earlier partial sums. Initialize C once before any tile loop, then accumulate through every inner range.</p></details></div>
 <div class="exercise"><h3>Independent variation: calibrate the block</h3><p>For the large flag, try block sizes 8, 16, 32, 64, and 128. Run each under identical conditions and write down median and range.</p><details><summary>Worked answer</summary><p>There is no predetermined winner. Choose the fastest stable median for that machine and shape only if the ranges support the difference. If two overlap heavily, report that the experiment cannot distinguish them. A production kernel may need shape-specific or architecture-specific selection, but one measured constant is enough for this course project.</p></details></div>
 </section>
 
 <section id="review"><h2>6. Review and transfer</h2>
-<p>Retrieve: Which index is the reduction axis? Why does <code>i-j-p</code> stride through B? What does <code>i-p-j</code> reuse? How do partial tiles avoid out-of-bounds access? Why is clearing C inside pp wrong? Which allocation is excluded from the kernel timer?</p>
-<details><summary>Answers</summary><p>p reduces the shared k dimension. Holding j fixed while p changes jumps by n through B. The reordered loop reuses one A scalar while walking adjacent B and C values. Each tile ends at the minimum of its nominal end and the dimension. pp tiles are partial sums, so only one clear may precede them. C is allocated once by the caller and reused across repetitions.</p></details>
+<p>Retrieve: Which index is the reduction axis? Why does row-col-inner stride through B? What does row-inner-col reuse? How do partial tiles avoid out-of-bounds access? Why is clearing C inside an inner tile wrong? Which allocation is excluded from the kernel timer?</p>
+<details><summary>Answers</summary><p><code>inner</code> reduces the shared k dimension. Holding <code>col</code> fixed while <code>inner</code> changes jumps by n through B. The reordered loop reuses one A scalar while walking adjacent B and C values. Each tile ends at the minimum of its nominal end and the dimension. Inner tiles are partial sums, so only one clear may precede them. C is allocated once by the caller and reused across repetitions.</p></details>
 <p>These kernels remain scalar and single-threaded. They establish correct traversal, edges, and measurement before adding concurrency. In <a href="/chapters/27.html">Chapter 27</a>, independent batch rows become thread shards for both inference and gradient calculation.</p>
-<p>The benchmark prints m, k, n, precision, architecture, operating system, one execution thread, warmup count, and sample count. Timing includes the same shape checks and output clearing for each kernel. In the conventional names <code>ijk</code> and <code>ikj</code>, k denotes the shared reduction index; the implementation names that loop variable <code>p</code> because <code>k</code> already stores the shared dimension length.</p>
+<p>The benchmark prints m, k, n, precision, architecture, operating system, one execution thread, warmup count, and sample count. Timing includes the same shape checks and output clearing for each kernel.</p>
 <h3>Primary sources</h3><ul><li><a href="https://www.cs.utexas.edu/~flame/books/ACMTOMS.pdf">Goto and van de Geijn, Anatomy of High-Performance Matrix Multiplication</a> explains layered memory, packing, and blocking.</li><li><a href="https://cdrdv2-public.intel.com/671488/248966-Software-Optimization-Manual-V1-048.pdf">Intel Optimization Reference Manual</a> documents cache blocking and multilevel tiling.</li><li><a href="https://doc.rust-lang.org/stable/std/vec/struct.Vec.html">Rust <code>Vec</code> documentation</a> specifies capacity and allocation behavior.</li><li><a href="https://doc.rust-lang.org/stable/std/primitive.slice.html">Rust slice documentation</a> specifies safe chunk and remainder operations.</li></ul>
 </section>

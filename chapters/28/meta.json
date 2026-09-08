@@ -14,6 +14,6 @@
     {"title":"Rust 1.89 release notes","url":"https://blog.rust-lang.org/2025/08/07/Rust-1.89.0/","note":"AVX-512 stabilization"},
     {"title":"LLVM Auto-Vectorization","url":"https://llvm.org/docs/Vectorizers.html","note":"Loop and SLP vectorizer behavior"}
   ],
-  "checks": ["Portable dispatch rejects unequal lengths", "Default dispatch handles every length 0 through 39 and odd length 1003", "Every runtime-supported AVX2/FMA and AVX-512F backend is directly compared with an oracle", "The auto-vectorization candidate handles an odd length", "Explicit AVX-512 mode returns a clear unsupported error when detection fails", "Every unsafe call and load has documented feature and bounds invariants"],
+  "checks": ["dot_dispatch and dot_avx512_checked reject unequal lengths before any intrinsic call", "dot_dispatch handles every length 0 through 39 and odd length 1003", "dot_scalar and every runtime-supported AVX2/FMA and AVX-512F backend are compared directly with dot_f64_reference", "The auto-vectorization candidate handles an odd length", "Explicit AVX-512 mode returns a clear unsupported error when detection fails", "Every unsafe call and load has documented feature and bounds invariants"],
   "limitations": ["Explicit SIMD implementations cover x86/x86_64 but not ARM NEON", "The project uses scalar tails rather than masked AVX-512 loads", "Default selection prefers AVX2/FMA and does not auto-tune backends", "Auto-vectorization must be inspected for each compiler and target", "No speedup is claimed without local release measurements"]
 }

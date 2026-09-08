@@ -5,25 +5,25 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch51/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.028,
+      "seconds": 0.029,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch51/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.039,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch51/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.042,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch51/target/debug/deps/ch51-ba6781b3d230b6a1)\n\nrunning 4 tests\ntest tests::finite_difference_matches_quadratic_and_vae_reparameterization ... ok\ntest tests::perfect_noise_prediction_recovers_the_previous_state ... ok\ntest tests::gan_updates_both_networks_and_outputs_finite_samples ... ok\ntest tests::vae_and_diffusion_objectives_fall ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s\n\n"
+      "seconds": 0.036,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch51/target/debug/deps/ch51-ba6781b3d230b6a1)\n\nrunning 4 tests\ntest tests::perfect_noise_prediction_recovers_the_previous_state ... ok\ntest tests::finite_difference_matches_quadratic_and_vae_reparameterization ... ok\ntest tests::gan_updates_both_networks_and_outputs_finite_samples ... ok\ntest tests::vae_and_diffusion_objectives_fall ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch51/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.016,
+      "seconds": 0.017,
       "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch51/target/release/ch51`\nbeta-VAE objective: 0.4521 -> 0.1666; decoder means: 0.522, 0.165\nGAN generator: x=1.324z-0.001; discriminator loss 1.3863\ndiffusion noise MSE: 0.6567 -> 0.4190; reverse sample 1.153\ndata fixture: n=6, mean=0.000, variance=1.150, negative=3, |x|<0.5=0, quartiles=[-1.000, -0.700, 1.000]\nVAE decoder means: n=512, mean=0.047, variance=0.668, negative=241, |x|<0.5=238, quartiles=[-0.524, 0.070, 0.550]\nVAE observations (unit decoder variance): n=512, mean=0.042, variance=1.724, negative=249, |x|<0.5=169, quartiles=[-0.826, 0.049, 0.830]\nGAN: n=512, mean=0.077, variance=1.866, negative=242, |x|<0.5=140, quartiles=[-0.877, 0.116, 0.918]\ndiffusion: n=512, mean=0.127, variance=4.877, negative=241, |x|<0.5=82, quartiles=[-1.417, 0.188, 1.486]\nAll three models were trained here; affine Gaussian sampling cannot represent these two modes.\n"
     },
     {
@@ -35,46 +35,48 @@
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch51/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.036,
+      "seconds": 0.038,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch51/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.027,
+      "seconds": 0.03,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch51/starter/target/debug/ch51_starter`\nx=-1.0 reconstruction=-0.797\nx=+0.0 reconstruction=+0.000\nx=+1.0 reconstruction=+0.797\nThis deterministic autoencoder is the checkpoint before a stochastic VAE.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch51/starter/Cargo.toml",
       "returncode": 101,
       "seconds": 0.015,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch51/starter/target/debug/deps/ch51_starter-1312d65d084fcf4d)\n\nrunning 2 tests\ntest zero_log_variance_has_unit_scale ... FAILED\ntest quarter_variance_halves_noise_scale ... FAILED\n\nfailures:\n\n---- zero_log_variance_has_unit_scale stdout ----\n\nthread 'zero_log_variance_has_unit_scale' (17253) panicked at src/main.rs:9:5:\nnot yet implemented: convert log variance to standard deviation\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- quarter_variance_halves_noise_scale stdout ----\n\nthread 'quarter_variance_halves_noise_scale' (17252) panicked at src/main.rs:9:5:\nnot yet implemented: convert log variance to standard deviation\n\n\nfailures:\n    quarter_variance_halves_noise_scale\n    zero_log_variance_has_unit_scale\n\ntest result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch51_starter`\n",
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch51/starter/target/debug/deps/ch51_starter-1312d65d084fcf4d)\n\nrunning 2 tests\ntest zero_log_variance_has_unit_scale ... FAILED\ntest quarter_variance_halves_noise_scale ... FAILED\n\nfailures:\n\n---- zero_log_variance_has_unit_scale stdout ----\n\nthread 'zero_log_variance_has_unit_scale' (17321) panicked at src/main.rs:9:5:\nnot yet implemented: convert log variance to standard deviation\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- quarter_variance_halves_noise_scale stdout ----\n\nthread 'quarter_variance_halves_noise_scale' (17320) panicked at src/main.rs:9:5:\nnot yet implemented: convert log variance to standard deviation\n\n\nfailures:\n    quarter_variance_halves_noise_scale\n    zero_log_variance_has_unit_scale\n\ntest result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch51_starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch51_01.rs -o /tmp/ml-check-msvgxsn8/solutionch51_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch51_01.rs -o /tmp/ml-check-spoqilcf/solutionch51_01",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.041,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-msvgxsn8/solutionch51_01",
+      "command": "/tmp/ml-check-spoqilcf/solutionch51_01",
       "returncode": 0,
       "seconds": 0.001,
-      "output": "\nrunning 2 tests\ntest unit_variance ... ok\ntest quarter_variance_halves_noise_scale ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "output": "\nrunning 2 tests\ntest quarter_variance_halves_noise_scale ... ok\ntest unit_variance ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch51_01.rs -o /tmp/ml-check-msvgxsn8/exercisech51_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch51_01.rs -o /tmp/ml-check-spoqilcf/exercisech51_01",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.041,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-msvgxsn8/exercisech51_01",
+      "command": "/tmp/ml-check-spoqilcf/exercisech51_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 2 tests\ntest unit_variance ... FAILED\ntest quarter_variance_halves_noise_scale ... FAILED\n\nfailures:\n\n---- unit_variance stdout ----\n\nthread 'unit_variance' (17327) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch51_01.rs:4:5:\nnot yet implemented: z = mean + exp(0.5 * log_variance) * epsilon\n\n---- quarter_variance_halves_noise_scale stdout ----\n\nthread 'quarter_variance_halves_noise_scale' (17326) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch51_01.rs:4:5:\nnot yet implemented: z = mean + exp(0.5 * log_variance) * epsilon\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    quarter_variance_halves_noise_scale\n    unit_variance\n\ntest result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 2 tests\ntest quarter_variance_halves_noise_scale ... FAILED\ntest unit_variance ... FAILED\n\nfailures:\n\n---- quarter_variance_halves_noise_scale stdout ----\n\nthread 'quarter_variance_halves_noise_scale' (17394) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch51_01.rs:4:5:\nnot yet implemented: z = mean + exp(0.5 * log_variance) * epsilon\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n---- unit_variance stdout ----\n\nthread 'unit_variance' (17395) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch51_01.rs:4:5:\nnot yet implemented: z = mean + exp(0.5 * log_variance) * epsilon\n\n\nfailures:\n    quarter_variance_halves_noise_scale\n    unit_variance\n\ntest result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

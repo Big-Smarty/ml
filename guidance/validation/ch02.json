@@ -5,26 +5,26 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch02/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.03,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch02/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.04,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch02/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.029,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch02/target/debug/deps/ch02-47a4a5b3efcf03b2)\n\nrunning 2 tests\ntest tests::analytical_gradient_matches_central_difference ... ok\ntest tests::one_step_uses_the_expected_derivative ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.033,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch02/target/debug/deps/ch02-47a4a5b3efcf03b2)\n\nrunning 2 tests\ntest tests::analytical_gradient_matches_central_difference ... ok\ntest tests::one_step_and_training_use_the_expected_derivative ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch02/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.017,
-      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch02/target/release/ch02`\nanalytic  dw=-8.000000, db=-2.000000\nnumerical dw=-8.000000, db=-2.000000\ncheck: true\ntrained weight=2.000000, bias=1.000000, mse=0.0000000000\n"
+      "seconds": 0.018,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch02/target/release/ch02`\nanalytical weight=-8.000000, bias=-2.000000\nnumerical  weight=-8.000000, bias=-2.000000\ncheck: true\ntrained weight=2.000000, bias=1.000000, loss=0.0000000000\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch02/starter/Cargo.toml --check",
@@ -35,46 +35,48 @@
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch02/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.042,
+      "seconds": 0.04,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch02/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.027,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch02/starter/target/debug/ch02-starter`\nprior checkpoint: prediction at x=2 is 2\nRun cargo test to implement the new analytical-gradient TODO.\n"
+      "seconds": 0.031,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch02/starter/target/debug/ch02-starter`\ninitial loss: 9.0\nChapter 1 numerical gradient: weight=-8.000000, bias=-2.000000\nRun cargo test to implement the analytical-gradient TODO.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch02/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.016,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch02/starter/target/debug/deps/ch02_starter-c8226476c6112af0)\n\nrunning 1 test\ntest gradient_at_zero ... FAILED\n\nfailures:\n\n---- gradient_at_zero stdout ----\n\nthread 'gradient_at_zero' (369) panicked at src/main.rs:5:5:\nnot yet implemented: average 2 * error * x and 2 * error over DATA\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    gradient_at_zero\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch02-starter`\n",
+      "seconds": 0.019,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch02/starter/target/debug/deps/ch02_starter-c8226476c6112af0)\n\nrunning 1 test\ntest analytical_gradient_drives_the_same_update ... FAILED\n\nfailures:\n\n---- analytical_gradient_drives_the_same_update stdout ----\n\nthread 'analytical_gradient_drives_the_same_update' (372) panicked at src/main.rs:41:9:\nnot yet implemented: return the analytical weight and bias gradient\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    analytical_gradient_drives_the_same_update\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch02-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch02_01.rs -o /tmp/ml-check-ttgrfde3/solutionch02_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch02_01.rs -o /tmp/ml-check-ypzgur5q/solutionch02_01",
       "returncode": 0,
-      "seconds": 0.043,
+      "seconds": 0.051,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-ttgrfde3/solutionch02_01",
+      "command": "/tmp/ml-check-ypzgur5q/solutionch02_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest derivative_uses_every_example ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch02_01.rs -o /tmp/ml-check-ttgrfde3/exercisech02_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch02_01.rs -o /tmp/ml-check-ypzgur5q/exercisech02_01",
       "returncode": 0,
-      "seconds": 0.041,
+      "seconds": 0.049,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-ttgrfde3/exercisech02_01",
+      "command": "/tmp/ml-check-ypzgur5q/exercisech02_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest derivative_uses_every_example ... FAILED\n\nfailures:\n\n---- derivative_uses_every_example stdout ----\n\nthread 'derivative_uses_every_example' (441) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch02_01.rs:5:5:\nnot yet implemented: average 2 * (weight * x - y) * x\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    derivative_uses_every_example\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest derivative_uses_every_example ... FAILED\n\nfailures:\n\n---- derivative_uses_every_example stdout ----\n\nthread 'derivative_uses_every_example' (444) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch02_01.rs:5:5:\nnot yet implemented: average 2 * (weight * input - target) * input\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    derivative_uses_every_example\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

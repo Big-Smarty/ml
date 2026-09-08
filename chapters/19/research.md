@@ -30,3 +30,7 @@ GPT-6 Astra High independently read the full lesson, metadata, research, referen
 Validated the complete CV input and unique stable IDs; checked reordered membership. Removed the scaler’s dimensional epsilon cutoff in both reference and starter, tested tiny feature units, and rejected overflowed scaling/training results. Kept train-only scaling and the frozen four-candidate search.
 
 Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+
+## Consistency revision, 2026-09-08
+
+No new online research was needed. The local consistency contract and frozen Chapters 4, 14, and 15 establish `LogisticModel`, `Row.features`, discrete `Row.label`, `Scaler::fit(train_data)`, `Scaler::transform(features)`, `predict(features)`, and `learning_rate`. Chapter 19 keeps the same mathematics while storing fold-fitted scaler statistics beside the learned weights and bias, so `probability` and `predict` accept raw features. Cross-validation pools correct predictions and held-out row counts; it does not take an unweighted mean of fold percentages. The Chapter 5 glossary entry remains the sole owner of `data-leakage`.

@@ -10,3 +10,7 @@ GPT-6 Astra High independently read the full lesson, metadata, research, referen
 Added an independent hand-calculated dense result, rejected non-finite oracle comparisons, fixed the starter weight shape, and printed architecture/OS/thread count. Replaced the misleading warmed-DRAM lower-bound reading with a qualified cold-array read-once/write-once traffic estimate.
 
 Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+
+## Consistency revision, 2026-09-08
+
+The Chapter 9 dense contract was rechecked locally: row-major `inputs=[batch,in_features]`, `weights=[out_features,in_features]`, `bias=[out_features]`, and `outputs=[batch,out_features]`, computing inputs × weights-transpose + bias. Chapter 25 keeps that layout and argument order while changing the timed storage and arithmetic to `f32`; an untimed `f64` accumulator remains the numerical oracle. The Chapter 24 recommender connection is conceptual—its score matrix is also a row-product—but this benchmark remains a standalone dense inference kernel with no loss, training, or gradient interface. No new external source was needed for these local consistency corrections.

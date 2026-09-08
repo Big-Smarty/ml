@@ -7,6 +7,6 @@ Model route: Sol High author with a bounded GPT-5.6 Luna High primary-source res
 
 GPT-6 Astra High independently read the full lesson, metadata, research, reference, starter, and Rustlings exercise/solution. Bounded GPT-5.6 Luna High primary-source and technical verification covered chapters 25–28; the researcher supplied checks and source findings, while Astra implemented the corrections.
 
-Verified all three loop orders, nonsquare offsets, output clearing, saturating tile ends, and maximum-size blocks. Added shape/precision/architecture/thread/warmup/sample/timed-boundary labels and clarified conventional loop names versus the p reduction variable. No kernel algorithm change was needed.
+Verified all three loop orders, nonsquare offsets, output clearing, saturating tile ends, and maximum-size blocks. Added shape/precision/architecture/thread/warmup/sample/timed-boundary labels. The consistency pass later named logical indices `row`, `col`, and `inner` throughout, and explicitly mapped Chapter 25's stored dense weights `[out_features,in_features]` through a transpose to GEMM B `[k,n]`. No kernel algorithm change was needed.
 
 Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.

@@ -1,13 +1,21 @@
 use std::hint::black_box;
 
-fn dense(x: &[f32], w: &[f32], batch: usize, input: usize, output: usize, y: &mut [f32]) {
+fn dense(
+    inputs: &[f32],
+    weights: &[f32],
+    bias: &[f32],
+    batch: usize,
+    in_features: usize,
+    out_features: usize,
+    outputs: &mut [f32],
+) {
     for b in 0..batch {
-        for o in 0..output {
-            let mut sum = 0.0;
-            for i in 0..input {
-                sum += x[b * input + i] * w[o * input + i];
+        for o in 0..out_features {
+            let mut sum = bias[o];
+            for i in 0..in_features {
+                sum += inputs[b * in_features + i] * weights[o * in_features + i];
             }
-            y[b * output + o] = sum;
+            outputs[b * out_features + o] = sum;
         }
     }
 }
@@ -19,11 +27,20 @@ fn median_ns(_samples: &mut [u128]) -> u128 {
 }
 
 fn main() {
-    let x = [1.0, 2.0, 3.0, 4.0];
-    let w = [0.5, -1.0];
-    let mut y = [0.0; 2];
-    dense(black_box(&x), black_box(&w), 2, 2, 1, black_box(&mut y));
-    println!("prior dense inference: {y:?}; now add warmups and repeated timing in the test");
+    let inputs = [1.0, 2.0, 3.0, 4.0];
+    let weights = [0.5, -1.0];
+    let bias = [0.0];
+    let mut outputs = [0.0; 2];
+    dense(
+        black_box(&inputs),
+        black_box(&weights),
+        black_box(&bias),
+        2,
+        2,
+        1,
+        black_box(&mut outputs),
+    );
+    println!("prior dense inference: {outputs:?}; now add warmups and repeated timing in the test");
 }
 
 #[cfg(test)]

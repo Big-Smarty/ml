@@ -107,28 +107,32 @@ impl Pca1 {
         })
     }
 
-    fn transform(self, x: Vec2) -> f64 {
-        dot(self.component, [x[0] - self.mean[0], x[1] - self.mean[1]])
+    fn transform(&self, features: Vec2) -> f64 {
+        dot(
+            self.component,
+            [features[0] - self.mean[0], features[1] - self.mean[1]],
+        )
     }
 
-    fn reconstruct(self, score: f64) -> Vec2 {
+    fn reconstruct(&self, projection_score: f64) -> Vec2 {
         [
-            self.mean[0] + score * self.component[0],
-            self.mean[1] + score * self.component[1],
+            self.mean[0] + projection_score * self.component[0],
+            self.mean[1] + projection_score * self.component[1],
         ]
     }
 
-    fn reconstruction_mse(self, rows: &[Vec2]) -> f64 {
+    fn mean_squared_reconstruction_norm(&self, rows: &[Vec2]) -> f64 {
         rows.iter()
-            .map(|&x| {
-                let r = self.reconstruct(self.transform(x));
-                (x[0] - r[0]).powi(2) + (x[1] - r[1]).powi(2)
+            .map(|&features| {
+                let reconstruction = self.reconstruct(self.transform(features));
+                (features[0] - reconstruction[0]).powi(2)
+                    + (features[1] - reconstruction[1]).powi(2)
             })
             .sum::<f64>()
             / rows.len() as f64
     }
 
-    fn explained_fraction(self) -> f64 {
+    fn explained_fraction(&self) -> f64 {
         let trace = self.covariance[0][0] + self.covariance[1][1];
         // Reporting convention for a data set with no variance to retain.
         if trace == 0.0 {
@@ -138,7 +142,7 @@ impl Pca1 {
         }
     }
 
-    fn condition_number(self) -> f64 {
+    fn condition_number(&self) -> f64 {
         let scale = self
             .covariance
             .iter()
@@ -185,14 +189,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     );
     println!("covariance condition number: {:.1}", pca.condition_number());
     let x = MEASUREMENTS[0];
-    let score = pca.transform(x);
+    let projection_score = pca.transform(x);
     println!(
-        "first row -> score {score:.4} -> reconstruction {:?}",
-        pca.reconstruct(score)
+        "first row -> score {projection_score:.4} -> reconstruction {:?}",
+        pca.reconstruct(projection_score)
     );
     println!(
         "mean squared reconstruction distance: {:.5}",
-        pca.reconstruction_mse(&MEASUREMENTS)
+        pca.mean_squared_reconstruction_norm(&MEASUREMENTS)
     );
     Ok(())
 }
@@ -217,7 +221,7 @@ mod tests {
         let pca = Pca1::fit(&constant)?;
         assert_eq!(pca.eigenvalue, 0.0);
         assert_eq!(pca.explained_fraction(), 0.0);
-        assert_eq!(pca.reconstruction_mse(&constant), 0.0);
+        assert_eq!(pca.mean_squared_reconstruction_norm(&constant), 0.0);
         Ok(())
     }
 
@@ -240,9 +244,21 @@ mod tests {
             [[1.0, -2.0], [0.5, -1.0], [-0.5, 1.0], [-1.0, 2.0]],
         ] {
             let pca = Pca1::fit(&rows)?;
-            assert!(pca.reconstruction_mse(&rows) < 1e-20);
+            assert!(pca.mean_squared_reconstruction_norm(&rows) < 1e-20);
         }
         Ok(())
+    }
+
+    #[test]
+    fn reconstruction_metric_averages_squared_norms_over_rows() {
+        let pca = Pca1 {
+            mean: [0.0, 0.0],
+            component: [1.0, 0.0],
+            eigenvalue: 0.0,
+            covariance: [[0.0; 2]; 2],
+        };
+        let rows = [[0.0, 2.0], [0.0, -4.0]];
+        assert_eq!(pca.mean_squared_reconstruction_norm(&rows), 10.0);
     }
 
     #[test]
@@ -256,7 +272,10 @@ mod tests {
         assert!((a.eigenvalue - b.eigenvalue).abs() < 1e-10);
         assert!(dot(a.component, b.component).abs() > 1.0 - 1e-10);
         assert!(
-            (a.reconstruction_mse(&MEASUREMENTS) - b.reconstruction_mse(&shifted)).abs() < 1e-10
+            (a.mean_squared_reconstruction_norm(&MEASUREMENTS)
+                - b.mean_squared_reconstruction_norm(&shifted))
+            .abs()
+                < 1e-10
         );
         Ok(())
     }

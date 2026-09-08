@@ -1,12 +1,12 @@
-fn residual(x: &[f32], update: &[f32]) -> Vec<f32> {
+fn residual_add(input: &[f32], residual_branch: &[f32]) -> Vec<f32> {
     // TODO: add matching elements.
-    let _ = (x, update);
+    let _ = (input, residual_branch);
     todo!()
 }
 fn main() {
-    println!("Residual paths carry identity and learned updates.");
+    println!("A residual connection adds the identity shortcut and learned branch.");
 }
 #[test]
-fn adds_paths() {
-    assert_eq!(residual(&[1.0, 2.0], &[-0.5, 3.0]), vec![0.5, 5.0]);
+fn residual_connection_adds_values() {
+    assert_eq!(residual_add(&[1.0, 2.0], &[-0.5, 3.0]), vec![0.5, 5.0]);
 }

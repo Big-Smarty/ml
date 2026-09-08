@@ -5,76 +5,78 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch33/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.027,
+      "seconds": 0.03,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch33/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.037,
+      "seconds": 0.041,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch33/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.034,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch33/target/debug/deps/ch33-1b6784f3cc42059e)\n\nrunning 4 tests\ntest tests::ngrams_respect_units ... ok\ntest tests::common_logit_offset_preserves_uniform_loss ... ok\ntest tests::embedding_and_output_gradients_match_finite_differences ... ok\ntest tests::all_embedding_weights_train ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n"
+      "seconds": 0.036,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch33/target/debug/deps/ch33-1b6784f3cc42059e)\n\nrunning 4 tests\ntest tests::common_logit_offset_preserves_uniform_loss ... ok\ntest tests::ngrams_respect_units ... ok\ntest tests::embedding_and_output_gradients_match_finite_differences ... ok\ntest tests::embedding_and_output_parameters_train ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch33/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.092,
+      "seconds": 0.076,
       "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch33/target/release/ch33`\nbyte bigram 'r' -> 'u' occurs 2 times\n8 distinct Unicode character trigrams\nnext-byte cross-entropy: 5.545 -> 0.957\nembedding model predicts after 'r': 'o'\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch33/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.025,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch33/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.036,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+      "seconds": 0.043,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch33/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.026,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch33/starter/target/debug/ch33_starter`\n14 observed byte bigrams\nComplete the predictor, then run cargo test.\n"
+      "seconds": 0.028,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch33/starter/target/debug/ch33_starter`\n14 distinct observed byte bigrams\nEach following byte is one of 256 target class IDs.\nComplete the predictor, then run cargo test.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch33/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.015,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch33/starter/target/debug/deps/ch33_starter-ecb809c26c1e93ac)\n\nrunning 1 test\ntest predicts_from_counts ... FAILED\n\nfailures:\n\n---- predicts_from_counts stdout ----\n\nthread 'predicts_from_counts' (12434) panicked at src/main.rs:11:5:\nnot yet implemented: guided repair: implement the next-byte count\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    predicts_from_counts\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch33_starter`\n",
+      "seconds": 0.017,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch33/starter/target/debug/deps/ch33_starter-ecb809c26c1e93ac)\n\nrunning 1 test\ntest predicts_from_counts ... FAILED\n\nfailures:\n\n---- predicts_from_counts stdout ----\n\nthread 'predicts_from_counts' (10752) panicked at src/main.rs:12:5:\nnot yet implemented: guided repair: implement the next-byte count\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    predicts_from_counts\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch33_starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch33_01.rs -o /tmp/ml-check-0292b0hp/solutionch33_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch33_01.rs -o /tmp/ml-check-kbryqml5/solutionch33_01",
       "returncode": 0,
-      "seconds": 0.04,
+      "seconds": 0.044,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-0292b0hp/solutionch33_01",
+      "command": "/tmp/ml-check-kbryqml5/solutionch33_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest counts_successors ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch33_01.rs -o /tmp/ml-check-0292b0hp/exercisech33_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch33_01.rs -o /tmp/ml-check-kbryqml5/exercisech33_01",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.046,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-0292b0hp/exercisech33_01",
+      "command": "/tmp/ml-check-kbryqml5/exercisech33_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest counts_successors ... FAILED\n\nfailures:\n\n---- counts_successors stdout ----\n\nthread 'counts_successors' (12506) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch33_01.rs:4:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    counts_successors\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest counts_successors ... FAILED\n\nfailures:\n\n---- counts_successors stdout ----\n\nthread 'counts_successors' (10824) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch33_01.rs:4:5:\nnot yet implemented\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    counts_successors\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

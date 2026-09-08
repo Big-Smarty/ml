@@ -1,16 +1,21 @@
-fn sigmoid(value: f32) -> f32 {
-    1.0 / (1.0 + (-value).exp())
+fn sigmoid(logit: f32) -> f32 {
+    if logit >= 0.0 {
+        1.0 / (1.0 + (-logit).exp())
+    } else {
+        let exp = logit.exp();
+        exp / (1.0 + exp)
+    }
 }
 
-fn output_delta(_prediction: f32, _target: f32) -> f32 {
+fn output_delta(_probability: f32, _target: f32) -> f32 {
     // TODO: differentiate sigmoid cross-entropy.
     todo!("differentiate sigmoid cross-entropy")
 }
 
 fn main() {
     let _guided = output_delta;
-    let prediction = sigmoid(0.4);
-    println!("CPU forward checkpoint: p={prediction:.4}, target=1");
+    let probability = sigmoid(0.4);
+    println!("CPU forward checkpoint: p={probability:.4}, target=1");
 }
 
 #[cfg(test)]
@@ -21,7 +26,7 @@ mod tests {
     fn cross_entropy_sigmoid_delta_has_correct_sign() {
         assert!(
             (output_delta(0.6, 1.0) + 0.4).abs() < 1e-6,
-            "guided repair: the output delta must be prediction minus target"
+            "guided repair: the output delta must be probability minus target"
         );
     }
 }

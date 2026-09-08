@@ -1,10 +1,10 @@
-fn reconstruction_mse(input: &[f64], output: &[f64]) -> f64 {
-    input
+fn reconstruction_mse(reconstruction: &[f64], target: &[f64]) -> f64 {
+    reconstruction
         .iter()
-        .zip(output)
-        .map(|(x, y)| (x - y).powi(2))
+        .zip(target)
+        .map(|(prediction, target)| (prediction - target).powi(2))
         .sum::<f64>()
-        / input.len() as f64
+        / target.len() as f64
 }
 fn main() {
     println!("mse={}", reconstruction_mse(&[1.0], &[0.0]));

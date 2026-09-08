@@ -1,6 +1,6 @@
-fn output_delta(prediction: f32, target: f32) -> f32 {
+fn output_delta(probability: f32, target: f32) -> f32 {
     // TODO: combine sigmoid and binary-cross-entropy derivatives.
-    let _ = (prediction, target);
+    let _ = (probability, target);
     todo!("return the logit gradient")
 }
 

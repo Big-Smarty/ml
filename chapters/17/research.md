@@ -20,6 +20,12 @@ A single fixed start can be orthogonal to the dominant eigenvector. The two-dime
 
 The condition-number discussion distinguishes a nearly rank-one covariance from a small leading eigengap. Explicit covariance squares the centered data matrix's condition number, motivating the stated production preference for SVD.
 
+## Consistency revision
+
+The fitted interface now names its stages explicitly: `Pca1::fit(rows)` estimates and stores the two-feature mean, sample covariance, leading component, and eigenvalue; `Pca1::transform(features)` applies those fitted quantities without refitting and returns a geometric projection score. That projection score is distinct from Chapter 16's classifier score. The Rustlings `projection_score(centered, component)` function isolates only the final dot product, while the starter's `power_step` isolates one iteration from `power_iteration_from`.
+
+The former `reconstruction_mse` operation was renamed `mean_squared_reconstruction_norm` because its unchanged calculation is `sum_i ||features_i - reconstruction_i||_2^2 / n`. It averages squared Euclidean norms over rows, not squared coordinate residuals over `2n` coordinates. This preserves the numerical result and displayed output while distinguishing the reduction from Chapter 22's coordinate MSE.
+
 ## Excluded extensions
 
 Generic dimensions, top-k deflation, randomized SVD, streaming covariance, and file parsing were excluded. The assigned project is the full promised two-feature compressor and exposes the numerical path without a tensor abstraction.

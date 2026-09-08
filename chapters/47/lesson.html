@@ -1,9 +1,36 @@
 <p class="lead">A model can contain many numerical zeros and still occupy the same memory and execute the same multiplications as a dense model. Sparsity becomes useful only when a representation omits those zeros and a kernel follows that representation. This chapter connects a pruning decision to compressed sparse row storage, checks its arithmetic against a dense oracle, and measures rather than assumes performance.</p>
 <div class="callout"><strong>The concrete goal</strong><p>You will keep weights by magnitude, convert the masked matrix to CSR, run a scalar sparse matrix-vector kernel, verify parity, quantify pruning error, and time dense and sparse kernels at four densities. No speedup is promised in advance.</p></div>
 
+<section id="continuity"><h2>Code and terminology carried forward</h2>
+<p><a href="/chapters/25.html">Chapter 25</a> established allocation-free kernel timing, and <a href="/chapters/26.html">Chapter 26</a> kept the dense calculation while changing its traversal. More recently, <a href="/chapters/41.html">Chapter 41</a> named the scalar matrix-vector oracle <code>dense_matvec_reference(weights, out_features, in_features, input)</code>. This chapter keeps that name, argument order, and row-major <code>[out_features,in_features]</code> operation. Two interface details change explicitly: Chapter 47 uses <code>f64</code> rather than <code>f32</code>, and its checked boundary returns <code>Result&lt;Vec&lt;f64&gt;, &amp;'static str&gt;</code> rather than Chapter 41's unchecked <code>Vec&lt;f32&gt;</code>. The function validates dimensions and finite weights/input before multiplication. These are later-course numeric and error-handling choices under the <a href="/conventions.html">course code and terminology conventions</a>.</p>
+<p>One row is one output feature and one column is one input feature. The input has shape <code>[in_features]</code>; both dense and CSR paths produce <code>[out_features]</code>. The fixture contains fixed deterministic weights, not parameters learned by training, and this chapter defines no loss or gradient. It reports output-coordinate RMSE only to show the numerical effect of removing weights.</p>
+<div class="table-wrap"><table><caption>Chapter 47 operations, shapes, and reductions</caption><thead><tr><th>Operation</th><th>Arguments → result</th><th>Meaning</th></tr></thead><tbody><tr><td><code>dense_matvec_reference</code></td><td>weights <code>[out_features,in_features]</code>, input <code>[in_features]</code> → <code>Result&lt;Vec&lt;f64&gt;, _&gt;</code> with output <code>[out_features]</code></td><td>Checked, allocating scalar f64 oracle; each output is a sum over <code>in_features</code>.</td></tr><tr><td><code>prune_to_density</code></td><td>weights and requested density → <code>Result&lt;Vec&lt;f64&gt;, _&gt;</code> of the same shape</td><td>Globally keeps <code>round(density × weight_count)</code> positions by magnitude, with original index breaking ties.</td></tr><tr><td><code>CsrMatrix::from_dense</code></td><td>masked weights, <code>out_features</code>, <code>in_features</code> → <code>Result&lt;CsrMatrix, _&gt;</code></td><td>Stores nonzeros row by row; CSR rows are outputs and columns are inputs.</td></tr><tr><td><code>CsrMatrix::matvec</code></td><td>input <code>[in_features]</code> → <code>Result&lt;Vec&lt;f64&gt;, _&gt;</code> with output <code>[out_features]</code></td><td>Allocating scalar CSR result used for correctness checks.</td></tr><tr><td><code>dense_matvec_into</code></td><td>inputs plus caller-owned output <code>[out_features]</code> → <code>()</code></td><td>Trusted dense kernel reusing its own buffer inside each timed sample.</td></tr><tr><td><code>CsrMatrix::matvec_into</code></td><td>input plus caller-owned output <code>[out_features]</code> → <code>Result&lt;(), _&gt;</code></td><td>Checked CSR kernel reusing a separate buffer inside each of the same 31 samples.</td></tr><tr><td><code>root_mean_square_error</code></td><td>two outputs <code>[out_features]</code> → scalar</td><td>Square root of the mean squared coordinate difference over all output features.</td></tr></tbody></table></div>
+<p>The complete checked dense oracle is:</p>
+<pre><code class="language-rust" data-source="projects/ch47/src/main.rs">fn dense_matvec_reference(
+    weights: &amp;[f64],
+    out_features: usize,
+    in_features: usize,
+    input: &amp;[f64],
+) -&gt; Result&lt;Vec&lt;f64&gt;, &amp;'static str&gt; {
+    if out_features == 0
+        || in_features == 0
+        || out_features.checked_mul(in_features) != Some(weights.len())
+        || input.len() != in_features
+        || weights.iter().chain(input).any(|value| !value.is_finite())
+    {
+        return Err("matrix and input shapes do not align");
+    }
+    Ok(weights
+        .chunks_exact(in_features)
+        .map(|row| row.iter().zip(input).map(|(weight, x)| weight * x).sum())
+        .collect())
+}</code></pre>
+</section>
+
 <section id="zeros"><h2>1. A zero is not yet a saving</h2>
 <p>Consider a dense layer y=Wx, with W stored in row-major order as [output features, input features]. For four output features and four input features, dense storage reserves sixteen values. A loop visits sixteen positions even if twelve happen to equal zero. The numerical result uses zeros, but the storage and instruction path remain dense.</p>
-<p><a class="term" data-term="sparsity" href="/glossary/sparsity.html">Sparsity</a> is the fraction of entries that are zero. Density is the fraction that are nonzero, so sparsity+density=1. A matrix with four nonzeros among sixteen entries has density 4/16=0.25 and sparsity 0.75. Always say which quantity you report; “90% sparse” and “density 0.1” describe the same mask.</p>
+<p><a class="term" data-term="sparsity" href="/glossary/sparsity.html">Sparsity</a>, or fraction zero, is the number of zero positions divided by all matrix positions. Density is the fraction that are nonzero, so fraction_zero=1−density. A matrix with four nonzeros among sixteen entries has density 4/16=0.25 and fraction zero 12/16=0.75. Always say which quantity you report; “90% sparse” and “density 0.1” describe the same mask. In this project, requested density sets a pruning position budget; <code>CsrMatrix::density</code> reports the actual stored-nonzero fraction after original exact zeros are omitted.</p>
+<p>Sparsity is also different from <a href="/chapters/41.html">quantization</a>. Pruning changes selected weights to exact zero, and CSR can then omit those positions. Quantization keeps matrix positions but approximates their values with integer codes and scales. A system may combine the two methods, but this project performs pruning and CSR conversion only; it creates no integer codes or quantization scales.</p>
 <p>A <a class="term" data-term="structural-zero" href="/glossary/structural-zero.html">structural zero</a> is absent from the sparse representation. A stored zero is still an entry with a value and perhaps an index. Conversion should omit exact zeros. Choosing which small nonzero weights become exact zeros is a separate pruning step.</p>
 <div class="worked-example"><h3>Separate representation from model change</h3><p>Let W=[0,2,0; 0,0,0; −3,0,4] and x=[1,2,3]. Dense multiplication gives y=[0×1+2×2+0×3, 0, −3×1+0×2+4×3]=[4,0,9]. A correct sparse encoding must reproduce [4,0,9] exactly apart from floating-point accumulation. That comparison says the representation is correct. It says nothing about whether turning an earlier weight into zero preserved task quality.</p></div>
 </section>
@@ -11,11 +38,29 @@
 <section id="pruning"><h2>2. Choose a mask with magnitude pruning</h2>
 <p><a class="term" data-term="magnitude-pruning" href="/glossary/magnitude-pruning.html">Magnitude pruning</a> ranks weights by absolute value and removes the smallest. Given [−1.0, 0.2, 3.0, −2.0] and target density 0.5, keep two entries. Their magnitudes rank 3.0, 2.0, 1.0, 0.2, so the masked vector is [0,0,3.0,−2.0]. The negative sign of −2 does not make it small.</p>
 <p>The project uses a global budget: <code>round(density × number_of_weights)</code> entries survive across the whole matrix. It sorts indices by descending absolute magnitude and breaks exact ties by original index. This deterministic rule makes tests repeatable. Layer-wise budgets, percentile thresholds, and structured pruning remove different patterns and answer different design questions.</p>
-<pre><code class="language-rust">let keep = (density * weights.len() as f64).round() as usize;
-order.sort_by(|&amp;i, &amp;j| weights[j].abs().total_cmp(&amp;weights[i].abs())
-    .then_with(|| i.cmp(&amp;j)));
-for &amp;index in &amp;order[..keep] {
-    mask[index] = true;
+<pre><code class="language-rust" data-source="projects/ch47/src/main.rs">fn prune_to_density(weights: &amp;[f64], density: f64) -&gt; Result&lt;Vec&lt;f64&gt;, &amp;'static str&gt; {
+    if weights.is_empty()
+        || weights.iter().any(|value| !value.is_finite())
+        || !density.is_finite()
+        || !(0.0..=1.0).contains(&amp;density)
+    {
+        return Err("pruning needs finite weights and density in [0, 1]");
+    }
+    let keep = (density * weights.len() as f64).round() as usize;
+    let mut order: Vec&lt;_&gt; = (0..weights.len()).collect();
+    order.sort_by(|&amp;left, &amp;right| {
+        weights[right]
+            .abs()
+            .total_cmp(&amp;weights[left].abs())
+            .then_with(|| left.cmp(&amp;right))
+    });
+    let mut mask = vec![false; weights.len()];
+    order[..keep].iter().for_each(|&amp;index| mask[index] = true);
+    Ok(weights
+        .iter()
+        .zip(mask)
+        .map(|(&amp;weight, keep)| if keep { weight } else { 0.0 })
+        .collect())
 }</code></pre>
 <p>Why might magnitude work? Near a particular parameter setting, setting a small weight to zero changes that parameter by a small amount. But network sensitivity depends on inputs, interactions, normalization, and later nonlinearities. Magnitude is a heuristic, not a proof of harmlessness.</p>
 <p>Published pruning pipelines commonly train a dense network, prune, and retrain surviving weights while preserving the mask. This chapter uses a deterministic untrained matrix so representation and timing are visible without a long training dependency. It computes output root mean square error against the unpruned matrix as density falls. That output error is real for the fixture, but it is not an accuracy score.</p>
@@ -26,15 +71,41 @@ for &amp;index in &amp;order[..keep] {
 <p><a class="term" data-term="csr" href="/glossary/csr.html">Compressed sparse row</a> stores three arrays. <code>values</code> holds nonzero values in row order. <code>col_idx</code> holds each value's original column. <code>row_ptr</code> has rows+1 offsets. Row r occupies the half-open range <code>row_ptr[r]..row_ptr[r+1]</code>.</p>
 <p>For the worked matrix, values=[2,−3,4], col_idx=[1,0,2], and row_ptr=[0,1,1,3]. Row zero uses entry 0. Row one uses the empty range 1..1. Row two uses entries 1..3. The last pointer is three, equal to the nonzero count.</p>
 <div class="equation">y[r] = Σ<sub>k=row_ptr[r]..row_ptr[r+1]</sub> values[k] × x[col_idx[k]]</div>
-<p>The Rust conversion scans each dense row and pushes only values unequal to zero. It appends the current value count after every row, including empty rows. The matrix constructor rejects zero dimensions, mismatched shape products, and nonfinite values. The matvec method checks the input length and finiteness before following column indices.</p>
-<pre><code class="language-rust">for row in dense.chunks_exact(cols) {
-    for (column, &amp;value) in row.iter().enumerate() {
-        if value != 0.0 {
-            col_idx.push(column);
-            values.push(value);
-        }
+<p>The Rust conversion scans each output row and pushes only values unequal to zero. It appends the current value count after every row, including empty rows. The matrix constructor rejects zero dimensions, mismatched shape products, and nonfinite values. The matvec method checks the input length and finiteness before following column indices.</p>
+<pre><code class="language-rust" data-source="projects/ch47/src/main.rs">fn from_dense(
+    weights: &amp;[f64],
+    out_features: usize,
+    in_features: usize,
+) -&gt; Result&lt;Self, &amp;'static str&gt; {
+    if out_features == 0
+        || in_features == 0
+        || out_features.checked_mul(in_features) != Some(weights.len())
+    {
+        return Err("dense shape must be nonzero and match its data");
     }
-    row_ptr.push(values.len());
+    if weights.iter().any(|value| !value.is_finite()) {
+        return Err("matrix values must be finite");
+    }
+    let mut row_ptr = Vec::with_capacity(out_features + 1);
+    let mut col_idx = Vec::new();
+    let mut values = Vec::new();
+    row_ptr.push(0);
+    for row in weights.chunks_exact(in_features) {
+        for (column, &amp;value) in row.iter().enumerate() {
+            if value != 0.0 {
+                col_idx.push(column);
+                values.push(value);
+            }
+        }
+        row_ptr.push(values.len());
+    }
+    Ok(Self {
+        out_features,
+        in_features,
+        row_ptr,
+        col_idx,
+        values,
+    })
 }</code></pre>
 <p>CSR saves value storage only by adding indices. With f64 values and 64-bit <code>usize</code> indices, each nonzero consumes roughly sixteen bytes across values and columns, plus row pointers. A dense f64 consumes eight bytes per position. The storage crossover can therefore require density substantially below one half on this representation. Cache behavior and allocator overhead add more detail.</p>
 <div class="worked-example"><h3>Count the bytes before timing</h3><p>For R rows, C columns, and K stored values, dense payload is 8RC bytes with f64. On a machine with eight-byte usize, CSR payload is 8K for values, 8K for columns, and 8(R+1) for row pointers: 16K+8(R+1). These are logical array payloads, excluding vector headers and unused allocation capacity. For our 3×3 worked matrix, dense needs 72 bytes while CSR needs 48+32=80 bytes. It has only three nonzeros, yet the row pointers make it larger. For the 192×192 fixture at K=7,373, dense needs 294,912 bytes and CSR needs 119,512. The larger problem amortizes pointer overhead.</p></div>
@@ -45,7 +116,7 @@ for &amp;index in &amp;order[..keep] {
 <section id="measurement"><h2>4. Build a fair kernel measurement</h2>
 <p>A <a class="term" data-term="kernel-benchmark" href="/glossary/kernel-benchmark.html">kernel benchmark</a> times only the numerical loop under comparison. The project generates and prunes the matrix, converts CSR, and allocates both output buffers before timing. Each kernel is warmed once. Then it runs 31 samples on the same f64 input and reports median, minimum, and maximum duration.</p>
 <p>The output buffer is reused. Otherwise allocating a vector inside each CSR timing could dominate small kernels and turn an allocation comparison into a matrix-format claim. <code>std::hint::black_box</code> consumes the outputs so the optimizer has less freedom to erase unused work. Rust documents this barrier as best effort, so it does not replace inspection or a mature benchmark harness.</p>
-<p>Use release mode. Debug builds include bounds checks and skip many optimizations, as the program prints through <code>release=false</code>. Record matrix shape, numeric type, processor, compiler, flags, and nonzero pattern before comparing machines. The default output labels timings as dense-kernel and CSR-kernel medians; sorting, pruning, CSR construction, allocation, and printing lie outside.</p>
+<p>Use release mode. Debug builds skip many optimizations, as the program prints through <code>release=false</code>; bounds checks may remain in either build when the compiler cannot eliminate them. Record matrix shape, numeric type, processor, compiler, flags, and nonzero pattern before comparing machines. The default output labels timings as dense-kernel and CSR-kernel medians; sorting, pruning, CSR construction, allocation, and printing lie outside.</p>
 <p>A <a class="term" data-term="parity-check" href="/glossary/parity-check.html">numerical parity check</a> precedes every timing. For output elements a and b, the allowed difference is 10<sup>−10</sup> + 10<sup>−8</sup>max(|a|,|b|). Nonfinite values fail rather than passing through infinite tolerance. Different reduction order can change last digits even when both kernels are correct.</p>
 <div class="worked-example"><h3>Read a density row honestly</h3><p>Suppose a run says density 0.200, 7,373 nonzeros, pruning-output RMSE 2.4, dense median 20 μs, and CSR median 12 μs. It means CSR was faster for this matrix-vector kernel on this run while changing the unpruned output by RMSE 2.4. It does not include conversion, say whether 2.4 is acceptable for a task, or predict a batched GPU layer.</p></div>
 </section>
@@ -55,19 +126,33 @@ for &amp;index in &amp;order[..keep] {
 cargo test --manifest-path projects/ch47/Cargo.toml</code></pre>
 <p>Open the <a href="/code/projects/ch47/src/main.rs">complete reference source</a>. The default fixture is a deterministic 192×192 f64 matrix and a sinusoidal input vector. It evaluates requested densities 1.0, 0.5, 0.2, and 0.05. Exact density can differ slightly because the keep count is rounded and any original exact zeros are omitted.</p>
 <p>Do not copy timing numbers from this page into a report. They are measured anew by the executable and depend on the current machine. Check that output RMSE is near zero at full density and generally grows as weights are removed. Monotonic growth is plausible for this one input, but not a universal guarantee for every signed matrix and input.</p>
-<p>The starter first executes the familiar dense matrix-vector calculation for the worked matrix, then leaves CSR value extraction unfinished:</p>
+<p>The starter first executes the same checked <code>dense_matvec_reference(weights, out_features, in_features, input)</code> operation for the worked matrix, then leaves <code>CsrMatrix::from_dense</code> unfinished:</p>
 <pre><code class="language-bash">cargo run --manifest-path projects/ch47/starter/Cargo.toml
 cargo test --manifest-path projects/ch47/starter/Cargo.toml</code></pre>
-<p>The run prints [4,0,9] and succeeds. The test intentionally fails at the TODO. Once it passes, extend the starter with column indices and row pointers rather than beginning with a general sparse matrix library.</p>
+<p>The run prints [4,0,9] and succeeds. The test intentionally fails at the TODO. Complete the reference constructor's same shape validation and row-major collection of values, column indices, and row pointers.</p>
 </section>
 
 <section id="practice"><h2>6. Practice, debug, and transfer</h2>
-<div class="exercise"><h3>Exercise A · Build row pointers</h3><p>Open <a href="/code/exercises/cpu/exercises/ch47_01.rs">ch47_01.rs</a>. The three rows have one, zero, and two nonzeros.</p><details><summary>Hint 1 · Required length</summary><p>Start with zero. Append one cumulative count for every row, so the answer has four entries.</p></details><details><summary>Hint 2 · Empty row</summary><p>An empty row repeats the previous offset; it does not disappear.</p></details><details><summary>Worked solution</summary><pre><code class="language-rust">let mut result = vec![0];
-for row in rows {
-    let count = row.iter().filter(|&amp;&amp;x| x != 0.0).count();
-    result.push(result.last().copied().unwrap_or(0) + count);
-}</code></pre><p>The final result is [0,1,1,3].</p></details></div>
-<div class="exercise"><h3>Exercise B · Complete CSR</h3><p>Implement <code>dense_to_csr_values</code> in the starter. Then return a struct containing values, columns, and row pointers for a supplied shape. Test the worked 3×3 matrix and its empty middle row before writing matvec.</p><details><summary>Hint 1 · Traverse in row-major order</summary><p><code>chunks_exact(cols)</code> gives rows and <code>enumerate</code> gives columns.</p></details><details><summary>Hint 2 · Validate first</summary><p>Reject zero dimensions and require <code>rows*cols == dense.len()</code> using checked multiplication.</p></details><details><summary>Reference checkpoint</summary><p>Compare your invariants with <a href="/code/projects/ch47/src/main.rs">the complete project</a>. Keep pruning outside conversion so a threshold is never applied twice.</p></details></div>
+<div class="exercise"><h3>Exercise A · Construct CSR directly</h3><p>Open <a href="/code/exercises/cpu/exercises/ch47_01.rs">ch47_01.rs</a> and complete <code>CsrMatrix::from_dense(weights, out_features, in_features)</code>. The 3×3 fixture has one, zero, and two nonzeros across its output rows.</p><details><summary>Hint 1 · Traverse in row-major order</summary><p><code>weights.chunks_exact(in_features)</code> gives output rows. Within each row, <code>enumerate</code> gives the input column index.</p></details><details><summary>Hint 2 · Empty row</summary><p>Start <code>row_ptr</code> with zero and append <code>values.len()</code> after every output row. An empty row repeats the previous offset.</p></details><details><summary>Worked solution excerpt</summary><p>Inside <code>CsrMatrix::from_dense</code>, after shape and finiteness validation:</p><pre><code class="language-rust" data-source="exercises/cpu/solutions/ch47_01.rs">let mut row_ptr = vec![0];
+let mut col_idx = Vec::new();
+let mut values = Vec::new();
+for row in weights.chunks_exact(in_features) {
+    for (column, &amp;value) in row.iter().enumerate() {
+        if value != 0.0 {
+            col_idx.push(column);
+            values.push(value);
+        }
+    }
+    row_ptr.push(values.len());
+}
+Ok(Self {
+    out_features,
+    in_features,
+    row_ptr,
+    col_idx,
+    values,
+})</code></pre><p>The resulting arrays are <code>row_ptr=[0,1,1,3]</code>, <code>col_idx=[1,0,2]</code>, and <code>values=[2,−3,4]</code>.</p></details></div>
+<div class="exercise"><h3>Exercise B · Complete the starter checkpoint</h3><p>Implement the same <code>CsrMatrix::from_dense(weights, out_features, in_features)</code> operation in the starter. Its test checks the 3×3 shape, exact values and column order, and empty middle row. After it passes, add <code>matvec</code>.</p><details><summary>Hint 1 · Validate the shape</summary><p>Reject zero dimensions and require <code>out_features.checked_mul(in_features) == Some(weights.len())</code>.</p></details><details><summary>Hint 2 · Preserve conversion semantics</summary><p>Omit only exact zeros. Pruning already chose the mask, so the constructor must not apply another magnitude threshold.</p></details><details><summary>Reference checkpoint</summary><p>Compare the completed constructor with <a href="/code/projects/ch47/src/main.rs">the complete project</a>. It uses the same arguments and fields, then adds allocating and caller-buffer matrix-vector methods.</p></details></div>
 <div class="exercise"><h3>Debugging · Sparse appears slower at every density</h3><p>A benchmark calls <code>csr.matvec</code>, which allocates a new vector, but the dense code reuses an output slice. It also converts CSR inside each timed sample. Explain the result.</p><details><summary>Answer</summary><p>The experiment includes allocation and conversion only in the sparse path, so it does not isolate kernels. Prebuild CSR, allocate both outputs before timing, warm both paths, and use in-place kernels. Measure conversion separately if end-to-end latency matters. CSR may still be slower afterward; that would then be evidence about this workload.</p></details></div>
 <div class="exercise"><h3>Independent variation · Structured rows</h3><p>Keep the same nonzero count but place surviving values into a contiguous band in each row instead of global magnitude positions. Run parity and timings again.</p><details><summary>Worked answer</summary><p>Parity should still hold if CSR encodes the same masked matrix. Timing may change because column access becomes more local and row lengths more regular. Pruning error can also change because the mask no longer selects by magnitude. Density alone therefore cannot describe either quality or execution cost.</p></details></div>
 </section>

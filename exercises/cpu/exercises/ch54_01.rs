@@ -1,6 +1,6 @@
-fn rate(successes: usize, eligible: usize) -> Option<f64> {
+fn rate(numerator: usize, denominator: usize) -> Option<f64> {
     // TODO: return no rate for an empty denominator.
-    let _ = (successes, eligible);
+    let _ = (numerator, denominator);
     todo!("guard the denominator")
 }
 fn main() {

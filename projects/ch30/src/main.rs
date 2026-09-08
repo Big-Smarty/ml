@@ -8,7 +8,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("GPU [2,3] × [3,2] = {got:?}");
     println!(
         "CPU oracle             = {:?}",
-        ch30::cpu_matmul(&a, &b, 2, 3, 2)?
+        ch30::matmul_scalar(&a, &b, 2, 3, 2)?
     );
     println!(
         "GPU sum([1,2,3,4,5])   = {}",

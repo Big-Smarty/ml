@@ -51,7 +51,9 @@
     "Group A and B metrics report counts, accuracy, positive rate, TPR, and FPR",
     "A radius-0.25 perturbation reports boundary flips and maximum probability change",
     "A loss-threshold membership attack evaluates a model trained only on marked member rows",
+    "Model::loss returns one row's stable binary cross-entropy rather than a dataset mean",
     "Nonfinite, out-of-range, and wrong-schema inputs are rejected before scoring",
+    "The Chapter 54 comma-separated two-feature input is explicitly distinguished from Chapter 53's form-encoded scalar request",
     "The crude association is +0.30 while the equal-stratum standardized association is -0.10"
   ],
   "limitations": [

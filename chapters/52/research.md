@@ -25,6 +25,7 @@ Model route: GPT-5.6 Luna High primary-source research. Chapter metadata in `cou
 - The tiny paired fixture is suitable for checking tensor dimensions, normalization, diagonal positives, symmetric loss, temperature behavior, and exact retrieval ranking.
 - A small batch supplies few and potentially easy negatives; a low training loss or perfect retrieval can therefore reflect memorization and batch composition rather than useful multimodal alignment.
 - Do not report the fixture as evidence for zero-shot transfer, broad retrieval quality, robustness, fairness, multilingual behavior, or production readiness. Those claims require held-out and task-specific evaluation at meaningful scale.
+- Keep the executable distinctions explicit: normalized-embedding dot products are raw similarities; division by τ produces training logits; softmax normalizes one declared candidate axis; symmetric cross-entropy averages `2N = 6` row and column terms; Recall@1 evaluates raw-similarity ranks and equals HitRate@1 only because each query has one positive.
 
 ## Astra High final review (2026-09-08)
 Luna High reverified all primary-source URLs and reviewed the reference. Chapter 52 claims were reconciled with executable data, arithmetic, and output. The perturbation score is a local stability check with the same three concepts; both encoder matrices change and the final model loss is validated before returning.

@@ -10,3 +10,7 @@ GPT-6 Astra High independently read the full lesson, metadata, research, referen
 Verified guarded AVX2/FMA and AVX-512 plus scalar tails. Added the Rust 1.89 minimum, store safety explanations, finite oracle comparisons, a glossary link, and dispatch-inclusive timing labels. Executed both supported SIMD paths on the host; no claim about unsupported hardware or automatic vectorization was added.
 
 Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+
+## Consistency revision, 2026-09-08
+
+The reference now names its checked portable boundary `dot_dispatch`, keeps `dot_scalar` as the prevalidated `f32` primitive and fallback, and names the independent higher-precision oracle `dot_f64_reference`. The starter uses the same two-layer boundary. The explicit `dot_avx512_checked` path remains separate so the default dispatch still selects only AVX2/FMA or scalar. No algorithm, benchmark scope, fixture, CLI flag, or intrinsic was changed.

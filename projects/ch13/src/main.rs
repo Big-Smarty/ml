@@ -1,6 +1,6 @@
 //! Leakage-safe fitting of missing-value and categorical preprocessing.
 #[derive(Clone, Copy, Debug)]
-struct Row {
+struct RawRow {
     value: Option<f64>,
     category: &'static str,
     group: &'static str,
@@ -13,72 +13,93 @@ struct Preprocessor {
     median: f64,
     categories: Vec<String>,
 }
+
+fn median(values: &mut [f64]) -> Option<f64> {
+    if values.is_empty() {
+        return None;
+    }
+    values.sort_by(f64::total_cmp);
+    let middle = values.len() / 2;
+    Some(if values.len() % 2 == 1 {
+        values[middle]
+    } else {
+        values[middle - 1].midpoint(values[middle])
+    })
+}
+
 impl Preprocessor {
-    fn fit(rows: &[Row]) -> Result<Self, &'static str> {
-        if rows.is_empty() {
+    fn fit(training_rows: &[RawRow]) -> Result<Self, &'static str> {
+        if training_rows.is_empty() {
             return Err("fit needs training rows");
         }
-        let mut values: Vec<f64> = rows.iter().filter_map(|r| r.value).collect();
-        if values.is_empty() || values.iter().any(|x| !x.is_finite()) {
+        let mut values: Vec<f64> = training_rows
+            .iter()
+            .filter_map(|raw_row| raw_row.value)
+            .collect();
+        if values.iter().any(|value| !value.is_finite()) {
             return Err("training numeric values must include a finite value");
         }
-        values.sort_by(f64::total_cmp);
-        let median = if values.len() % 2 == 1 {
-            values[values.len() / 2]
-        } else {
-            values[values.len() / 2 - 1].midpoint(values[values.len() / 2])
-        };
-        let mut categories: Vec<String> = rows.iter().map(|r| r.category.to_owned()).collect();
+        let median =
+            median(&mut values).ok_or("training numeric values must include a finite value")?;
+        let mut categories: Vec<String> = training_rows
+            .iter()
+            .map(|raw_row| raw_row.category.to_owned())
+            .collect();
         categories.sort();
         categories.dedup();
         Ok(Self { median, categories })
     }
-    fn transform(&self, row: Row) -> Result<Vec<f64>, &'static str> {
-        let value = row.value.unwrap_or(self.median);
+    fn transform(&self, raw_row: RawRow) -> Result<Vec<f64>, &'static str> {
+        let value = raw_row.value.unwrap_or(self.median);
         if !value.is_finite() {
             return Err("numeric values must be finite");
         }
-        let mut features = vec![value, row.value.is_none() as u8 as f64];
-        features.extend(
+        let mut encoded_features = vec![value, raw_row.value.is_none() as u8 as f64];
+        encoded_features.extend(
             self.categories
                 .iter()
-                .map(|c| (c == row.category) as u8 as f64),
+                .map(|category| (category == raw_row.category) as u8 as f64),
         );
-        Ok(features)
+        Ok(encoded_features)
     }
 }
 
-fn group_split<'a>(rows: &'a [Row], held_out_group: &str) -> (Vec<&'a Row>, Vec<&'a Row>) {
-    rows.iter().partition(|r| r.group != held_out_group)
+fn group_split<'a>(
+    raw_rows: &'a [RawRow],
+    held_out_group: &str,
+) -> (Vec<&'a RawRow>, Vec<&'a RawRow>) {
+    raw_rows
+        .iter()
+        .partition(|raw_row| raw_row.group != held_out_group)
 }
-fn time_split(rows: &[Row], cutoff: u32) -> (Vec<&Row>, Vec<&Row>) {
-    rows.iter().partition(|r| r.time < cutoff)
+fn time_split(raw_rows: &[RawRow], cutoff: u32) -> (Vec<&RawRow>, Vec<&RawRow>) {
+    raw_rows.iter().partition(|raw_row| raw_row.time < cutoff)
 }
 
 fn main() -> Result<(), &'static str> {
     let rows = [
-        Row {
+        RawRow {
             value: Some(10.0),
             category: "red",
             group: "A",
             time: 1,
             label: 0,
         },
-        Row {
+        RawRow {
             value: None,
             category: "blue",
             group: "A",
             time: 2,
             label: 1,
         },
-        Row {
+        RawRow {
             value: Some(14.0),
             category: "red",
             group: "B",
             time: 3,
             label: 0,
         },
-        Row {
+        RawRow {
             value: Some(100.0),
             category: "green",
             group: "C",
@@ -87,17 +108,17 @@ fn main() -> Result<(), &'static str> {
         },
     ];
     let (train, test) = group_split(&rows, "C");
-    let train_rows: Vec<Row> = train.into_iter().copied().collect();
-    let pre = Preprocessor::fit(&train_rows)?;
+    let training_rows: Vec<RawRow> = train.into_iter().copied().collect();
+    let preprocessor = Preprocessor::fit(&training_rows)?;
     println!(
         "group split: train={}, test={}, fitted median={}",
-        train_rows.len(),
+        training_rows.len(),
         test.len(),
-        pre.median
+        preprocessor.median
     );
     println!(
         "held-out row features: {:?}; label stays separate={}",
-        pre.transform(*test[0])?,
+        preprocessor.transform(*test[0])?,
         test[0].label
     );
     let (past, future) = time_split(&rows, 4);
@@ -111,21 +132,21 @@ mod tests {
     #[test]
     fn held_out_rows_cannot_affect_fit() {
         let rows = [
-            Row {
+            RawRow {
                 value: Some(2.0),
                 category: "a",
                 group: "x",
                 time: 1,
                 label: 0,
             },
-            Row {
+            RawRow {
                 value: Some(4.0),
                 category: "b",
                 group: "x",
                 time: 2,
                 label: 1,
             },
-            Row {
+            RawRow {
                 value: Some(999.0),
                 category: "secret",
                 group: "hold",
@@ -134,34 +155,46 @@ mod tests {
             },
         ];
         let (train, test) = group_split(&rows, "hold");
-        let owned: Vec<Row> = train.into_iter().copied().collect();
-        let p = Preprocessor::fit(&owned).unwrap();
-        assert_eq!(p.median, 3.0);
-        assert_eq!(p.categories, ["a", "b"]);
-        assert_eq!(p.transform(*test[0]).unwrap(), [999.0, 0.0, 0.0, 0.0]);
+        let training_rows: Vec<RawRow> = train.into_iter().copied().collect();
+        let preprocessor = Preprocessor::fit(&training_rows).unwrap();
+        assert_eq!(preprocessor.median, 3.0);
+        assert_eq!(preprocessor.categories, ["a", "b"]);
+        assert_eq!(
+            preprocessor.transform(*test[0]).unwrap(),
+            [999.0, 0.0, 0.0, 0.0]
+        );
         let (_, future) = time_split(&rows, 3);
         assert_eq!(future.len(), 1);
     }
     #[test]
     fn missing_indicator_and_finite_even_median() {
-        let row = Row {
+        let raw_row = RawRow {
             value: Some(f64::MAX),
             category: "a",
             group: "x",
             time: 1,
             label: 0,
         };
-        let fitted = Preprocessor::fit(&[row, row]).unwrap();
+        let fitted = Preprocessor::fit(&[raw_row, raw_row]).unwrap();
         assert_eq!(fitted.median, f64::MAX);
         assert_eq!(
-            fitted.transform(Row { value: None, ..row }).unwrap(),
+            fitted
+                .transform(RawRow {
+                    value: None,
+                    ..raw_row
+                })
+                .unwrap(),
             [f64::MAX, 1.0, 1.0]
         );
-        assert!(Preprocessor::fit(&[Row { value: None, ..row }]).is_err());
+        assert!(Preprocessor::fit(&[RawRow {
+            value: None,
+            ..raw_row
+        }])
+        .is_err());
         assert!(fitted
-            .transform(Row {
+            .transform(RawRow {
                 value: Some(f64::NAN),
-                ..row
+                ..raw_row
             })
             .is_err());
     }

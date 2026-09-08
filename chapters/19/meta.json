@@ -25,11 +25,6 @@
       "definition": "Repeated fitting in which each development fold serves once as held-out validation data.",
       "explanation": "In k-fold cross-validation, each row receives exactly one validation prediction while appearing in the training portion of other fits. Fold construction must respect groups or time when rows are dependent. Stratification preserves class proportions but does not remove dependence. Scores across folds share training rows, so their spread is useful diagnostic information rather than an automatic independent-sample confidence interval. Every row must appear in exactly one validation fold."
     },
-    "data-leakage": {
-      "name": "data leakage",
-      "definition": "Information crossing from held-out rows into any fitted part of the training procedure.",
-      "explanation": "Leakage includes more than using validation labels. Scaling, imputation, category vocabularies, feature selection, PCA, and threshold calibration all learn from data and must be fitted on each training fold. Applying a stored transformation to validation rows is safe; fitting it on the full dataset before splitting is not. Leakage usually creates optimistic scores that will not survive new data. Stable pipelines make the training-only boundary explicit."
-    },
     "hyperparameter": {
       "name": "hyperparameter",
       "definition": "A training setting selected outside the model's parameter-learning update.",
@@ -52,6 +47,7 @@
     "A fixed seed yields identical fold membership across runs",
     "Every development row receives one valid fold and each fold contains three rows per class",
     "Scaling is fitted separately on each fold's training rows",
+    "Cross-validation accuracy pools correct and total held-out rows instead of averaging fold percentages",
     "Candidate ties resolve to the earliest frozen candidate",
     "The selected logistic model beats the majority baseline on the untouched fixture test"
   ],

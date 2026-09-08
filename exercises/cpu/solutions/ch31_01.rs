@@ -1,5 +1,5 @@
-fn output_delta(prediction: f32, target: f32) -> f32 {
-    prediction - target
+fn output_delta(probability: f32, target: f32) -> f32 {
+    probability - target
 }
 
 fn main() {

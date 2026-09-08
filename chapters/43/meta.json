@@ -28,7 +28,7 @@
     "knowledge-distillation": {
       "name": "knowledge distillation",
       "definition": "Training a student model to match a teacher model’s output distribution.",
-      "explanation": "Distillation uses soft probabilities from a teacher as targets for a student, exposing relationships among alternatives that a single hard label omits. The student may have a smaller architecture. Temperature can soften distributions, but the objective and gradient scaling must use that temperature consistently. A lower teacher-student divergence shows imitation on the transfer set, not factual correctness or broad equivalence."
+      "explanation": "Distillation uses soft probabilities from a teacher as targets for a student, exposing relationships among alternatives that a single hard next-token target omits. The student may have a smaller architecture. Temperature can soften distributions, but the objective and derivative scaling must use that temperature consistently. A lower teacher-student divergence shows imitation on the transfer set, not factual correctness or broad equivalence."
     }
   },
   "sources": [
@@ -65,7 +65,7 @@
     "Base decoder is pretrained only on tiny synthetic cycles, not a useful language model",
     "SFT and LoRA quality is measured only on tiny training fixtures",
     "LoRA targets only the output projection",
-    "Distillation uses temperature one and V hard backward passes per example",
+    "Distillation uses temperature tau=1 and V hard-target backward passes per example",
     "Loss covers full sequences rather than masking prompt tokens",
     "LoRA computes a full backward pass on a cloned effective model, so trainable parameter counts do not establish memory or speed savings"
   ]

@@ -3,7 +3,7 @@
     "Convert tiny pixels and caption words into modality-specific vectors",
     "Normalize embeddings and build an image-by-text similarity matrix",
     "Train both encoders with symmetric in-batch contrastive cross-entropy",
-    "Measure image-to-text recall at one on perturbed paired examples"
+    "Measure image-to-text Recall@1 on perturbed paired examples"
   ],
   "lessons": [
     "Two modalities, one comparison space",
@@ -21,17 +21,12 @@
     "embedding-normalization": {
       "name": "Embedding normalization",
       "definition": "Rescaling a representation to have unit Euclidean length.",
-      "explanation": "For a vector u, divide each component by the square root of the sum of squared components. The dot product of two unit vectors equals cosine similarity, so direction determines the score while raw magnitude cannot dominate it. Normalization needs a nonzero finite norm; the Rust project rejects zero and nonfinite embeddings. Unit length stabilizes the score convention but does not make the direction semantically correct without a useful learning objective and data."
+      "explanation": "For a vector u, divide each component by the square root of the sum of squared components. The dot product of two unit vectors equals cosine similarity, so direction determines the raw similarity while magnitude cannot dominate it. Normalization needs a nonzero finite norm; the Rust project rejects zero and nonfinite embeddings. Unit length stabilizes the similarity convention but does not make the direction semantically correct without a useful learning objective and data."
     },
     "contrastive-alignment": {
       "name": "Contrastive alignment",
       "definition": "Learning to score paired representations above mismatched ones.",
-      "explanation": "A batch of N image-caption pairs produces an N by N score matrix. Diagonal cells are known pairs; off-diagonal cells act as negatives. Image-to-text cross-entropy asks each row to select its diagonal caption, while text-to-image cross-entropy asks each column to select its diagonal image. Averaging both directions trains both retrieval views. In-batch negatives are convenient, but a tiny or biased batch can make the task misleadingly easy."
-    },
-    "recall-at-k": {
-      "name": "Recall at k",
-      "definition": "The fraction of queries whose relevant item appears among the top k results.",
-      "explanation": "For recall at one, rank every candidate caption by its similarity to an image and count success only when the paired caption ranks first. With multiple valid captions, the relevance set must include all accepted matches. This chapter has one caption per image and reports three perturbed versions of the same base patterns. Perfect recall therefore confirms the closed fixture and ranking code; it is not an independent estimate of broad image-language generalization."
+      "explanation": "A batch of N image-caption pairs produces an N by N raw similarity matrix; division by positive temperature produces the logits used by cross-entropy. Diagonal cells are known pairs; off-diagonal cells act as negatives. Image-to-text cross-entropy asks each row to select its diagonal caption, while text-to-image cross-entropy asks each column to select its diagonal image. Averaging both directions trains both retrieval views. In-batch negatives are convenient, but a tiny or biased batch can make the task misleadingly easy."
     }
   },
   "sources": [
@@ -43,8 +38,9 @@
   "checks": [
     "Symmetric contrastive loss falls below one quarter of its initial value",
     "Training updates both the image and text parameter matrices",
-    "Training-pair recall at one reaches 100 percent",
-    "Perturbed variants of the three same base patterns reach 100 percent recall at one",
+    "Training-pair Recall@1 reaches 100 percent",
+    "Perturbed variants of the three same base patterns reach 100 percent Recall@1",
+    "Alternate supplied images, candidates, and temperature change the corresponding calculations",
     "Zero, nonfinite, and out-of-vocabulary inputs are rejected"
   ],
   "limitations": [

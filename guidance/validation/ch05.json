@@ -11,70 +11,72 @@
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch05/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.041,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch05/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.029,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch05/target/debug/deps/ch05-e772161020de4718)\n\nrunning 2 tests\ntest tests::confusion_counts_and_metrics_are_consistent ... ok\ntest tests::tuning_uses_validation_and_leakage_is_visible ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+      "seconds": 0.032,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch05/target/debug/deps/ch05-e772161020de4718)\n\nrunning 2 tests\ntest tests::probabilities_produce_consistent_counts_and_metrics ... ok\ntest tests::tuning_uses_validation_and_leakage_is_visible ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch05/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.13,
-      "output": "   Compiling ch05 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch05)\n    Finished `release` profile [optimized] target(s) in 0.11s\n     Running `projects/ch05/target/release/ch05`\nthreshold selected on validation: 0.60\ntest confusion counts: Confusion { true_positive: 1, false_positive: 1, true_negative: 7, false_negative: 1 }\nmodel on untouched test: accuracy=0.800 precision=0.500 recall=0.500 f1=0.500 balanced_accuracy=0.688\nbaseline confusion counts: Confusion { true_positive: 0, false_positive: 0, true_negative: 8, false_negative: 2 }\nalways-negative baseline: accuracy=0.800 precision=0.000 recall=0.000 f1=0.000 balanced_accuracy=0.500\n"
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch05/target/release/ch05`\nthreshold selected on validation: 0.60\ntest confusion counts: Confusion { true_positive: 1, false_positive: 1, true_negative: 7, false_negative: 1 }\nmodel on untouched test: accuracy=0.800 precision=0.500 recall=0.500 f1=0.500 balanced_accuracy=0.688\nbaseline confusion counts: Confusion { true_positive: 0, false_positive: 0, true_negative: 8, false_negative: 2 }\nalways-negative baseline: accuracy=0.800 precision=0.000 recall=0.000 f1=0.000 balanced_accuracy=0.500\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch05/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.025,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch05/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.04,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch05/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.027,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch05/starter/target/debug/ch05-starter`\nprior checkpoint: score 0.7 at threshold 0.5 predicts positive\nRun cargo test to implement the new precision TODO.\n"
+      "seconds": 0.034,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch05/starter/target/debug/ch05-starter`\nprior checkpoint: probability 0.7 at threshold 0.5 predicts class 1\nRun cargo test to implement the new precision TODO.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch05/starter/Cargo.toml",
       "returncode": 101,
       "seconds": 0.021,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch05/starter/target/debug/deps/ch05_starter-891dc076814954fd)\n\nrunning 1 test\ntest precision_handles_counts_and_empty_denominator ... FAILED\n\nfailures:\n\n---- precision_handles_counts_and_empty_denominator stdout ----\n\nthread 'precision_handles_counts_and_empty_denominator' (1090) panicked at src/main.rs:3:5:\nnot yet implemented: return TP / (TP + FP), or 0 when there are no predicted positives\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    precision_handles_counts_and_empty_denominator\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch05-starter`\n",
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch05/starter/target/debug/deps/ch05_starter-891dc076814954fd)\n\nrunning 1 test\ntest precision_handles_counts_and_empty_denominator ... FAILED\n\nfailures:\n\n---- precision_handles_counts_and_empty_denominator stdout ----\n\nthread 'precision_handles_counts_and_empty_denominator' (1032) panicked at src/main.rs:3:5:\nnot yet implemented: return TP / (TP + FP), or 0 when there are no predicted positives\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    precision_handles_counts_and_empty_denominator\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch05-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch05_01.rs -o /tmp/ml-check-3a9_xkho/solutionch05_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch05_01.rs -o /tmp/ml-check-jz5fq55e/solutionch05_01",
       "returncode": 0,
-      "seconds": 0.042,
+      "seconds": 0.04,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-3a9_xkho/solutionch05_01",
+      "command": "/tmp/ml-check-jz5fq55e/solutionch05_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest recall_counts_missed_positives ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch05_01.rs -o /tmp/ml-check-3a9_xkho/exercisech05_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch05_01.rs -o /tmp/ml-check-jz5fq55e/exercisech05_01",
       "returncode": 0,
-      "seconds": 0.042,
+      "seconds": 0.044,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-3a9_xkho/exercisech05_01",
+      "command": "/tmp/ml-check-jz5fq55e/exercisech05_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest recall_counts_missed_positives ... FAILED\n\nfailures:\n\n---- recall_counts_missed_positives stdout ----\n\nthread 'recall_counts_missed_positives' (1162) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch05_01.rs:4:5:\nnot yet implemented: return TP / (TP + FN), or zero when the denominator is zero\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    recall_counts_missed_positives\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest recall_counts_missed_positives ... FAILED\n\nfailures:\n\n---- recall_counts_missed_positives stdout ----\n\nthread 'recall_counts_missed_positives' (1104) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch05_01.rs:4:5:\nnot yet implemented: return TP / (TP + FN), or zero when the denominator is zero\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    recall_counts_missed_positives\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

@@ -1,8 +1,26 @@
-fn forward(weight: [[f32; 2]; 2], bias: [f32; 2], input: [f32; 2]) -> [f32; 2] {
-    std::array::from_fn(|o| weight[o][0] * input[0] + weight[o][1] * input[1] + bias[o])
+#[derive(Debug)]
+struct Dense {
+    // Row-major [out_features, in_features].
+    weights: [[f32; 2]; 2],
+    bias: [f32; 2],
 }
 
-fn mean_squared_loss(output: [f32; 2], target: [f32; 2]) -> f32 {
+impl Dense {
+    fn fixture() -> Self {
+        Self {
+            weights: [[0.2, -0.4], [0.7, 0.1]],
+            bias: [0.05, -0.2],
+        }
+    }
+
+    fn forward(&self, input: [f32; 2]) -> [f32; 2] {
+        std::array::from_fn(|o| {
+            self.weights[o][0] * input[0] + self.weights[o][1] * input[1] + self.bias[o]
+        })
+    }
+}
+
+fn mean_squared_error(output: [f32; 2], target: [f32; 2]) -> f32 {
     output
         .iter()
         .zip(target)
@@ -12,10 +30,11 @@ fn mean_squared_loss(output: [f32; 2], target: [f32; 2]) -> f32 {
 }
 
 fn main() {
-    let output = forward([[0.2, -0.4], [0.7, 0.1]], [0.05, -0.2], [1.5, -2.0]);
+    let model = Dense::fixture();
+    let output = model.forward([1.5, -2.0]);
     println!(
         "output {output:?}; MSE {:.4}",
-        mean_squared_loss(output, [1.0, -0.5])
+        mean_squared_error(output, [1.0, -0.5])
     );
 }
 
@@ -32,9 +51,9 @@ mod tests {
 
     #[test]
     fn port_the_gradient_rule() {
-        let output = forward([[0.2, -0.4], [0.7, 0.1]], [0.05, -0.2], [1.5, -2.0]);
+        let output = Dense::fixture().forward([1.5, -2.0]);
         let error = output[0] - 1.0;
-        // TODO: return dloss/dweight[0][0] for mean squared error over two outputs.
+        // TODO: dL/doutput = 2 * error / 2 outputs = error.
         let gradient = weight_gradient(error, 1.5);
         assert!((gradient - 0.225).abs() < 1e-6, "error was {error}");
     }

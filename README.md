@@ -6,7 +6,7 @@ A local, offline-capable course from one neuron to advanced language models. Rea
 python3 tools/serve.py
 ```
 
-Open http://127.0.0.1:8000 . Start with **Start here**, then Chapter 1. The website’s **Git guide** explains baseline commits, learning notes, and publishing your history to GitHub.
+Open http://127.0.0.1:8000 . Start with **Start here**, then Chapter 1. The website’s **Git guide** explains baseline commits, learning notes, and publishing your history to GitHub. Its **Code guide** at `/conventions.html` explains the common model interfaces, vocabulary, shapes, and loss reductions used throughout the chapters.
 
 ```sh
 cargo test --manifest-path projects/ch01/Cargo.toml
@@ -53,7 +53,7 @@ just exercises                   # Open Rustlings in the correct exercise folder
 just exercises run ch01_01       # Run one Rustlings exercise
 ```
 
-`just build` rebuilds the website. `just check 1 2` builds it and audits content and links; omit chapter numbers for all chapters. `just verify 1 2` also runs the existing reference, starter, and exercise checks. `just verify` checks the whole course and can take substantially longer; its validator expects the supplied learner TODOs to fail. For your solved work, use `just starter-test` and Rustlings instead of treating the authoring validator as a learner progress check. These commands reuse `tools/build.py` and `tools/verify.py` rather than maintaining a separate check system.
+`just consistency` checks the shared neuron signatures, chapter continuity sections, glossary ownership, and source-tagged lesson excerpts. `just build` rebuilds the website. `just check 1 2` builds it and audits content and links; omit chapter numbers for all chapters. `just verify 1 2` also runs the existing reference, starter, and exercise checks. `just verify` checks the whole course and can take substantially longer; it accepts passing learner work and recognizes the supplied intentional TODO failures. Use `just starter-test` and Rustlings to check whether your own exercise is complete; a course validation pass alone does not mean you solved it. These commands reuse `tools/build.py` and `tools/verify.py` rather than maintaining a separate check system.
 
 `run`, `test`, and starter commands use Cargo's offline mode, so install the toolchain and prepare required dependencies first. They do not download datasets. Arguments after the chapter number are passed literally to the program or test runner, including paths containing spaces. For example, `just run 56 generate /tmp/ch56-moe.bin rust 16` uses an existing checkpoint. Quote paths with spaces as usual. Chapter numbers outside 1–56 and path-like chapter arguments are rejected.
 

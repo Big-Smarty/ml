@@ -1,9 +1,27 @@
 <p class="lead">You can now inspect a learning system down to its arithmetic. That knowledge becomes more useful when you work with an established framework: you can tell whether a short API call computes the function you intended. This chapter exports a small scratch model, imports its parameters into Burn, and checks the entire path from prediction through gradients to a restored model.</p>
 <div class="callout"><strong>A concrete integration boundary</strong><p>The standard-library project remains independent. A separate optional Cargo package pins Burn 0.21.0 and runs on its CPU ndarray backend. It actually executes tensor operations and automatic differentiation. Nothing in the ordinary course build requires this framework or a network download.</p></div>
 
+<section id="continuity"><h2>Code and terminology carried forward</h2>
+<p><a href="/chapters/09.html">Chapter 9</a> introduced <code>Dense::forward</code>, row-major activations [batch,input features], and <code>weights</code> stored as [output features,input features]. This chapter keeps that layer name, operation, parameter orientation, and bias meaning in a fixed f32 fixture. <a href="/chapters/36.html">Chapter 36</a> separated <code>loss_and_gradient</code> from <code>apply_sgd</code>; the scratch oracle keeps that separation and represents derivatives with a distinct <code>Gradient</code> type. <a href="/chapters/38.html">Chapter 38</a> distinguished inference state from exact training-resume state. The same distinction governs the small affine artifact here. The course-wide rules are on the <a href="/conventions.html">conventions page</a>.</p>
+<div class="table-wrap"><table><caption>The scratch oracle's actual interface</caption><thead><tr><th>Operation</th><th>Arguments → return</th><th>Shape, reduction, and mutation</th></tr></thead><tbody><tr><td><code>Dense::forward</code></td><td><code>&amp;self</code>, <code>input: [f32; 2]</code> → <code>[f32; 2]</code></td><td>One [input features] vector becomes one [output features] vector; no reduction over examples and no mutation.</td></tr><tr><td><code>Dense::loss_and_gradient</code></td><td><code>&amp;self</code>, <code>input: [f32; 2]</code>, <code>target: [f32; 2]</code> → <code>(f32, Gradient)</code></td><td>Returns ordinary MSE averaged over the two output coordinates and derivatives of that same scalar; no mutation.</td></tr><tr><td><code>Dense::apply_sgd</code></td><td><code>&amp;mut self</code>, <code>&amp;Gradient</code>, <code>learning_rate: f32</code> → <code>Result&lt;(), &amp;'static str&gt;</code></td><td>Checks the rate and complete update, then mutates every weight and bias once.</td></tr><tr><td><code>Dense::save</code></td><td><code>&amp;self</code>, <code>&amp;Path</code> → <code>Result&lt;(), Box&lt;dyn Error&gt;&gt;</code></td><td>Exclusively creates one 35-byte inference artifact; it never overwrites an existing path.</td></tr><tr><td><code>Dense::load</code></td><td><code>&amp;Path</code> → <code>Result&lt;Dense, Box&lt;dyn Error&gt;&gt;</code></td><td>Reads at most 36 bytes and rejects the wrong header, length, or nonfinite values.</td></tr></tbody></table></div>
+<p>The early scalar neuron's <code>step(data, learning_rate)</code> computed a gradient and applied it in one operation. Here the parity check must inspect a precomputed gradient before any parameter changes, so <code>apply_sgd(&amp;gradient, learning_rate)</code> names the narrower responsibility. It returns <code>Result&lt;(), _&gt;</code>, with <code>Ok(())</code> after the later, larger model is updated in place through <code>&amp;mut self</code>. The fixed-shape <code>forward</code> returns values directly for this finite fixture; it does not validate arbitrary external inputs. Update and file boundaries retain their <code>Result</code> errors.</p>
+<pre><code class="language-rust" data-source="projects/ch55/src/main.rs">#[derive(Debug, PartialEq)]
+struct Dense {
+    // Row-major [out_features, in_features].
+    weights: [[f32; 2]; 2],
+    bias: [f32; 2],
+}
+
+#[derive(Debug)]
+struct Gradient {
+    weights: [[f32; 2]; 2],
+    bias: [f32; 2],
+}</code></pre>
+</section>
+
 <section id="contract"><h2>1. Decide what must stay the same</h2>
 <p>Suppose you replace the hand-written affine layer from <a href="/chapters/09.html">Chapter 9</a> with a library layer. Both programs compile, both return two numbers, and both losses decrease. Those observations do not show that you ported the same model. One implementation might transpose the weights, omit a bias, divide the loss by a different denominator, or apply an update before all gradients have been calculated.</p>
-<p>A <a class="term" data-term="framework-parity" href="/glossary/framework-parity.html">parity check</a> compares corresponding calculations under an explicit contract. Our contract fixes input values, target values, parameter values, layout, floating-point type, loss reduction, and learning rate. We check outputs before checking gradients, then check one update and serialization. This order localizes the first divergence. A final score alone would mix all those possible failures together.</p>
+<p>A <a class="term" data-term="framework-parity" href="/glossary/framework-parity.html">framework parity check</a> applies Chapter 47's broader <a class="term" data-term="parity-check" href="/glossary/parity-check.html">numerical parity check</a> to corresponding calculations across two implementations under an explicit contract. Our contract fixes input values, target values, parameter values, layout, floating-point type, loss reduction, and learning rate. We check outputs before checking gradients, then check one update and serialization. This order localizes the first divergence. A final score alone would mix all those possible failures together.</p>
 <p>A framework supplies reusable tensors, differentiation rules, parameter organization, optimizers, serialization, and execution backends. A tensor is still an array with a shape and an element type. A module usually organizes named parameters and a forward calculation; a backend supplies operations for a class of devices; a device chooses an execution destination. These conveniences replace code you have already written, while preserving the need to understand the underlying numerical contract.</p>
 <p>The optional implementation deliberately uses explicit tensors rather than a complete trainer abstraction. Its backend type is <code>Autodiff&lt;NdArray&lt;f32&gt;&gt;</code>. The inner backend performs CPU arithmetic and the outer decorator records derivative information. The <code>2</code> in <code>Tensor&lt;Cpu, 2&gt;</code> specifies rank, not a dimension length. A matrix can have two axes while still having an incorrect runtime shape. Inspect dimensions when importing data or weights.</p>
 <p>Use the <a href="https://burn.dev/docs/burn/prelude/struct.Tensor.html">Burn tensor reference</a> to confirm operations and shapes for the pinned version. Burn 0.21 retains ndarray during a transition but recommends its newer Flex backend for new CPU development. We keep ndarray here because it is the verified, isolated parity fixture. The <a href="https://burn.dev/blog/release-0.21.0/">0.21 release notes</a> explain that status; this chapter is not a recommendation to start a new long-lived application on a deprecated backend.</p>
@@ -13,24 +31,65 @@
 <p>The scratch model stores a 2×2 weight matrix in row-major <code>[output,input]</code> order. Input x is [1.5,−2], target t is [1,−0.5], and bias b is [0.05,−0.2]. The weight rows are [0.2,−0.4] and [0.7,0.1]. Output component o is the dot product of weight row o with x, plus bias component o.</p>
 <div class="worked-example"><h3>Forward, loss, gradient, update</h3><p>The first output is 0.2×1.5+(−0.4)×(−2)+0.05 = 1.15. The second is 0.7×1.5+0.1×(−2)−0.2 = 0.65. Errors are [0.15,1.15]. Mean squared error across the two outputs is (0.15²+1.15²)/2 = <strong>0.6725</strong>.</p><p>The derivative of this mean with respect to output is 2(y−t)/2 = y−t. Weight derivatives are outer products of output derivatives and inputs: [[0.225,−0.3],[1.725,−2.3]]. Bias derivatives are [0.15,1.15]. At learning rate 0.1, updated scratch weights are [[0.1775,−0.37],[0.5275,0.33]], and updated biases are [0.035,−0.315].</p><p>Run forward again with those updated values. The output is [1.04125,−0.18375]. Its errors are [0.04125,0.31625], so the new MSE is approximately 0.0508578. These are hand calculations; the executable uses f32 and compares with tolerances.</p></div>
 <p>For a batch with B examples and O outputs, the general reduction is L = ΣᵦΣₒ(yᵦₒ−tᵦₒ)²/(BO). Its output derivative is 2(yᵦₒ−tᵦₒ)/(BO). Our fixture has B=1 and O=2, which explains the convenient cancellation. Do not memorize “MSE gradient equals error” without its denominator. Increasing batch size or output width changes that expression.</p>
+<pre><code class="language-rust" data-source="projects/ch55/src/main.rs">fn loss_and_gradient(&amp;self, input: [f32; 2], target: [f32; 2]) -&gt; (f32, Gradient) {
+    let output = self.forward(input);
+    let error: [f32; 2] = std::array::from_fn(|o| output[o] - target[o]);
+    let loss = error.iter().map(|x| x * x).sum::&lt;f32&gt;() / error.len() as f32;
+    // d(mean(error²))/doutput = error because there are two outputs.
+    let gradient = Gradient {
+        weights: std::array::from_fn(|o| std::array::from_fn(|i| error[o] * input[i])),
+        bias: error,
+    };
+    (loss, gradient)
+}</code></pre>
 <p>The raw Burn matrix multiplication follows <code>[batch,input] × [input,output]</code>. We therefore transpose the stored scratch matrix into [[0.2,0.7],[−0.4,0.1]]. The four numbers are unchanged, but their positions change. The gradient undergoes the same mapping: Burn's flat gradient is [0.225,1.725,−0.3,−2.3]. Compare named coordinates rather than interpreting a flattened array without its shape.</p>
-<pre><code class="language-rust">// Scratch W is [out,in]; raw matrix multiplication needs [in,out].
-let weight = Tensor::from_floats([[0.2, 0.7], [-0.4, 0.1]], &amp;device)
-    .require_grad();
-let output = input.clone().matmul(weight.clone())
-    + bias.clone().unsqueeze_dim::&lt;2&gt;(0);</code></pre>
+<pre><code class="language-rust" data-source="projects/ch55/framework/src/main.rs">let input = Tensor::&lt;Cpu, 2&gt;::from_floats([[1.5, -2.0]], &amp;device);
+let target = Tensor::&lt;Cpu, 2&gt;::from_floats([[1.0, -0.5]], &amp;device);
+// Burn matmul expects [in, out]; the scratch oracle stores [out, in].
+let weights = Tensor::&lt;Cpu, 2&gt;::from_floats([[0.2, 0.7], [-0.4, 0.1]], &amp;device).require_grad();
+let bias = Tensor::&lt;Cpu, 1&gt;::from_floats([0.05, -0.2], &amp;device).require_grad();
+let output = input.clone().matmul(weights.clone()) + bias.clone().unsqueeze_dim::&lt;2&gt;(0);
+let loss = (output.clone() - target).powf_scalar(2.0).mean();
+close(&amp;values(output), &amp;[1.15, 0.65]);
+close(&amp;[loss.clone().into_scalar()], &amp;[0.6725]);</code></pre>
 <p>The bias becomes shape [1,2] and broadcasts across the batch. That is a deliberate operation, not a repair for an arbitrary mismatch. Nor is transposing a universal framework rule: <a href="https://docs.pytorch.org/docs/main/generated/torch.nn.functional.linear.html">PyTorch's linear operation</a> accepts [output,input] weights and performs the transpose internally. Translate the equation into each API's documented convention.</p>
 </section>
 
 <section id="gradients"><h2>3. Keep differentiation separate from optimization</h2>
-<p>In the scratch reference, <code>loss_and_grad</code> constructs another <code>Dense</code> value containing derivatives. The framework computes the same derivatives by following recorded operations backward. A <a class="term" data-term="autodiff-backend" href="/glossary/autodiff-backend.html">differentiable backend</a> does not infer which arrays you meant to train: the example marks weight and bias with <code>require_grad()</code> before the forward pass.</p>
-<pre><code class="language-rust">let loss = (output - target).powf_scalar(2.0).mean();
-let gradients = loss.backward();
-let weight_grad = weight.grad(&amp;gradients).ok_or("missing weight gradient")?;
-let bias_grad = bias.grad(&amp;gradients).ok_or("missing bias gradient")?;</code></pre>
+<p>In the scratch reference, <code>loss_and_gradient</code> returns the scalar MSE and a distinct <code>Gradient</code> value. A gradient has arrays with the same shapes as the parameters, but it is derivative data rather than another trained <code>Dense</code> model. The framework computes the same derivatives by following recorded operations backward. A <a class="term" data-term="autodiff-backend" href="/glossary/autodiff-backend.html">differentiable backend</a> does not infer which arrays you meant to train: the example marks weights and bias with <code>require_grad()</code> before the forward pass.</p>
+<p>After the intervening output and loss parity assertions shown above, the exact autodiff retrieval is:</p>
+<pre><code class="language-rust" data-source="projects/ch55/framework/src/main.rs">let gradients = loss.backward();
+let weights_gradient = weights.grad(&amp;gradients).ok_or("missing weight gradient")?;
+let bias_gradient = bias.grad(&amp;gradients).ok_or("missing bias gradient")?;</code></pre>
 <p>Burn's backward operation returns a gradient container. The <a href="https://burn.dev/books/burn/building-blocks/autodiff.html">autodiff guide</a> documents that contract. Do not transfer assumptions about mutable parameter gradient fields from another library. Missing derivatives should be reported as errors rather than replaced with zeros, because a disconnected parameter would otherwise appear to train normally.</p>
-<p>The project applies plain SGD to both inner weight and bias tensors. Removing the autodiff wrapper before subtraction makes the update an operation on parameter values rather than a differentiable optimizer step. No momentum, weight decay, scheduler, or clipping participates in this fixture. More elaborate optimizers would introduce state and extra equations that need their own parity boundary.</p>
+<p>The project applies plain SGD to both inner weights and bias tensors. Removing the autodiff wrapper before subtraction makes the update an operation on parameter values rather than a differentiable optimizer step. No momentum, weight decay, scheduler, or clipping participates in this fixture. More elaborate optimizers would introduce state and extra equations that need their own parity boundary.</p>
 <p>All derivatives must describe the same old model. Retrieving the weight gradient, updating weights, and then deriving a bias gradient through a partly changed graph would not implement the step calculated above. The reference obtains both derivatives first, constructs both updated tensors, and checks their values and resulting prediction. This is the same simultaneous-update rule you learned with one neuron.</p>
+<pre><code class="language-rust" data-source="projects/ch55/src/main.rs">fn apply_sgd(&amp;mut self, gradient: &amp;Gradient, learning_rate: f32) -&gt; Result&lt;(), &amp;'static str&gt; {
+    if !learning_rate.is_finite() || learning_rate &lt;= 0.0 {
+        return Err("learning rate must be finite and positive");
+    }
+    if self
+        .weights
+        .iter()
+        .flatten()
+        .chain(&amp;self.bias)
+        .zip(gradient.weights.iter().flatten().chain(&amp;gradient.bias))
+        .any(|(parameter, derivative)| {
+            !parameter.is_finite()
+                || !derivative.is_finite()
+                || !(parameter - learning_rate * derivative).is_finite()
+        })
+    {
+        return Err("nonfinite model, gradient, or update");
+    }
+    for o in 0..2 {
+        for i in 0..2 {
+            self.weights[o][i] -= learning_rate * gradient.weights[o][i];
+        }
+        self.bias[o] -= learning_rate * gradient.bias[o];
+    }
+    Ok(())
+}</code></pre>
 <p>The closeness predicate uses |a−b| ≤ 10⁻⁶ + 10⁻⁵ max(|a|,|b|). Here a and b are corresponding f32 results; the first term is absolute tolerance and the second scales with magnitude. Require equal lengths and finite values before this comparison. Infinity can make both the difference and tolerance infinite, accidentally satisfying an inequality; NaN comparisons behave differently again. A tolerance should handle rounding, never excuse malformed numbers.</p>
 <p>Do not loosen tolerances merely until a port passes. First inspect shape, the maximum-error coordinate, reduction order, activation formula, and precision. A transpose error on our fixture changes the function substantially and needs a mapping correction. Small last-digit differences after equivalent f32 reductions are a different phenomenon. For a larger port, add probes near zero and at meaningful extremes while keeping inputs within the model's defined domain.</p>
 </section>

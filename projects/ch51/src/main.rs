@@ -4,59 +4,121 @@ use std::f64::consts::TAU;
 const DATA: [f64; 6] = [-1.4, -1.0, -0.7, 0.7, 1.0, 1.4];
 const NOISE: [f64; 6] = [-1.2, -0.7, -0.2, 0.2, 0.7, 1.2];
 
-fn finite_gradient<const N: usize>(params: &[f64; N], loss: impl Fn(&[f64; N]) -> f64) -> [f64; N] {
+fn validate_values(values: &[f64]) -> Result<(), &'static str> {
+    if values.is_empty() || values.iter().any(|value| !value.is_finite()) {
+        return Err("values must be nonempty and finite");
+    }
+    Ok(())
+}
+
+fn validate_schedule(alpha_bars: &[f64]) -> Result<(), &'static str> {
+    if alpha_bars.len() < 2
+        || alpha_bars
+            .iter()
+            .any(|&alpha_bar| !alpha_bar.is_finite() || alpha_bar <= 0.0 || alpha_bar > 1.0)
+        || alpha_bars.windows(2).any(|pair| pair[1] > pair[0])
+    {
+        return Err("schedule must contain at least two finite, nonincreasing values in (0, 1]");
+    }
+    Ok(())
+}
+
+fn validate_learning_rate(learning_rate: f64) -> Result<(), &'static str> {
+    if !learning_rate.is_finite() || learning_rate <= 0.0 {
+        return Err("learning rate must be positive and finite");
+    }
+    Ok(())
+}
+
+fn numerical_gradient<const N: usize>(
+    parameters: &[f64; N],
+    loss: impl Fn(&[f64; N]) -> Result<f64, &'static str>,
+) -> Result<[f64; N], &'static str> {
     // ponytail: two loss evaluations per parameter; replace with backpropagation for larger models.
+    validate_values(parameters)?;
     let mut gradient = [0.0; N];
     let h = 1e-5;
     for i in 0..N {
-        let mut plus = *params;
-        let mut minus = *params;
+        let mut plus = *parameters;
+        let mut minus = *parameters;
         plus[i] += h;
         minus[i] -= h;
-        gradient[i] = (loss(&plus) - loss(&minus)) / (2.0 * h);
+        gradient[i] = (loss(&plus)? - loss(&minus)?) / (2.0 * h);
     }
-    gradient
+    validate_values(&gradient)?;
+    Ok(gradient)
 }
 
-fn update<const N: usize>(params: &mut [f64; N], gradient: [f64; N], rate: f64) {
-    for (parameter, slope) in params.iter_mut().zip(gradient) {
-        *parameter -= rate * slope;
-    }
+fn apply_sgd<const N: usize>(
+    parameters: &mut [f64; N],
+    gradient: [f64; N],
+    learning_rate: f64,
+) -> Result<(), &'static str> {
+    validate_learning_rate(learning_rate)?;
+    let next = std::array::from_fn(|i| parameters[i] - learning_rate * gradient[i]);
+    validate_values(&next)?;
+    *parameters = next;
+    Ok(())
+}
+
+fn reparameterize(mean: f64, log_variance: f64, epsilon: f64) -> f64 {
+    mean + (0.5 * log_variance).exp() * epsilon
 }
 
 #[derive(Clone, Copy, Debug)]
 struct Vae {
-    p: [f64; 5],
+    parameters: [f64; 5],
 }
 
 impl Vae {
-    fn loss_with(params: &[f64; 5]) -> f64 {
-        let [encoder_w, encoder_b, log_variance, decoder_w, decoder_b] = *params;
-        DATA.iter()
-            .flat_map(|&x| NOISE.into_iter().map(move |epsilon| (x, epsilon)))
+    fn loss(&self, data: &[f64], latent_noise: &[f64]) -> Result<f64, &'static str> {
+        validate_values(&self.parameters)?;
+        validate_values(data)?;
+        validate_values(latent_noise)?;
+        let [encoder_weight, encoder_bias, log_variance, decoder_weight, decoder_bias] =
+            self.parameters;
+        let loss = data
+            .iter()
+            .flat_map(|&x| latent_noise.iter().map(move |&epsilon| (x, epsilon)))
             .map(|(x, epsilon)| {
-                let mean = encoder_w * x + encoder_b;
+                let mean = encoder_weight * x + encoder_bias;
                 let variance = log_variance.exp();
-                let z = mean + variance.sqrt() * epsilon;
-                let reconstruction = decoder_w * z + decoder_b;
+                let z = reparameterize(mean, log_variance, epsilon);
+                let reconstruction = decoder_weight * z + decoder_bias;
                 let reconstruction_loss = 0.5 * (reconstruction - x).powi(2);
                 let kl = 0.5 * (mean.powi(2) + variance - 1.0 - log_variance);
                 reconstruction_loss + 0.1 * kl
             })
             .sum::<f64>()
-            / (DATA.len() * NOISE.len()) as f64
+            / (data.len() * latent_noise.len()) as f64;
+        loss.is_finite()
+            .then_some(loss)
+            .ok_or("VAE loss became nonfinite")
     }
 
-    fn train(mut self, steps: usize) -> Self {
+    fn train(
+        mut self,
+        data: &[f64],
+        latent_noise: &[f64],
+        steps: usize,
+        learning_rate: f64,
+    ) -> Result<Self, &'static str> {
+        validate_learning_rate(learning_rate)?;
+        self.loss(data, latent_noise)?;
         for _ in 0..steps {
-            let gradient = finite_gradient(&self.p, Self::loss_with);
-            update(&mut self.p, gradient, 0.03);
+            let gradient = numerical_gradient(&self.parameters, |parameters| {
+                Self {
+                    parameters: *parameters,
+                }
+                .loss(data, latent_noise)
+            })?;
+            apply_sgd(&mut self.parameters, gradient, learning_rate)?;
         }
-        self
+        Ok(self)
     }
 
-    fn decode(self, z: f64) -> f64 {
-        self.p[3] * z + self.p[4]
+    fn decode(&self, z: f64) -> f64 {
+        self.parameters[3] * z + self.parameters[4]
     }
 }
 
@@ -83,20 +145,43 @@ impl Gan {
         discriminator[0] * x + discriminator[1] * x.powi(2) + discriminator[2]
     }
 
-    fn discriminator_loss(discriminator: &[f64; 3], generator: &[f64; 2]) -> f64 {
-        DATA.iter()
-            .zip(NOISE)
-            .map(|(&real, z)| {
+    fn discriminator_loss(
+        discriminator: &[f64; 3],
+        generator: &[f64; 2],
+        data: &[f64],
+        noise: &[f64],
+    ) -> Result<f64, &'static str> {
+        validate_values(discriminator)?;
+        validate_values(generator)?;
+        validate_values(data)?;
+        validate_values(noise)?;
+        if data.len() != noise.len() {
+            return Err("GAN data and noise must have equal lengths");
+        }
+        let loss = data
+            .iter()
+            .zip(noise)
+            .map(|(&real, &z)| {
                 let real_logit = Self::discriminator_logit(discriminator, real);
                 let fake_logit = Self::discriminator_logit(discriminator, Self::fake(generator, z));
                 -log_sigmoid(real_logit) - log_sigmoid(-fake_logit)
             })
             .sum::<f64>()
-            / DATA.len() as f64
+            / data.len() as f64;
+        loss.is_finite()
+            .then_some(loss)
+            .ok_or("GAN discriminator loss became nonfinite")
     }
 
-    fn generator_loss(generator: &[f64; 2], discriminator: &[f64; 3]) -> f64 {
-        NOISE
+    fn generator_loss(
+        generator: &[f64; 2],
+        discriminator: &[f64; 3],
+        noise: &[f64],
+    ) -> Result<f64, &'static str> {
+        validate_values(generator)?;
+        validate_values(discriminator)?;
+        validate_values(noise)?;
+        let loss = noise
             .iter()
             .map(|&z| {
                 -log_sigmoid(Self::discriminator_logit(
@@ -105,21 +190,37 @@ impl Gan {
                 ))
             })
             .sum::<f64>()
-            / NOISE.len() as f64
+            / noise.len() as f64;
+        loss.is_finite()
+            .then_some(loss)
+            .ok_or("GAN generator loss became nonfinite")
     }
 
-    fn train(mut self, steps: usize) -> Self {
-        for _ in 0..steps {
-            let d_gradient = finite_gradient(&self.discriminator, |d| {
-                Self::discriminator_loss(d, &self.generator)
-            });
-            update(&mut self.discriminator, d_gradient, 0.02);
-            let g_gradient = finite_gradient(&self.generator, |g| {
-                Self::generator_loss(g, &self.discriminator)
-            });
-            update(&mut self.generator, g_gradient, 0.02);
+    fn train(
+        mut self,
+        data: &[f64],
+        noise: &[f64],
+        rounds: usize,
+        learning_rate: f64,
+    ) -> Result<Self, &'static str> {
+        validate_learning_rate(learning_rate)?;
+        Self::discriminator_loss(&self.discriminator, &self.generator, data, noise)?;
+        for _ in 0..rounds {
+            let discriminator_gradient =
+                numerical_gradient(&self.discriminator, |discriminator| {
+                    Self::discriminator_loss(discriminator, &self.generator, data, noise)
+                })?;
+            apply_sgd(
+                &mut self.discriminator,
+                discriminator_gradient,
+                learning_rate,
+            )?;
+            let generator_gradient = numerical_gradient(&self.generator, |generator| {
+                Self::generator_loss(generator, &self.discriminator, noise)
+            })?;
+            apply_sgd(&mut self.generator, generator_gradient, learning_rate)?;
         }
-        self
+        Ok(self)
     }
 }
 
@@ -131,14 +232,18 @@ struct Diffusion {
 const ALPHA_BARS: [f64; 4] = [0.95, 0.6, 0.15, 0.02];
 
 impl Diffusion {
-    fn loss(self) -> f64 {
+    fn loss(&self, data: &[f64], noise: &[f64], alpha_bars: &[f64]) -> Result<f64, &'static str> {
+        validate_values(&self.predictor)?;
+        validate_values(data)?;
+        validate_values(noise)?;
+        validate_schedule(alpha_bars)?;
         let mut sum = 0.0;
         let mut count = 0;
-        for (time, alpha_bar) in ALPHA_BARS.into_iter().enumerate() {
-            for &x0 in &DATA {
-                for epsilon in NOISE {
+        for (time, &alpha_bar) in alpha_bars.iter().enumerate() {
+            for &x0 in data {
+                for &epsilon in noise {
                     let xt = alpha_bar.sqrt() * x0 + (1.0 - alpha_bar).sqrt() * epsilon;
-                    let time_feature = time as f64 / (ALPHA_BARS.len() - 1) as f64;
+                    let time_feature = time as f64 / (alpha_bars.len() - 1) as f64;
                     let predicted = self.predictor[0] * xt
                         + self.predictor[1] * time_feature
                         + self.predictor[2];
@@ -147,34 +252,64 @@ impl Diffusion {
                 }
             }
         }
-        sum / count as f64
+        let loss = sum / count as f64;
+        loss.is_finite()
+            .then_some(loss)
+            .ok_or("diffusion loss became nonfinite")
     }
 
-    fn train(mut self, steps: usize) -> Self {
+    fn train(
+        mut self,
+        data: &[f64],
+        noise: &[f64],
+        alpha_bars: &[f64],
+        steps: usize,
+        learning_rate: f64,
+    ) -> Result<Self, &'static str> {
+        validate_learning_rate(learning_rate)?;
+        self.loss(data, noise, alpha_bars)?;
         for _ in 0..steps {
-            let gradient = finite_gradient(&self.predictor, |p| Self { predictor: *p }.loss());
-            update(&mut self.predictor, gradient, 0.03);
+            let gradient = numerical_gradient(&self.predictor, |predictor| {
+                Self {
+                    predictor: *predictor,
+                }
+                .loss(data, noise, alpha_bars)
+            })?;
+            apply_sgd(&mut self.predictor, gradient, learning_rate)?;
         }
-        self
+        Ok(self)
     }
 
-    fn sample(self, initial_noise: f64) -> f64 {
+    fn sample(&self, initial_noise: f64, alpha_bars: &[f64]) -> Result<f64, &'static str> {
+        if !initial_noise.is_finite() {
+            return Err("initial noise must be finite");
+        }
+        validate_schedule(alpha_bars)?;
         let mut xt = initial_noise;
-        for time in (0..ALPHA_BARS.len()).rev() {
-            let time_feature = time as f64 / (ALPHA_BARS.len() - 1) as f64;
+        for time in (0..alpha_bars.len()).rev() {
+            let time_feature = time as f64 / (alpha_bars.len() - 1) as f64;
             let epsilon =
                 self.predictor[0] * xt + self.predictor[1] * time_feature + self.predictor[2];
-            xt = ddim_step(xt, time, epsilon);
+            xt = ddim_step(xt, time, epsilon, alpha_bars)?;
         }
-        xt
+        Ok(xt)
     }
 }
 
-fn ddim_step(xt: f64, time: usize, epsilon: f64) -> f64 {
-    let alpha_bar = ALPHA_BARS[time];
+fn ddim_step(xt: f64, time: usize, epsilon: f64, alpha_bars: &[f64]) -> Result<f64, &'static str> {
+    validate_schedule(alpha_bars)?;
+    if time >= alpha_bars.len() || !xt.is_finite() || !epsilon.is_finite() {
+        return Err("DDIM step inputs are invalid");
+    }
+    let alpha_bar = alpha_bars[time];
     let x0_estimate = (xt - (1.0 - alpha_bar).sqrt() * epsilon) / alpha_bar.sqrt();
-    let previous_alpha_bar = if time == 0 { 1.0 } else { ALPHA_BARS[time - 1] };
-    previous_alpha_bar.sqrt() * x0_estimate + (1.0 - previous_alpha_bar).sqrt() * epsilon
+    let previous_alpha_bar = if time == 0 { 1.0 } else { alpha_bars[time - 1] };
+    let previous =
+        previous_alpha_bar.sqrt() * x0_estimate + (1.0 - previous_alpha_bar).sqrt() * epsilon;
+    previous
+        .is_finite()
+        .then_some(previous)
+        .ok_or("DDIM step became nonfinite")
 }
 
 #[derive(Clone, Copy)]
@@ -207,25 +342,25 @@ fn report_samples(name: &str, values: &[f64]) {
     println!("{name}: n={}, mean={mean:.3}, variance={variance:.3}, negative={negative}, |x|<0.5={central}, quartiles={quartiles:.3?}", values.len());
 }
 
-fn main() {
+fn main() -> Result<(), &'static str> {
     let vae_initial = Vae {
-        p: [0.4, 0.0, -0.5, 0.4, 0.0],
+        parameters: [0.4, 0.0, -0.5, 0.4, 0.0],
     };
-    let vae = vae_initial.train(500);
+    let vae = vae_initial.train(&DATA, &NOISE, 500, 0.03)?;
     let gan_initial = Gan {
         generator: [0.25, 0.3],
         discriminator: [0.2, 0.15, 0.0],
     };
-    let gan = gan_initial.train(1_500);
+    let gan = gan_initial.train(&DATA, &NOISE, 1_500, 0.02)?;
     let diffusion_initial = Diffusion {
         predictor: [0.0; 3],
     };
-    let diffusion = diffusion_initial.train(500);
+    let diffusion = diffusion_initial.train(&DATA, &NOISE, &ALPHA_BARS, 500, 0.03)?;
     let mut rng = Rng(51);
     println!(
         "beta-VAE objective: {:.4} -> {:.4}; decoder means: {:.3}, {:.3}",
-        Vae::loss_with(&vae_initial.p),
-        Vae::loss_with(&vae.p),
+        vae_initial.loss(&DATA, &NOISE)?,
+        vae.loss(&DATA, &NOISE)?,
         vae.decode(rng.normal()),
         vae.decode(rng.normal())
     );
@@ -233,13 +368,13 @@ fn main() {
         "GAN generator: x={:.3}z{:+.3}; discriminator loss {:.4}",
         gan.generator[0],
         gan.generator[1],
-        Gan::discriminator_loss(&gan.discriminator, &gan.generator)
+        Gan::discriminator_loss(&gan.discriminator, &gan.generator, &DATA, &NOISE)?
     );
     println!(
         "diffusion noise MSE: {:.4} -> {:.4}; reverse sample {:.3}",
-        diffusion_initial.loss(),
-        diffusion.loss(),
-        diffusion.sample(rng.normal())
+        diffusion_initial.loss(&DATA, &NOISE, &ALPHA_BARS)?,
+        diffusion.loss(&DATA, &NOISE, &ALPHA_BARS)?,
+        diffusion.sample(rng.normal(), &ALPHA_BARS)?
     );
     // Common latent draws isolate model differences from sampling variation.
     let mut comparison_rng = Rng(51);
@@ -253,13 +388,17 @@ fn main() {
         .iter()
         .map(|&z| Gan::fake(&gan.generator, z))
         .collect();
-    let diffusion_samples: Vec<_> = noise.iter().map(|&z| diffusion.sample(z)).collect();
+    let diffusion_samples: Vec<_> = noise
+        .iter()
+        .map(|&z| diffusion.sample(z, &ALPHA_BARS))
+        .collect::<Result<_, _>>()?;
     report_samples("data fixture", &DATA);
     report_samples("VAE decoder means", &vae_means);
     report_samples("VAE observations (unit decoder variance)", &vae_samples);
     report_samples("GAN", &gan_samples);
     report_samples("diffusion", &diffusion_samples);
     println!("All three models were trained here; affine Gaussian sampling cannot represent these two modes.");
+    Ok(())
 }
 
 #[cfg(test)]
@@ -269,14 +408,21 @@ mod tests {
     #[test]
     fn vae_and_diffusion_objectives_fall() {
         let vae = Vae {
-            p: [0.4, 0.0, -0.5, 0.4, 0.0],
+            parameters: [0.4, 0.0, -0.5, 0.4, 0.0],
         };
-        let trained_vae = vae.train(500);
-        assert!(Vae::loss_with(&trained_vae.p) < Vae::loss_with(&vae.p) * 0.7);
+        let trained_vae = vae.train(&DATA, &NOISE, 500, 0.03).unwrap();
+        assert!(trained_vae.loss(&DATA, &NOISE).unwrap() < vae.loss(&DATA, &NOISE).unwrap() * 0.7);
         let diffusion = Diffusion {
             predictor: [0.0; 3],
         };
-        assert!(diffusion.train(500).loss() < diffusion.loss() * 0.8);
+        assert!(
+            diffusion
+                .train(&DATA, &NOISE, &ALPHA_BARS, 500, 0.03)
+                .unwrap()
+                .loss(&DATA, &NOISE, &ALPHA_BARS)
+                .unwrap()
+                < diffusion.loss(&DATA, &NOISE, &ALPHA_BARS).unwrap() * 0.8
+        );
     }
 
     #[test]
@@ -285,7 +431,7 @@ mod tests {
             generator: [0.25, 0.3],
             discriminator: [0.2, 0.15, 0.0],
         };
-        let trained = initial.train(200);
+        let trained = initial.train(&DATA, &NOISE, 200, 0.02).unwrap();
         assert_ne!(trained.generator, initial.generator);
         assert_ne!(trained.discriminator, initial.discriminator);
         assert!(NOISE
@@ -295,7 +441,10 @@ mod tests {
 
     #[test]
     fn finite_difference_matches_quadratic_and_vae_reparameterization() {
-        let gradient = finite_gradient(&[0.3, -0.7], |p| p[0].powi(2) + 3.0 * p[1].powi(2));
+        let gradient = numerical_gradient(&[0.3, -0.7], |parameters| {
+            Ok(parameters[0].powi(2) + 3.0 * parameters[1].powi(2))
+        })
+        .unwrap();
         assert!((gradient[0] - 0.6).abs() < 1e-8);
         assert!((gradient[1] + 4.2).abs() < 1e-8);
         // Independent closed-form reconstruction expectation for this symmetric noise grid.
@@ -311,7 +460,22 @@ mod tests {
             })
             .sum::<f64>()
             / DATA.len() as f64;
-        assert!((Vae::loss_with(&p) - expected).abs() < 1e-12);
+        let vae = Vae { parameters: p };
+        assert!((vae.loss(&DATA, &NOISE).unwrap() - expected).abs() < 1e-12);
+
+        let zero_vae = Vae {
+            parameters: [0.0; 5],
+        };
+        let alternate_data_loss = zero_vae.loss(&[2.0], &NOISE).unwrap();
+        assert!((alternate_data_loss - 2.0).abs() < 1e-12);
+        assert!(vae.loss(&[], &NOISE).is_err());
+        assert!(vae.loss(&[f64::NAN], &NOISE).is_err());
+        assert!(Gan::discriminator_loss(&[0.0; 3], &[0.0; 2], &[0.0, 1.0], &[0.0]).is_err());
+        assert!(Diffusion {
+            predictor: [0.0; 3]
+        }
+        .loss(&DATA, &NOISE, &[0.95])
+        .is_err());
     }
 
     #[test]
@@ -324,7 +488,7 @@ mod tests {
             let previous_alpha_bar = if time == 0 { 1.0 } else { ALPHA_BARS[time - 1] };
             let expected =
                 previous_alpha_bar.sqrt() * x0 + (1.0 - previous_alpha_bar).sqrt() * epsilon;
-            assert!((ddim_step(xt, time, epsilon) - expected).abs() < 1e-12);
+            assert!((ddim_step(xt, time, epsilon, &ALPHA_BARS).unwrap() - expected).abs() < 1e-12);
         }
     }
 }

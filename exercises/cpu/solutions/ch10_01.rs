@@ -1,6 +1,11 @@
-fn log_sum_exp(xs: &[f64]) -> f64 {
-    let m = xs.iter().copied().fold(f64::NEG_INFINITY, f64::max);
-    m + xs.iter().map(|x| (x - m).exp()).sum::<f64>().ln()
+fn log_sum_exp(logits: &[f64]) -> f64 {
+    let maximum = logits.iter().copied().fold(f64::NEG_INFINITY, f64::max);
+    maximum
+        + logits
+            .iter()
+            .map(|logit| (logit - maximum).exp())
+            .sum::<f64>()
+            .ln()
 }
 fn main() {
     println!("{}", log_sum_exp(&[1.0, 2.0]));

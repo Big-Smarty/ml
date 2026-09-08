@@ -1,20 +1,81 @@
 {
-  "outcomes": ["Convert a linear score into a probability with sigmoid", "Derive binary cross-entropy from Bernoulli likelihood", "Compute stable loss directly from logits", "Train and threshold a binary logistic classifier"],
-  "lessons": ["From numbers to categories", "Sigmoid and probability", "Likelihood and cross-entropy", "Stable Rust implementation", "Practice and transfer"],
+  "outcomes": [
+    "Distinguish an unbounded logit, a positive-class probability, and a discrete class prediction",
+    "Explain why binary classification replaces regression MSE with mean binary cross-entropy",
+    "Compute stable binary cross-entropy directly from logits",
+    "Train a binary logistic classifier with a separate parameter Gradient"
+  ],
+  "lessons": [
+    "What carries forward from linear regression",
+    "From logits to probabilities and classes",
+    "Likelihood and binary cross-entropy",
+    "Stable loss and gradients in Rust",
+    "Practice and transfer"
+  ],
   "terms": {
-    "probability": {"name": "Probability", "definition": "A number from zero to one representing uncertainty about an event.", "explanation": "In a binary classifier, the model outputs a conditional probability estimate for the positive class given an input. Zero and one are the endpoints; 0.5 represents equal modeled odds. A probability is not yet a decision. A threshold converts it into a predicted class, and different applications can choose different thresholds. Model probabilities can also be poorly calibrated, so a value such as 0.8 should not be trusted as an observed 80 percent frequency without separate evaluation."},
-    "logit": {"name": "Logit", "definition": "An unrestricted model score converted to probability by sigmoid or softmax.", "explanation": "Binary logistic regression computes z = w dot x + b, then applies sigmoid. In that binary setting z is the log-odds, and positive z implies probability above one half. A multiclass model instead supplies one logit per class to softmax; only relative scores determine probabilities, so one positive score need not imply probability above one half. Retaining logits allows stable cross-entropy without taking logarithms of rounded probabilities."},
-    "sigmoid": {"name": "Sigmoid", "definition": "The function 1 divided by 1 plus exp of the negative input.", "explanation": "Sigmoid maps every finite real logit into the interval from zero to one. At zero it returns one half, and increasing the logit increases the probability smoothly. Its derivative is p(1−p), which helps simplify logistic-regression gradients. Direct evaluation can overflow for a very negative logit, so the Rust implementation uses separate positive and negative branches. This numerical rearrangement preserves the mathematics while keeping intermediate exponentials bounded."},
-    "likelihood": {"name": "Likelihood", "definition": "The probability assigned to observed targets, viewed as a function of model parameters.", "explanation": "For an example with binary target y, a model assigning positive-class probability p gives the observed target probability p when y is one and 1−p when y is zero. Assuming examples contribute independently, likelihood multiplies these terms. Products of many small values underflow, so optimization uses the negative log-likelihood, turning products into sums. Minimizing binary cross-entropy is therefore the same parameter objective as maximizing Bernoulli likelihood under the model assumptions."},
-    "binary-cross-entropy": {"name": "Binary cross-entropy", "definition": "The negative log-likelihood loss for a binary target.", "explanation": "For target y and probability p, binary cross-entropy is −[y log p + (1−y) log(1−p)]. It strongly penalizes confident wrong predictions. Computing this expression from a probability that rounded to zero or one can produce infinities. The equivalent logits formula max(z,0) − zy + log(1 + exp(−|z|)) remains finite for large finite logits. The chapter averages this loss over examples and states that reduction explicitly."}
+    "probability": {
+      "name": "Probability",
+      "definition": "A number from zero to one representing uncertainty about an event.",
+      "explanation": "In this binary classifier, the probability method returns a conditional probability estimate for the positive class given an input. Zero and one are the endpoints; 0.5 represents equal modeled odds. A probability is not a class decision. The separate predict method applies the chapter's 0.5 threshold and returns class zero or one, while another application may choose a different threshold. Model probabilities can also be poorly calibrated, so a value such as 0.8 should not be trusted as an observed 80 percent frequency without separate evaluation."
+    },
+    "logit": {
+      "name": "Logit",
+      "definition": "An unrestricted real-valued model score converted to probabilities by sigmoid or softmax.",
+      "explanation": "For binary classification, sigmoid turns one logit into the positive-class probability, and the logit equals the log-odds of that probability. For multiclass classification, softmax normalizes a vector of logits; adding the same constant to every logit leaves the probabilities unchanged. A logit is neither a probability nor a predicted class. Stable cross-entropy implementations take logits directly so they avoid taking logarithms of probabilities rounded to zero."
+    },
+    "sigmoid": {
+      "name": "Sigmoid",
+      "definition": "The function 1 divided by 1 plus exp of the negative input.",
+      "explanation": "Sigmoid maps every finite real logit into the interval from zero to one. At zero it returns one half, and increasing the logit increases the probability smoothly. Its derivative is p(1−p), which helps simplify logistic-regression gradients. Direct evaluation can overflow for a very negative logit, so the Rust implementation uses separate positive and negative branches. This numerical rearrangement preserves the mathematics while keeping intermediate exponentials bounded."
+    },
+    "likelihood": {
+      "name": "Likelihood",
+      "definition": "The probability or probability density assigned to observed data, viewed as a function of model parameters.",
+      "explanation": "For an example with binary target y, a model assigning positive-class probability p gives the observed target probability p when y is one and 1−p when y is zero. Assuming examples contribute independently, likelihood multiplies these terms. Products of many small values underflow, so optimization uses the negative log-likelihood, turning products into sums. Minimizing binary cross-entropy is therefore the same parameter objective as maximizing Bernoulli likelihood under the model assumptions."
+    },
+    "binary-cross-entropy": {
+      "name": "Binary cross-entropy",
+      "definition": "The negative log-likelihood loss for a binary target.",
+      "explanation": "For target y and probability p, binary cross-entropy is −[y log p + (1−y) log(1−p)]. It replaces mean squared error because this chapter models a binary outcome rather than numerical distance. Computing the expression from a probability that rounded to zero or one can produce infinities. The equivalent logits formula max(z,0) − zy + log(1 + exp(−|z|)) remains finite for large finite logits. The model's loss and loss_and_gradient methods average it over supplied examples."
+    }
   },
   "sources": [
-    {"title": "Berkson: Application of the Logistic Function", "url": "https://doi.org/10.1080/01621459.1944.10500699", "note": "Historical logistic-function source"},
-    {"title": "Penn State Binary Logistic Regression", "url": "https://online.stat.psu.edu/stat504/Lesson06", "note": "Bernoulli likelihood and logit model"},
-    {"title": "SciPy expit", "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.expit.html", "note": "Official sigmoid definition"},
-    {"title": "PyTorch BCEWithLogitsLoss", "url": "https://docs.pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html", "note": "Stable cross-entropy from logits"},
-    {"title": "scikit-learn logistic regression", "url": "https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression", "note": "Probability and classifier framing"}
+    {
+      "title": "Berkson: Application of the Logistic Function",
+      "url": "https://doi.org/10.1080/01621459.1944.10500699",
+      "note": "Historical logistic-function source"
+    },
+    {
+      "title": "Penn State Binary Logistic Regression",
+      "url": "https://online.stat.psu.edu/stat504/Lesson06",
+      "note": "Bernoulli likelihood and logit model"
+    },
+    {
+      "title": "SciPy expit",
+      "url": "https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.expit.html",
+      "note": "Official sigmoid definition"
+    },
+    {
+      "title": "PyTorch BCEWithLogitsLoss",
+      "url": "https://docs.pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html",
+      "note": "Stable cross-entropy from logits"
+    },
+    {
+      "title": "scikit-learn logistic regression",
+      "url": "https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression",
+      "note": "Probability and classifier framing"
+    }
   ],
-  "checks": ["BCE at logit zero equals ln 2", "Stable BCE remains finite at logits plus and minus 1000", "Analytical gradients match central differences on the stable logits objective", "Training loss falls below 0.04", "Every fixture point is classified correctly at threshold 0.5"],
-  "limitations": ["Training accuracy on separable synthetic points does not establish calibration", "The project covers binary rather than multiclass classification", "A 0.5 threshold is illustrative and must be chosen from application costs"]
+  "checks": [
+    "logit, probability, and predict return a score, probability, and class respectively",
+    "BCE at logit zero equals ln 2 and remains finite at logits plus and minus 1000",
+    "The separate analytical Gradient matches central differences on the same mean BCE objective",
+    "Training mean BCE falls below 0.04",
+    "predict classifies every fixture point correctly at its documented 0.5 threshold"
+  ],
+  "limitations": [
+    "Training accuracy on separable synthetic points does not establish calibration",
+    "The project covers binary rather than multiclass classification",
+    "predict uses an illustrative fixed 0.5 threshold; application thresholds must be chosen from validation data and decision costs"
+  ]
 }

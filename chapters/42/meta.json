@@ -2,14 +2,14 @@
   "outcomes": [
     "Derive the online-softmax recurrence",
     "Implement exact causal attention over key tiles",
-    "Verify tiled output against a full oracle",
+    "Verify tiled output against a scalar two-pass oracle",
     "Map grouped query heads to shared key/value heads",
     "Account for long-context arithmetic and intermediate storage"
   ],
   "lessons": [
-    "Keep a simple full-attention oracle",
-    "Update softmax without seeing all scores first",
-    "Tile exact attention",
+    "Keep a scalar causal-attention oracle",
+    "Update softmax state without all scores",
+    "Tile exact causal attention",
     "Share keys and values across query heads",
     "Run, diagnose, and transfer",
     "Before you move on"
@@ -17,18 +17,18 @@
   "terms": {
     "online-softmax": {
       "name": "online softmax",
-      "definition": "A recurrence for updating a stable softmax maximum and denominator incrementally.",
-      "explanation": "Online softmax keeps a running maximum and a sum of exponentials shifted by that maximum. When a larger score appears, it rescales the old sum to the new reference before adding the new term. The same state can merge score tiles. Attention also carries a value-weighted numerator on that scale, allowing exact normalized output without storing every individual score value."
+      "definition": "A recurrence that updates a stable softmax maximum and shifted denominator incrementally.",
+      "explanation": "Online softmax keeps a running maximum and a denominator made from exponentials shifted by that maximum. When a larger score appears, it rescales the old denominator to the new reference before adding the new shifted mass. Those two values are normalization state rather than probabilities or learned weights. Attention can carry a value-weighted numerator on the same scale and divide only after all permitted key positions have contributed."
     },
     "tiled-attention": {
       "name": "tiled attention",
-      "definition": "Attention evaluated over bounded query, key, or value blocks.",
-      "explanation": "Tiled attention computes small score blocks and combines them while retaining only compact running normalization state. In an exact algorithm every permitted query-key pair is still evaluated, so arithmetic remains quadratic for dense attention. The benefit is avoiding a full quadratic score or probability tensor and improving memory locality. Hardware speed depends on block shapes, fusion, and the memory hierarchy."
+      "definition": "Attention evaluated over bounded blocks of query or key positions.",
+      "explanation": "This chapter tiles key positions for one query row at a time, computes a small score vector, and merges it with compact running normalization state. Every causally permitted query-key pair is still evaluated, so dense arithmetic remains quadratic in sequence positions. The scalar oracle already avoids a full quadratic intermediate by storing one score row; tiling reduces that temporary row to a bounded block. Hardware speed depends on block shapes, fusion, and the memory hierarchy."
     },
     "grouped-query-attention": {
       "name": "grouped-query attention",
       "definition": "Several query heads sharing each key and value head.",
-      "explanation": "Grouped-query attention uses Hq query heads but fewer Hkv key/value heads. Equal groups of Hq/Hkv queries read one shared K/V head. It interpolates between ordinary multi-head attention, where counts match, and multi-query attention, where one K/V head serves all queries. This reduces K/V projections and decoder-cache traffic, though dense pairwise attention work still grows quadratically with the complete sequence length."
+      "explanation": "Grouped-query attention uses Hq query heads but fewer Hkv key/value heads. Equal contiguous groups of Hq/Hkv query heads read one shared K/V head. It interpolates between ordinary multi-head attention, where counts match, and multi-query attention, where one K/V head serves every query head. In a decoder this can reduce K/V projection parameters and cache storage, though dense pairwise attention work still grows quadratically with sequence positions."
     }
   },
   "sources": [
@@ -54,7 +54,7 @@
     }
   ],
   "checks": [
-    "Tiled attention matches the full oracle within 2e-6 + 2e-6 times absolute reference across tile sizes",
+    "Tiled attention matches the scalar oracle within 2e-6 + 2e-6 times absolute reference across key-tile widths",
     "First causal output equals its only visible value",
     "Increasing maxima preserve a hand-computed weighted numerator",
     "Invalid or overflowing shapes and nonfinite scores are rejected",
@@ -63,7 +63,7 @@
   ],
   "limitations": [
     "Scalar CPU code demonstrates the recurrence, not FlashAttention hardware performance",
-    "Full oracle stores one score row rather than an entire quadratic tensor",
+    "Scalar oracle stores one score row rather than an entire quadratic tensor",
     "Random tensors do not measure trained-model quality",
     "No backward pass or block-sparse approximation is implemented",
     "Benchmark measures allocating end-to-end CPU functions, not allocation-free kernels"

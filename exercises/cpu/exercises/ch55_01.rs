@@ -1,4 +1,5 @@
 fn close(left: &[f32], right: &[f32], atol: f32, rtol: f32) -> bool {
+    let _ = (left, right, atol, rtol);
     // TODO: implement the absolute-plus-relative parity rule.
     todo!("compare each aligned pair")
 }

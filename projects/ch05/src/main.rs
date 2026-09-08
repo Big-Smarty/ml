@@ -1,107 +1,107 @@
-//! A leakage-aware audit of an imbalanced binary classifier.
+//! A leakage-aware audit of saved probabilities from an imbalanced binary classifier.
 
 use std::collections::HashSet;
 
 #[derive(Clone, Copy, Debug)]
-struct ScoredExample {
+struct EvaluationExample {
     entity: u32,
     target: bool,
-    score: f64,
+    probability: f64,
 }
 
-const VALIDATION: [ScoredExample; 8] = [
-    ScoredExample {
+const VALIDATION: [EvaluationExample; 8] = [
+    EvaluationExample {
         entity: 11,
         target: true,
-        score: 0.72,
+        probability: 0.72,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 12,
         target: true,
-        score: 0.61,
+        probability: 0.61,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 13,
         target: false,
-        score: 0.58,
+        probability: 0.58,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 14,
         target: false,
-        score: 0.42,
+        probability: 0.42,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 15,
         target: false,
-        score: 0.31,
+        probability: 0.31,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 16,
         target: false,
-        score: 0.20,
+        probability: 0.20,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 17,
         target: false,
-        score: 0.10,
+        probability: 0.10,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 18,
         target: false,
-        score: 0.05,
+        probability: 0.05,
     },
 ];
 
-const TEST: [ScoredExample; 10] = [
-    ScoredExample {
+const TEST: [EvaluationExample; 10] = [
+    EvaluationExample {
         entity: 21,
         target: true,
-        score: 0.67,
+        probability: 0.67,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 22,
         target: true,
-        score: 0.49,
+        probability: 0.49,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 23,
         target: false,
-        score: 0.63,
+        probability: 0.63,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 24,
         target: false,
-        score: 0.46,
+        probability: 0.46,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 25,
         target: false,
-        score: 0.40,
+        probability: 0.40,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 26,
         target: false,
-        score: 0.35,
+        probability: 0.35,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 27,
         target: false,
-        score: 0.18,
+        probability: 0.18,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 28,
         target: false,
-        score: 0.12,
+        probability: 0.12,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 29,
         target: false,
-        score: 0.08,
+        probability: 0.08,
     },
-    ScoredExample {
+    EvaluationExample {
         entity: 30,
         target: false,
-        score: 0.03,
+        probability: 0.03,
     },
 ];
 
@@ -153,20 +153,23 @@ impl Confusion {
     }
 }
 
-fn evaluate(data: &[ScoredExample], threshold: f64) -> Result<Confusion, &'static str> {
+fn predict(probability: f64, threshold: f64) -> bool {
+    probability >= threshold
+}
+
+fn evaluate(data: &[EvaluationExample], threshold: f64) -> Result<Confusion, &'static str> {
     if data.is_empty() || !threshold.is_finite() || !(0.0..=1.0).contains(&threshold) {
         return Err("evaluation needs examples and a threshold in [0, 1]");
     }
-    if data
-        .iter()
-        .any(|example| !example.score.is_finite() || !(0.0..=1.0).contains(&example.score))
-    {
-        return Err("scores must be finite probabilities");
+    if data.iter().any(|example| {
+        !example.probability.is_finite() || !(0.0..=1.0).contains(&example.probability)
+    }) {
+        return Err("probabilities must be finite and in [0, 1]");
     }
     Ok(data
         .iter()
         .fold(Confusion::default(), |mut counts, example| {
-            match (example.score >= threshold, example.target) {
+            match (predict(example.probability, threshold), example.target) {
                 (true, true) => counts.true_positive += 1,
                 (true, false) => counts.false_positive += 1,
                 (false, false) => counts.true_negative += 1,
@@ -176,7 +179,10 @@ fn evaluate(data: &[ScoredExample], threshold: f64) -> Result<Confusion, &'stati
         }))
 }
 
-fn choose_threshold(validation: &[ScoredExample], candidates: &[f64]) -> Result<f64, &'static str> {
+fn choose_threshold(
+    validation: &[EvaluationExample],
+    candidates: &[f64],
+) -> Result<f64, &'static str> {
     candidates
         .iter()
         .copied()
@@ -193,7 +199,7 @@ fn choose_threshold(validation: &[ScoredExample], candidates: &[f64]) -> Result<
         })
 }
 
-fn no_entity_overlap(left: &[ScoredExample], right: &[ScoredExample]) -> bool {
+fn no_entity_overlap(left: &[EvaluationExample], right: &[EvaluationExample]) -> bool {
     let entities: HashSet<_> = left.iter().map(|example| example.entity).collect();
     right
         .iter()
@@ -231,7 +237,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn confusion_counts_and_metrics_are_consistent() -> Result<(), &'static str> {
+    fn probabilities_produce_consistent_counts_and_metrics() -> Result<(), &'static str> {
+        assert!(!predict(0.49, 0.5));
+        assert!(predict(0.50, 0.5));
         let counts = evaluate(&TEST, 0.5)?;
         assert_eq!(
             counts,
@@ -246,6 +254,14 @@ mod tests {
         assert!((metrics.accuracy - 0.8).abs() < 1e-12);
         assert!((metrics.precision - 0.5).abs() < 1e-12);
         assert!((metrics.recall - 0.5).abs() < 1e-12);
+        assert!(evaluate(&[], 0.5).is_err());
+        assert!(evaluate(&TEST, f64::NAN).is_err());
+        let invalid = [EvaluationExample {
+            entity: 31,
+            target: false,
+            probability: 1.1,
+        }];
+        assert!(evaluate(&invalid, 0.5).is_err());
         Ok(())
     }
 
@@ -253,10 +269,10 @@ mod tests {
     fn tuning_uses_validation_and_leakage_is_visible() -> Result<(), &'static str> {
         assert_eq!(choose_threshold(&VALIDATION, &[0.4, 0.5, 0.6, 0.7])?, 0.6);
         assert!(no_entity_overlap(&VALIDATION, &TEST));
-        let leaked = [ScoredExample {
+        let leaked = [EvaluationExample {
             entity: 11,
             target: false,
-            score: 0.1,
+            probability: 0.1,
         }];
         assert!(!no_entity_overlap(&VALIDATION, &leaked));
         Ok(())

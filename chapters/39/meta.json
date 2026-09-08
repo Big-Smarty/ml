@@ -1,14 +1,16 @@
 {
   "outcomes": [
-    "Train and evaluate a dense causal decoder on byte text",
+    "Train and teacher-forced evaluate a dense causal decoder on byte IDs",
     "Use distinct licensed training and validation documents without silent fallback",
-    "Save, load, resume, and generate from the actual trained model",
+    "Save, load, resume additional optimizer steps, and generate from the actual trained model",
     "Report exact parameter and persistent-memory budgets",
     "Measure tokens per second without fabricating scale claims"
   ],
   "lessons": [
+    "Carry forward the decoder and trainer contracts",
     "Define the experiment",
     "Train the complete tiny decoder",
+    "Compute a target-weighted held-out metric",
     "Generate a continuation",
     "Save, load, and continue",
     "Budget the larger option",
@@ -16,11 +18,6 @@
     "Review and transfer"
   ],
   "terms": {
-    "teacher-forcing": {
-      "name": "teacher forcing",
-      "definition": "Training sequence positions with the true earlier tokens while predicting their shifted next-token targets.",
-      "explanation": "Teacher forcing creates input and target sequences offset by one token. It permits parallel loss computation because all true context tokens are available, while a causal mask prevents any position from reading later inputs. Generation differs: each sampled token becomes context for the following step, so errors can influence later inputs. A correct training shift and mask avoid target leakage. The method defines how contexts are supplied; it does not guarantee that sampled continuations match the training distribution."
-    },
     "temperature": {
       "name": "sampling temperature",
       "definition": "A positive divisor applied to logits before softmax to control distribution sharpness.",
@@ -60,15 +57,17 @@
     }
   ],
   "checks": [
-    "Tiny test trains the complete decoder, lowers fixture loss, saves, loads, and generates",
-    "Default run evaluates a separate held-out document and reports measured throughput",
+    "Tiny test trains the complete decoder, lowers fixture loss, resumes the exact next public training update, rejects changed training IDs, and generates",
+    "Default run performs 40 optimizer steps over 960 target tokens, evaluates a separate held-out document, and reports measured throughput",
+    "Unequal held-out blocks are weighted by their target counts",
+    "Default and large configurations have byte vocabulary 256 and exactly 10,896 and 14,442,496 parameters",
     "Large-info prints exactly 14,442,496 parameters without allocation",
     "Large mode instantiates the real Trainer and requires an explicit step budget",
-    "Changed training data is rejected on resume"
+    "After training binds a nonzero fingerprint, a resumed update rejects changed training IDs"
   ],
   "limitations": [
     "Bundled text is too small for useful language quality",
-    "The CLI checks exact 32-byte overlap; semantic decontamination needs additional detectors beyond Chapter 37\u2019s whole-document audit",
+    "The CLI checks exact 32-byte overlap; semantic decontamination needs additional detectors beyond Chapter 37’s whole-document audit",
     "Large smoke performs one CPU forward and no extended training",
     "GPU bridge is not fully resident"
   ]

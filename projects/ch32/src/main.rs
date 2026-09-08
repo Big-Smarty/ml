@@ -8,6 +8,8 @@ use std::{
 };
 use wgpu::util::DeviceExt;
 
+const WORKGROUP_SIZE: usize = 64;
+
 struct Gpu {
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -22,8 +24,8 @@ struct Gpu {
 #[derive(Debug)]
 struct Measurement {
     output: Vec<f32>,
-    wall: Duration,
-    gpu_nanoseconds: Option<f64>,
+    cpu_wall_time: Duration,
+    device_time_nanoseconds: Option<f64>,
     used_f16: bool,
 }
 
@@ -110,7 +112,11 @@ impl Gpu {
         })
     }
 
-    fn run(&self, input: &[f32], plan: Plan) -> Result<Measurement, Box<dyn Error>> {
+    fn affine_relu_with_gpu(
+        &self,
+        input: &[f32],
+        plan: Plan,
+    ) -> Result<Measurement, Box<dyn Error>> {
         if input.is_empty() || input.iter().any(|value| !value.is_finite()) {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
@@ -118,7 +124,7 @@ impl Gpu {
             )
             .into());
         }
-        let len = u32::try_from(input.len())?;
+        let element_count = u32::try_from(input.len())?;
         let bytes = bytes_for(input.len())?;
         if bytes > self.limits.max_buffer_size
             || bytes > self.limits.max_storage_buffer_binding_size
@@ -129,7 +135,7 @@ impl Gpu {
             )
             .into());
         }
-        let groups = len.div_ceil(64);
+        let groups = u32::try_from(dispatch_count(input.len(), WORKGROUP_SIZE))?;
         if groups > self.limits.max_compute_workgroups_per_dimension {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
@@ -146,14 +152,14 @@ impl Gpu {
             });
         let intermediate = storage_output(&self.device, "intermediate", bytes, false);
         let output = storage_output(&self.device, "output", bytes, true);
-        let params = [len, 0, 0, 0];
-        let params_buffer = self
-            .device
-            .create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("length"),
-                contents: bytemuck::cast_slice(&params),
-                usage: wgpu::BufferUsages::UNIFORM,
-            });
+        let dispatch_params = [element_count, 0, 0, 0];
+        let dispatch_params_buffer =
+            self.device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("dispatch parameters"),
+                    contents: bytemuck::cast_slice(&dispatch_params),
+                    usage: wgpu::BufferUsages::UNIFORM,
+                });
         let readback = readback_buffer(&self.device, "output readback", bytes);
         let pass_count = if matches!(plan, Plan::Separate) { 2 } else { 1 };
         let query_count = pass_count * 2;
@@ -179,8 +185,10 @@ impl Gpu {
                 u64::from(query_count) * 8,
             )
         });
-        let use_f16 = matches!(plan, Plan::Mixed) && self.fused_f16.is_some() && half_safe(input);
-        let started = Instant::now();
+        let use_f16 = matches!(plan, Plan::Mixed)
+            && self.fused_f16.is_some()
+            && f16_arithmetic_is_safe(input);
+        let cpu_wall_started = Instant::now();
         let mut encoder = self
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -193,14 +201,14 @@ impl Gpu {
                     &self.scale,
                     &input_buffer,
                     &intermediate,
-                    &params_buffer,
+                    &dispatch_params_buffer,
                 );
                 let second = group(
                     &self.device,
                     &self.relu,
                     &intermediate,
                     &output,
-                    &params_buffer,
+                    &dispatch_params_buffer,
                 );
                 record_pass(
                     &mut encoder,
@@ -223,7 +231,7 @@ impl Gpu {
                     &self.fused,
                     &input_buffer,
                     &output,
-                    &params_buffer,
+                    &dispatch_params_buffer,
                 );
                 record_pass(
                     &mut encoder,
@@ -244,7 +252,7 @@ impl Gpu {
                     selected,
                     &input_buffer,
                     &output,
-                    &params_buffer,
+                    &dispatch_params_buffer,
                 );
                 record_pass(
                     &mut encoder,
@@ -263,8 +271,8 @@ impl Gpu {
         encoder.copy_buffer_to_buffer(&output, 0, &readback, 0, bytes);
         self.queue.submit([encoder.finish()]);
         let output = read_f32(&self.device, &readback, input.len())?;
-        let wall = started.elapsed();
-        let gpu_nanoseconds = if let Some(staging) = query_readback {
+        let cpu_wall_time = cpu_wall_started.elapsed();
+        let device_time_nanoseconds = if let Some(staging) = query_readback {
             let values = read_u64(&self.device, &staging, query_count as usize)?;
             let ticks = values
                 .chunks_exact(2)
@@ -276,8 +284,8 @@ impl Gpu {
         };
         Ok(Measurement {
             output,
-            wall,
-            gpu_nanoseconds,
+            cpu_wall_time,
+            device_time_nanoseconds,
             used_f16: use_f16,
         })
     }
@@ -331,7 +339,7 @@ fn group<'a>(
     pipeline: &wgpu::ComputePipeline,
     input: &'a wgpu::Buffer,
     output: &'a wgpu::Buffer,
-    params: &'a wgpu::Buffer,
+    dispatch_params: &'a wgpu::Buffer,
 ) -> wgpu::BindGroup {
     device.create_bind_group(&wgpu::BindGroupDescriptor {
         label: Some("kernel bindings"),
@@ -347,7 +355,7 @@ fn group<'a>(
             },
             wgpu::BindGroupEntry {
                 binding: 2,
-                resource: params.as_entire_binding(),
+                resource: dispatch_params.as_entire_binding(),
             },
         ],
     })
@@ -379,6 +387,10 @@ fn bytes_for(len: usize) -> Result<u64, Box<dyn Error>> {
     Ok(u64::try_from(len.checked_mul(4).ok_or_else(|| {
         io::Error::new(io::ErrorKind::InvalidInput, "buffer size overflow")
     })?)?)
+}
+
+fn dispatch_count(element_count: usize, workgroup_size: usize) -> usize {
+    element_count.div_ceil(workgroup_size)
 }
 
 fn map_bytes(device: &wgpu::Device, buffer: &wgpu::Buffer) -> Result<Vec<u8>, Box<dyn Error>> {
@@ -428,11 +440,11 @@ fn read_u64(
         .collect())
 }
 
-fn half_safe(input: &[f32]) -> bool {
+fn f16_arithmetic_is_safe(input: &[f32]) -> bool {
     input.iter().all(|value| value.abs() <= 40_000.0)
 }
 
-fn cpu_oracle(input: &[f32]) -> Vec<f32> {
+fn affine_relu_scalar(input: &[f32]) -> Vec<f32> {
     input
         .iter()
         .map(|value| (value * 1.5 + 0.25).max(0.0))
@@ -451,18 +463,18 @@ fn main() -> Result<(), Box<dyn Error>> {
     let input: Vec<f32> = (0..65_537).map(|i| (i % 257) as f32 / 32.0 - 4.0).collect();
     for plan in [Plan::Separate, Plan::FusedF32, Plan::Mixed] {
         for _ in 0..3 {
-            let _warmup = gpu.run(&input, plan)?;
+            let _warmup = gpu.affine_relu_with_gpu(&input, plan)?;
         }
     }
     let mut separate = Vec::new();
     let mut fused = Vec::new();
     let mut mixed = Vec::new();
     for _ in 0..7 {
-        separate.push(gpu.run(&input, Plan::Separate)?);
-        fused.push(gpu.run(&input, Plan::FusedF32)?);
-        mixed.push(gpu.run(&input, Plan::Mixed)?);
+        separate.push(gpu.affine_relu_with_gpu(&input, Plan::Separate)?);
+        fused.push(gpu.affine_relu_with_gpu(&input, Plan::FusedF32)?);
+        mixed.push(gpu.affine_relu_with_gpu(&input, Plan::Mixed)?);
     }
-    let expected = cpu_oracle(&input);
+    let expected = affine_relu_scalar(&input);
     for sample in &separate {
         close(&sample.output, &expected, 1e-5);
     }
@@ -491,28 +503,31 @@ fn main() -> Result<(), Box<dyn Error>> {
 }
 
 fn print_summary(label: &str, measurements: &[Measurement]) {
-    let mut walls: Vec<_> = measurements.iter().map(|sample| sample.wall).collect();
-    walls.sort_unstable();
-    let gpu_times: Option<Vec<f64>> = measurements
+    let mut walls: Vec<_> = measurements
         .iter()
-        .map(|sample| sample.gpu_nanoseconds)
+        .map(|sample| sample.cpu_wall_time)
+        .collect();
+    walls.sort_unstable();
+    let device_times: Option<Vec<f64>> = measurements
+        .iter()
+        .map(|sample| sample.device_time_nanoseconds)
         .collect();
     println!(
-        "{label}: wall median={:?}, range={:?}..{:?}",
+        "{label}: CPU wall-clock median={:?}, range={:?}..{:?}",
         walls[walls.len() / 2],
         walls[0],
         walls[walls.len() - 1]
     );
-    if let Some(mut times) = gpu_times {
+    if let Some(mut times) = device_times {
         times.sort_by(f64::total_cmp);
         println!(
-            "{label}: summed pass timestamps median={:.0} ns, range={:.0}..{:.0} ns",
+            "{label}: summed device pass timestamps median={:.0} ns, range={:.0}..{:.0} ns",
             times[times.len() / 2],
             times[0],
             times[times.len() - 1]
         );
     } else {
-        println!("{label}: GPU timestamps unavailable");
+        println!("{label}: device timestamps unavailable");
     }
 }
 
@@ -521,17 +536,18 @@ mod tests {
     use super::*;
 
     #[test]
-    fn scalar_oracle_covers_relu_boundary() {
+    fn affine_relu_scalar_covers_relu_boundary() {
         assert_eq!(
-            cpu_oracle(&[-1.0, -1.0 / 6.0, 0.0, 2.0]),
+            affine_relu_scalar(&[-1.0, -1.0 / 6.0, 0.0, 2.0]),
             vec![0.0, 0.0, 0.25, 3.25]
         );
+        assert_eq!(dispatch_count(65_537, WORKGROUP_SIZE), 1_025);
     }
 
     #[test]
     fn mixed_precision_range_guard_rejects_half_overflow_risk() {
-        assert!(half_safe(&[-40_000.0, 0.0, 40_000.0]));
-        assert!(!half_safe(&[50_000.0]));
+        assert!(f16_arithmetic_is_safe(&[-40_000.0, 0.0, 40_000.0]));
+        assert!(!f16_arithmetic_is_safe(&[50_000.0]));
     }
 
     #[test]
@@ -539,11 +555,19 @@ mod tests {
     fn separate_fused_and_mixed_paths_match() -> Result<(), Box<dyn Error>> {
         let gpu = Gpu::new()?;
         let input: Vec<f32> = (0..257).map(|i| i as f32 / 29.0 - 4.0).collect();
-        let expected = cpu_oracle(&input);
-        close(&gpu.run(&input, Plan::Separate)?.output, &expected, 1e-5);
-        close(&gpu.run(&input, Plan::FusedF32)?.output, &expected, 1e-5);
+        let expected = affine_relu_scalar(&input);
         close(
-            &gpu.run(&input, Plan::Mixed)?.output,
+            &gpu.affine_relu_with_gpu(&input, Plan::Separate)?.output,
+            &expected,
+            1e-5,
+        );
+        close(
+            &gpu.affine_relu_with_gpu(&input, Plan::FusedF32)?.output,
+            &expected,
+            1e-5,
+        );
+        close(
+            &gpu.affine_relu_with_gpu(&input, Plan::Mixed)?.output,
             &expected,
             if gpu.fused_f16.is_some() { 0.01 } else { 1e-5 },
         );

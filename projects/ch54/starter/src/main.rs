@@ -1,12 +1,12 @@
 #[derive(Clone, Copy)]
-struct Row {
+struct PredictionRow {
     group: char,
     label: bool,
     predicted: bool,
 }
 
 #[cfg(test)]
-fn true_positive_rate(rows: &[Row], group: char) -> Option<f64> {
+fn true_positive_rate(rows: &[PredictionRow], group: char) -> Option<f64> {
     // TODO: divide true positives by all positive labels in this group.
     let _ = (rows, group);
     todo!("compute a group-conditional denominator")
@@ -14,17 +14,17 @@ fn true_positive_rate(rows: &[Row], group: char) -> Option<f64> {
 
 fn main() {
     let rows = [
-        Row {
+        PredictionRow {
             group: 'A',
             label: true,
             predicted: true,
         },
-        Row {
+        PredictionRow {
             group: 'A',
             label: false,
             predicted: false,
         },
-        Row {
+        PredictionRow {
             group: 'B',
             label: true,
             predicted: false,
@@ -40,12 +40,12 @@ fn main() {
 #[test]
 fn group_recall_exposes_difference() {
     let rows = [
-        Row {
+        PredictionRow {
             group: 'A',
             label: true,
             predicted: true,
         },
-        Row {
+        PredictionRow {
             group: 'B',
             label: true,
             predicted: false,

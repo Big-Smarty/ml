@@ -12,6 +12,6 @@ The noisy regression fixture is course-authored. It demonstrates behavior but is
 
 ## Astra High review — 2026-09-08
 
-GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (01–07). Moved rate and L2 validation to the training boundary so zero epochs cannot bypass it. Added short-batch, unpenalized-bias, and invalid-zero-epoch checks. Strengthened L2 learner checks for zero regularization and negative weights.
+GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (01–07). Moved learning-rate and L2 validation to the training boundary so zero epochs cannot bypass it. Added short-batch, unpenalized-bias, and invalid-zero-epoch checks. Strengthened L2 learner checks for zero regularization and negative weights.
 
 See [the per-chapter review and validation record](../../guidance/astra-review-01-14.md) for evidence, gate results, and limitations.

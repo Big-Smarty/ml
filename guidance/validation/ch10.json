@@ -5,7 +5,7 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch10/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.03,
+      "seconds": 0.029,
       "output": ""
     },
     {
@@ -17,64 +17,66 @@
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch10/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.032,
+      "seconds": 0.034,
       "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch10/target/debug/deps/ch10-cc655c7af0cd9880)\n\nrunning 4 tests\ntest tests::malformed_idx_is_rejected ... ok\ntest tests::cross_entropy_preserves_shared_offsets_and_parser_contract ... ok\ntest tests::parses_real_idx_layout ... ok\ntest tests::training_reduces_real_cross_entropy ... ok\n\ntest result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch10/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.213,
-      "output": "   Compiling ch10 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch10)\n    Finished `release` profile [optimized] target(s) in 0.20s\n     Running `projects/ch10/target/release/ch10`\ntrain=6 held-out=3 shape=2x2\nheld-out loss 2.3026 -> 0.0133, accuracy 0.0% -> 100.0%\n"
+      "seconds": 0.018,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch10/target/release/ch10`\ntrain=6 held-out=3 shape=2x2\nheld-out loss 2.3026 -> 0.0133, accuracy 0.0% -> 100.0%\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch10/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.028,
+      "seconds": 0.031,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch10/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.039,
+      "seconds": 0.04,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch10/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.029,
-      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch10/starter/target/debug/ch10-starter`\nloaded 6 images, shape 2x2, class counts [2, 2, 2, 0, 0, 0, 0, 0, 0, 0]\nmean pixel intensity 0.6503; first image [1.0, 1.0, 1.0, 1.0]\nData loading is ready. Complete stable_softmax, then extend the linear neuron into ten class logits.\n"
+      "seconds": 0.031,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch10/starter/target/debug/ch10-starter`\nloaded 6 images, shape 2x2, class counts [2, 2, 2, 0, 0, 0, 0, 0, 0, 0]\nmean pixel intensity 0.6503; first image [1.0, 1.0, 1.0, 1.0]\nData loading is ready. Complete probabilities_from_logits, then extend the dense layer into ten class logits.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch10/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.015,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch10/starter/target/debug/deps/ch10_starter-d75e6632dc28bc5c)\n\nrunning 1 test\ntest probabilities_are_stable_and_normalized ... FAILED\n\nfailures:\n\n---- probabilities_are_stable_and_normalized stdout ----\n\nthread 'probabilities_are_stable_and_normalized' (2316) panicked at src/main.rs:76:5:\nnot yet implemented: implement stable softmax\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    probabilities_are_stable_and_normalized\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch10-starter`\n",
+      "seconds": 0.018,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch10/starter/target/debug/deps/ch10_starter-d75e6632dc28bc5c)\n\nrunning 1 test\ntest probabilities_are_stable_and_normalized ... FAILED\n\nfailures:\n\n---- probabilities_are_stable_and_normalized stdout ----\n\nthread 'probabilities_are_stable_and_normalized' (2135) panicked at src/main.rs:78:5:\nnot yet implemented: implement stable softmax\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    probabilities_are_stable_and_normalized\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch10-starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch10_01.rs -o /tmp/ml-check-naly_20_/solutionch10_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch10_01.rs -o /tmp/ml-check-q4b8d_qx/solutionch10_01",
       "returncode": 0,
-      "seconds": 0.044,
+      "seconds": 0.048,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-naly_20_/solutionch10_01",
+      "command": "/tmp/ml-check-q4b8d_qx/solutionch10_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest stable ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch10_01.rs -o /tmp/ml-check-naly_20_/exercisech10_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch10_01.rs -o /tmp/ml-check-q4b8d_qx/exercisech10_01",
       "returncode": 0,
-      "seconds": 0.038,
+      "seconds": 0.041,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-naly_20_/exercisech10_01",
+      "command": "/tmp/ml-check-q4b8d_qx/exercisech10_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest stable ... FAILED\n\nfailures:\n\n---- stable stdout ----\n\nthread 'stable' (2388) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch10_01.rs:4:5:\nnot yet implemented: subtract the maximum before exponentiating\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    stable\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest stable ... FAILED\n\nfailures:\n\n---- stable stdout ----\n\nthread 'stable' (2207) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch10_01.rs:4:5:\nnot yet implemented: subtract the maximum before exponentiating\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    stable\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

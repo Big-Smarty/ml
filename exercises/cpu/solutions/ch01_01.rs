@@ -1,11 +1,38 @@
-fn predict(weight: f64, bias: f64, input: f64) -> f64 {
-    weight * input + bias
+struct Neuron {
+    weight: f64,
+    bias: f64,
 }
+
+impl Neuron {
+    fn predict(&self, input: f64) -> f64 {
+        self.weight * input + self.bias
+    }
+}
+
 fn main() {
-    println!("{}", predict(2.0, 1.0, 3.0));
+    let model = Neuron {
+        weight: 2.0,
+        bias: 1.0,
+    };
+    println!("{}", model.predict(3.0));
 }
+
 #[test]
 fn prediction_uses_all_three_values() {
-    assert_eq!(predict(2.0, 1.0, 3.0), 7.0);
-    assert_eq!(predict(-1.0, 4.0, 2.0), 2.0);
+    assert_eq!(
+        Neuron {
+            weight: 2.0,
+            bias: 1.0,
+        }
+        .predict(3.0),
+        7.0
+    );
+    assert_eq!(
+        Neuron {
+            weight: -1.0,
+            bias: 4.0,
+        }
+        .predict(2.0),
+        2.0
+    );
 }

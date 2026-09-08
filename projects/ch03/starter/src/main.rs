@@ -1,21 +1,112 @@
-fn dot(weights: &[f64], features: &[f64]) -> Result<f64, &'static str> {
-    let _ = (weights, features);
-    todo!("reject unequal lengths, then multiply matching entries and sum")
+type Features = [f64; 3];
+type Example = (Features, f64);
+
+const DATA: [Example; 2] = [([2.0, 3.0, 1.0], 7.0), ([-1.0, 2.0, 0.0], 1.0)];
+
+#[derive(Clone, Copy, Debug)]
+struct LinearModel {
+    weights: [f64; 3],
+    bias: f64,
+}
+
+#[derive(Clone, Copy, Debug)]
+struct Gradient {
+    weights: [f64; 3],
+    bias: f64,
+}
+
+impl LinearModel {
+    fn predict(&self, features: Features) -> f64 {
+        self.weights
+            .iter()
+            .zip(features)
+            .map(|(weight, feature)| weight * feature)
+            .sum::<f64>()
+            + self.bias
+    }
+
+    fn loss(&self, data: &[Example]) -> Result<f64, &'static str> {
+        if data.is_empty() {
+            return Err("training requires examples");
+        }
+        let loss = data
+            .iter()
+            .map(|&(features, target)| (self.predict(features) - target).powi(2))
+            .sum::<f64>()
+            / data.len() as f64;
+        loss.is_finite().then_some(loss).ok_or("loss overflowed")
+    }
+
+    fn loss_and_gradient(&self, data: &[Example]) -> Result<(f64, Gradient), &'static str> {
+        // TODO: extend Chapter 2's scalar accumulation across all three features.
+        let _ = data;
+        todo!("return the mean squared error and its three weight derivatives plus bias derivative")
+    }
+
+    fn gradient(&self, data: &[Example]) -> Result<Gradient, &'static str> {
+        self.loss_and_gradient(data).map(|(_, gradient)| gradient)
+    }
+
+    fn step(self, data: &[Example], learning_rate: f64) -> Result<Self, &'static str> {
+        if !learning_rate.is_finite() || learning_rate <= 0.0 {
+            return Err("learning rate must be finite and positive");
+        }
+        let gradient = self.gradient(data)?;
+        let mut next = self;
+        for (weight, weight_gradient) in next.weights.iter_mut().zip(gradient.weights) {
+            *weight -= learning_rate * weight_gradient;
+        }
+        next.bias -= learning_rate * gradient.bias;
+        next.loss(data)?;
+        Ok(next)
+    }
+
+    fn train(
+        mut self,
+        data: &[Example],
+        steps: usize,
+        learning_rate: f64,
+    ) -> Result<Self, &'static str> {
+        if !learning_rate.is_finite() || learning_rate <= 0.0 {
+            return Err("learning rate must be finite and positive");
+        }
+        for _ in 0..steps {
+            self = self.step(data, learning_rate)?;
+        }
+        Ok(self)
+    }
 }
 
 fn main() -> Result<(), &'static str> {
-    let _guided_todo: fn(&[f64], &[f64]) -> Result<f64, &'static str> = dot;
+    let model = LinearModel {
+        weights: [0.0; 3],
+        bias: 0.0,
+    };
+    let _training_checkpoint: fn(
+        LinearModel,
+        &[Example],
+        usize,
+        f64,
+    ) -> Result<LinearModel, &'static str> = LinearModel::train;
     println!(
-        "prior checkpoint: one-input prediction is {}",
-        2.0 * 3.0 + 0.5
+        "three-feature prediction: {}",
+        model.predict([2.0, 3.0, 1.0])
     );
-    println!("Run cargo test to implement the new dot-product TODO.");
+    println!("initial MSE: {}", model.loss(&DATA)?);
+    println!("Run cargo test to implement loss_and_gradient.");
     Ok(())
 }
 
 #[test]
-fn dot_uses_every_feature_once() -> Result<(), &'static str> {
-    assert_eq!(dot(&[2.0, -1.0], &[3.0, 4.0])?, 2.0);
-    assert!(dot(&[1.0], &[1.0, 2.0]).is_err());
+fn one_step_uses_every_feature() -> Result<(), &'static str> {
+    let model = LinearModel {
+        weights: [0.0; 3],
+        bias: 0.0,
+    };
+    let gradient = model.gradient(&DATA)?;
+    assert_eq!(gradient.weights, [-13.0, -23.0, -7.0]);
+    assert_eq!(gradient.bias, -8.0);
+    let next = model.step(&DATA, 0.01)?;
+    assert!(next.loss(&DATA)? < model.loss(&DATA)?);
     Ok(())
 }

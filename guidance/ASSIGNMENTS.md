@@ -30,3 +30,7 @@ Read `AUTHORING.md` for deliverables, `SYSTEMS_HANDOFF.md` for cross-project int
 | astra_review_01_14 | Review and correct every part of Chapters 01–14 |
 
 The `astra_42_46` author also completed review/correction of Chapters 15–28; `astra_47_51` completed Chapters 29–41. Sol authors were stopped and provided handoffs only after the workflow change. All six Astra range reports are retained in this directory. The lead completed integration, independent verification, and final review; see `VALIDATION.md`.
+
+## Current consistency revision
+
+The learner requests a separate GPT-5.6 Sol High author for each of Chapters 01–56, with Luna High/Max research as needed. At most four chapter authors work at once. `guidance/CONSISTENCY.md` defines the shared interfaces; per-chapter implementation and check reports live in `guidance/consistency/chNN.md`. Root owns shared assets and the final cross-chapter review. Earlier authorship and validation records above describe the preceding course versions.

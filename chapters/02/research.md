@@ -15,3 +15,7 @@ The line data, arithmetic, prose, exercises, and Rust code are course-authored. 
 GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (01–07). Verified the complete MSE derivative and finite-difference conventions. Strengthened starter and Rustlings checks with a nonzero model and unequal example contributions so constants and single-row derivatives do not pass.
 
 See [the per-chapter review and validation record](../../guidance/astra-review-01-14.md) for evidence, gate results, and limitations.
+
+## Consistency revision — 2026-09-08
+
+This local revision required no new research. It retains the verified MSE formulas, central-difference method, tolerance, fixture, and sources above while aligning the Chapter 2 terminology and Rust interface with Chapter 1. The analytical formula is still the only new gradient strategy; prediction, loss, data, update semantics, and training semantics are unchanged.

@@ -12,12 +12,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut model = Decoder::new(config, 36)?;
     let input = [1, 2, 3, 1];
     let targets = [2, 3, 1, 2];
-    let initial = model.loss_and_grad(&input, &targets)?.loss;
+    let learning_rate = 0.08;
+    let initial = model.loss(&input, &targets)?;
     for _ in 0..60 {
-        let gradients = model.loss_and_grad(&input, &targets)?;
-        model.apply_sgd(&gradients, 0.08)?;
+        let gradient = model.loss_and_gradient(&input, &targets)?;
+        model.apply_sgd(&gradient, learning_rate)?;
     }
-    let final_loss = model.loss_and_grad(&input, &targets)?.loss;
+    let final_loss = model.loss(&input, &targets)?;
     println!("{} trainable parameters", model.parameter_count());
     println!("loss: {initial:.4} -> {final_loss:.4}");
     println!("Representative embeddings, attention, norms, feed-forward, and output weights were updated.");

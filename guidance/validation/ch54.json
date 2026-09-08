@@ -5,19 +5,19 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch54/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.027,
+      "seconds": 0.028,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch54/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.037,
+      "seconds": 0.038,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch54/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.028,
+      "seconds": 0.027,
       "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch54/target/debug/deps/ch54-f1103c06dbf7cff4)\n\nrunning 2 tests\ntest tests::boundaries_and_causal_adjustment_change_the_conclusion ... ok\ntest tests::audit_metrics_use_their_own_denominators ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
@@ -35,46 +35,48 @@
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch54/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.037,
+      "seconds": 0.039,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch54/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.026,
+      "seconds": 0.027,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch54/starter/target/debug/ch54_starter`\noverall accuracy: 2/3\ngroup A rows: 2\nOverall accuracy is the checkpoint; the audit needs group denominators.\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch54/starter/Cargo.toml",
       "returncode": 101,
       "seconds": 0.015,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch54/starter/target/debug/deps/ch54_starter-600255c73dd6d143)\n\nrunning 1 test\ntest group_recall_exposes_difference ... FAILED\n\nfailures:\n\n---- group_recall_exposes_difference stdout ----\n\nthread 'group_recall_exposes_difference' (17911) panicked at src/main.rs:12:5:\nnot yet implemented: compute a group-conditional denominator\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    group_recall_exposes_difference\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch54_starter`\n",
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch54/starter/target/debug/deps/ch54_starter-600255c73dd6d143)\n\nrunning 1 test\ntest group_recall_exposes_difference ... FAILED\n\nfailures:\n\n---- group_recall_exposes_difference stdout ----\n\nthread 'group_recall_exposes_difference' (17981) panicked at src/main.rs:12:5:\nnot yet implemented: compute a group-conditional denominator\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    group_recall_exposes_difference\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch54_starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch54_01.rs -o /tmp/ml-check-acx22xbh/solutionch54_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch54_01.rs -o /tmp/ml-check-owmddsi7/solutionch54_01",
       "returncode": 0,
-      "seconds": 0.04,
+      "seconds": 0.043,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-acx22xbh/solutionch54_01",
+      "command": "/tmp/ml-check-owmddsi7/solutionch54_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest defined_and_undefined_rates ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch54_01.rs -o /tmp/ml-check-acx22xbh/exercisech54_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch54_01.rs -o /tmp/ml-check-owmddsi7/exercisech54_01",
       "returncode": 0,
-      "seconds": 0.04,
+      "seconds": 0.041,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-acx22xbh/exercisech54_01",
+      "command": "/tmp/ml-check-owmddsi7/exercisech54_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest defined_and_undefined_rates ... FAILED\n\nfailures:\n\n---- defined_and_undefined_rates stdout ----\n\nthread 'defined_and_undefined_rates' (17983) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch54_01.rs:4:5:\nnot yet implemented: guard the denominator\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    defined_and_undefined_rates\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest defined_and_undefined_rates ... FAILED\n\nfailures:\n\n---- defined_and_undefined_rates stdout ----\n\nthread 'defined_and_undefined_rates' (18053) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch54_01.rs:4:5:\nnot yet implemented: guard the denominator\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    defined_and_undefined_rates\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

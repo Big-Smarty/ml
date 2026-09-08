@@ -1,1 +1,70 @@
-{"outcomes":["Compute scaled causal QKᵀ scores and weighted values","Explain queries, keys, and values by role and shape","Derive manual gradients for Q, K, V, and row softmax","Use finite differences and causal invariance as complementary tests"],"lessons":["Ask, match, and retrieve","Mask information from the future","Reverse the weighted mixture","Check the whole chain numerically","Practice and investigate","Review and transfer"],"terms":{"self-attention":{"name":"self-attention","definition":"A content-dependent weighted mixture whose queries, keys, and values come from the same sequence.","explanation":"Each query row scores key rows, row softmax converts scores to weights, and the weighted sum retrieves value rows. Scores are scaled by the inverse square root of head width to control predictable dot-product growth. Self-attention exchanges information across positions, unlike a feed-forward layer that transforms positions independently. Multiple heads repeat the calculation on feature slices. The operation does not by itself enforce sequence direction; a causal mask supplies that restriction for autoregressive language modeling."},"causal-mask":{"name":"causal mask","definition":"A restriction that permits position i to attend only to positions j where j is not later than i.","explanation":"During parallel next-token training, future tokens are present in the input tensor. Without a causal mask, a representation can read information about the target it must predict, producing misleadingly low loss. Mask forbidden scores before softmax so their probability and score gradient are zero. The diagonal is allowed because position i contains the current input token while its target is token i+1. A strong test changes future keys and values and confirms earlier outputs remain unchanged."},"gradient-check":{"name":"gradient check","definition":"A comparison between an analytical derivative and a numerical finite-difference estimate.","explanation":"For scalar loss L and parameter θ, central difference estimates the derivative as [L(θ+ε)−L(θ−ε)]/(2ε). It is slow but useful on tiny deterministic fixtures. Smooth inputs, suitable precision, and combined absolute and relative tolerances matter. A gradient check verifies the derivative of the implemented forward computation; it cannot prove that the forward computation matches the intended architecture. Causal invariance and shape tests therefore complement numerical derivatives."}},"sources":[{"title":"Attention Is All You Need","url":"https://arxiv.org/abs/1706.03762","note":"Original scaled dot-product and multi-head attention source."},{"title":"Learning representations by back-propagating errors","url":"https://doi.org/10.1038/323533a0","note":"Original backpropagation source."},{"title":"PyTorch scaled dot-product attention","url":"https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html","note":"Current executable API reference."},{"title":"PyTorch gradcheck","url":"https://docs.pytorch.org/docs/main/generated/torch.autograd.gradcheck.gradcheck.html","note":"Current numerical-check guidance."}],"checks":["Every Q, K, and V element passes f64 central differences","Future changes cannot affect the first output","Masked probabilities are exactly zero","Default run traces weights, outputs, and nonzero gradient norms"],"limitations":["Standalone project uses one head and direct Q/K/V inputs","It omits dropout and projection weights","Quadratic attention storage is suitable only for short sequences"]}
+{
+  "outcomes": [
+    "Compute scaled causal query-key scores and probability-weighted values",
+    "Explain queries, keys, and values by role and shape",
+    "Derive manual gradients for Q, K, V, and row softmax",
+    "Distinguish an attention derivative probe from next-token cross-entropy",
+    "Use finite differences and causal invariance as complementary tests"
+  ],
+  "lessons": [
+    "Code and terminology carried forward",
+    "Ask, match, and retrieve",
+    "Mask information from the future",
+    "Reverse the weighted mixture",
+    "Check the whole chain numerically",
+    "Practice and investigate",
+    "Review and transfer"
+  ],
+  "terms": {
+    "self-attention": {
+      "name": "self-attention",
+      "definition": "A content-dependent weighted mixture whose queries, keys, and values come from the same sequence.",
+      "explanation": "Each query row scores key rows, row softmax converts scores to source-position probabilities, and the weighted sum retrieves value rows. Scores are scaled by the inverse square root of head width to control predictable dot-product growth. Self-attention exchanges information across positions, unlike a feed-forward layer that transforms positions independently. Multiple heads repeat the calculation on feature slices. The operation does not by itself enforce sequence direction; a causal mask supplies that restriction for autoregressive language modeling."
+    },
+    "causal-mask": {
+      "name": "causal mask",
+      "definition": "A restriction that permits position i to attend only to positions j where j is not later than i.",
+      "explanation": "During parallel next-token training, future tokens are present in the input tensor. Without a causal mask, a representation can read information about the target it must predict, producing misleadingly low loss. Mask forbidden attention scores before row softmax so their source-position probability and score gradient are zero. These probabilities choose input positions; they are distinct from the later probability distribution over predicted token classes. The diagonal is allowed because position i contains the current input token while its target is token i+1."
+    },
+    "gradient-check": {
+      "name": "gradient check",
+      "definition": "A comparison between an analytical derivative and a numerical finite-difference estimate.",
+      "explanation": "For a scalar objective P and input element θ, central difference estimates the derivative as [P(θ+ε)−P(θ−ε)]/(2ε). It is slow but useful on tiny deterministic fixtures. Smooth inputs, suitable precision, and combined absolute and relative tolerances matter. This chapter sums attention outputs times a fixed upstream matrix to create a derivative probe; that probe is not a model loss or next-token cross-entropy. Causal invariance and shape tests complement numerical derivatives because agreement alone cannot prove the intended information flow."
+    }
+  },
+  "sources": [
+    {
+      "title": "Attention Is All You Need",
+      "url": "https://arxiv.org/abs/1706.03762",
+      "note": "Original scaled dot-product and multi-head attention source."
+    },
+    {
+      "title": "Learning representations by back-propagating errors",
+      "url": "https://doi.org/10.1038/323533a0",
+      "note": "Original backpropagation source."
+    },
+    {
+      "title": "PyTorch scaled dot-product attention",
+      "url": "https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html",
+      "note": "Current executable API reference."
+    },
+    {
+      "title": "PyTorch gradcheck",
+      "url": "https://docs.pytorch.org/docs/main/generated/torch.autograd.gradcheck.gradcheck.html",
+      "note": "Current numerical-check guidance."
+    }
+  ],
+  "checks": [
+    "causal_attention receives direct row-major query, key, and value arrays and returns output plus source-position probabilities with the documented shapes",
+    "Every Q, K, and V element passes f64 central differences against the summed attention_probe_objective",
+    "backward propagates supplied output gradients without an extra averaging denominator",
+    "Future key and value changes cannot affect earlier outputs, and masked probabilities are exactly zero",
+    "Default run traces probabilities, outputs, and nonzero gradient norms"
+  ],
+  "limitations": [
+    "The standalone project receives direct Q, K, and V inputs rather than token IDs or learned projections",
+    "It implements one attention head and no dropout",
+    "Its test-only probe objective is not next-token cross-entropy",
+    "Quadratic attention storage is suitable only for short sequences"
+  ]
+}

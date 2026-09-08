@@ -17,6 +17,12 @@ The executable uses the averaged primal objective `lambda/2 * ||w||^2 + mean hin
 
 The worked RBF values were independently recalculated: with gamma 0.5, squared distances one and four yield `exp(-0.5) = 0.6065` and `exp(-2) = 0.1353`. Tests establish that the zero linear model has average hinge one, the linear fixture is separated, the same linear path fails on XOR, and the RBF kernel classifier fits XOR. Training fixtures are never described as held-out evidence.
 
+## Consistency revision
+
+The Chapter 15 boundary uses discrete 0-or-1 class IDs, while hinge-loss arithmetic requires signed labels -1 or +1. The lesson now makes that conversion explicit before use, and the Rust `Point` names the stored values `features` and `label`. Mathematical `x`, `y`, `w`, and `b` are mapped to Rust `features`, `label`, `weights`, and `bias`; `learning_rate` replaces the ambiguous `rate` name.
+
+The executable keeps three operations distinct: `score` returns an unnormalized scalar, `predict` thresholds it to a signed class decision, and `objective` returns mean hinge loss plus the L2 weight penalty. The standalone Rustlings primitive takes `(label, score)` and computes one unregularized hinge loss. The starter takes `(weights, bias, point)` and first reconstructs that same raw score. Neither primitive is presented as the full regularized objective.
+
 ## Excluded extensions
 
 SMO, exact dual coefficients, calibrated probabilities, Gram-matrix caching, and external datasets were excluded. They add machinery without strengthening the assigned contrast between a linear hinge-loss SVM and a nonlinear kernel classifier.

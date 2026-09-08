@@ -8,13 +8,13 @@ Route: chapter authored by the assigned high-reasoning author after bounded sour
 - Tashman, “Out-of-sample tests of forecasting accuracy,” International Journal of Forecasting 16(4) (2000), https://doi.org/10.1016/S0169-2070(00)00065-0. Supports evaluation after the fitting period and fixed versus rolling origins.
 - Bergmeir, Hyndman, and Koo, “A Note on the Validity of Cross-Validation for Evaluating Autoregressive Time Series Prediction,” CSDA 120 (2018), https://doi.org/10.1016/j.csda.2017.11.003. Supports conditional validity of ordinary CV only under specific error assumptions; the lecture does not generalize that result.
 
-Reported errors are teacher-forced one-step MSE with hidden state reset at the validation boundary, plus a persistence baseline. No multi-step rollout claim is made.
+Training supplies true previous sequence values. Reported errors are explicitly teacher-forced one-step MSE with hidden state reset at the validation boundary, plus a persistence baseline. Free-running inference would feed generated outputs back as inputs; no multi-step rollout claim is made.
 
 
 ## Independent Astra review, 2026-09-08
 
 GPT-6 Astra High independently read the full lesson, metadata, research, reference, starter, and Rustlings exercise/solution. Bounded GPT-5.6 Luna High primary-source and technical verification covered chapters 20–24; the researcher supplied checks and source findings, while Astra implemented the corrections.
 
-Added an independent RNN recurrent-weight central-difference check alongside the LSTM candidate check, sequence shape/finite assertions, and qualified the tabular-order comparison. Added Gers, Schmidhuber and Cummins (2000), https://doi.org/10.1162/089976600300015015, for the modern forget gate. Chronological teacher-forced evaluation and the unfavorable LSTM-versus-persistence comparison remain explicit.
+Added an independent RNN recurrent-weight central-difference check alongside the LSTM candidate check, sequence shape/finite assertions, and qualified the tabular-order comparison. Added Gers, Schmidhuber and Cummins (2000), https://doi.org/10.1162/089976600300015015, for the modern forget gate. Chronological, explicitly teacher-forced evaluation and the unfavorable LSTM-versus-persistence comparison remain explicit.
 
 Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.

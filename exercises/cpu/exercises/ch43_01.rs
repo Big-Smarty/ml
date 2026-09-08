@@ -1,5 +1,5 @@
-fn adapter_parameters(_input: usize, _output: usize, _rank: usize) -> usize {
-    // TODO: count A[input, rank] plus B[rank, output].
+fn adapter_parameters(_input_features: usize, _output_features: usize, _rank: usize) -> usize {
+    // TODO: count A[input_features, rank] plus B[rank, output_features].
     todo!("count LoRA parameters")
 }
 fn main() {

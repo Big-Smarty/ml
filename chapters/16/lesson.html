@@ -1,8 +1,32 @@
 <p class="lead">A tree can bend its boundary into many rectangles, but another family of classifiers asks a more geometric question: can we draw a boundary that leaves a wide empty corridor between the classes? This chapter builds that classifier from hinge loss, then replaces ordinary dot products with similarities so the boundary can curve.</p>
 <div class="callout"><strong>Your milestone</strong><p>You will train a linear support-vector machine on two-dimensional points, explain every update from its objective, and use an RBF-kernel classifier on an XOR-shaped fixture that no single line can separate.</p></div>
 
+<section id="continuity"><h2>Code and terminology carried forward</h2>
+<p><a href="/chapters/15.html">Chapter 15</a> used two-feature rows and <code>predict</code> for a classifier's discrete 0-or-1 decision. Chapter 16 keeps two <code>f64</code> features and a discrete class decision, but changes the stored label encoding to −1 or +1 because the signed margin multiplies the label by the score. Convert 0 to −1 once at an input boundary; do not pass 0 into hinge-loss training. The course-wide meanings remain in the <a href="/conventions.html">code and terminology conventions</a>.</p>
+<div class="table-wrap"><table><thead><tr><th>Operation or value</th><th>Rust representation</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>One labeled point</td><td><code>Point { features: [f64; 2], label: f64 }</code></td><td>Two features and a validated signed label, −1 or +1</td></tr>
+<tr><td><code>score(features)</code></td><td><code>f64</code></td><td>Raw linear or kernel score before thresholding; it is not a probability</td></tr>
+<tr><td><code>predict(features)</code></td><td><code>f64</code> equal to −1 or +1</td><td>Class decision from the score's sign, with zero assigned to +1</td></tr>
+<tr><td><code>objective(data, lambda)</code></td><td><code>Result&lt;f64, &amp;'static str&gt;</code></td><td>Mean hinge loss over points plus the L2 weight penalty</td></tr>
+<tr><td><code>fit(data, epochs, learning_rate, lambda)</code></td><td><code>Result&lt;LinearSvm, &amp;'static str&gt;</code></td><td>Repeated stochastic subgradient updates; one epoch is one pass through all points</td></tr>
+</tbody></table></div>
+<p>Mathematical formulas retain the compact symbols x, y, w, and b. In Rust they map to <code>features</code>, <code>label</code>, <code>weights</code>, and <code>bias</code>. The reference and starter use those descriptive names throughout.</p>
+</section>
+
 <section id="boundary"><h2>1. From a correct boundary to a confident boundary</h2>
-<p><a href="/chapters/15.html">Chapter 15</a> classified tabular rows with splits and ensembles. Those models can express complicated regions, but they do not expose a simple notion of distance from a decision boundary. Return to a linear score, <span class="equation">f(x) = wᵀx + b</span>. The feature vector x has d numbers, the weight vector w has the same d numbers, and b is one scalar bias. We encode the two labels as −1 and +1. A nonnegative score predicts +1; a negative score predicts −1.</p>
+<p>Chapter 15's trees can express complicated regions, but they do not expose a simple notion of distance from a decision boundary. Return to a linear score, <span class="equation">f(x) = wᵀx + b</span>. The feature vector x has d numbers, the weight vector w has the same d numbers, and b is one scalar bias. Here d = 2, so the contiguous arrays <code>features</code> and <code>weights</code> both have shape <code>[2]</code>. A nonnegative score predicts +1; a negative score predicts −1.</p>
+<pre><code class="language-rust" data-source="projects/ch16/src/main.rs">fn score(&amp;self, features: [f64; 2]) -&gt; f64 {
+    self.weights[0] * features[0] + self.weights[1] * features[1] + self.bias
+}
+
+fn predict(&amp;self, features: [f64; 2]) -&gt; f64 {
+    if self.score(features) &gt;= 0.0 {
+        1.0
+    } else {
+        -1.0
+    }
+}</code></pre>
+<p><code>score</code> returns the unnormalized real number f(x). <code>predict</code> applies the sign rule and returns the signed class label. Neither operation returns a probability.</p>
 <p>A point can be correctly classified yet sit dangerously close to the boundary. The signed quantity <span class="equation">m = y f(x)</span> is its <a class="term" data-term="margin" href="/glossary/margin.html">margin</a>. If y and the score have the same sign, m is positive. If they disagree, m is negative. A larger positive value means the score supports the correct label more strongly.</p>
 <div class="worked-example"><h3>Calculate three margins</h3><p>Let w = [0.5, 1], b = −0.5. For x = [2, 1], the score is 0.5×2 + 1×1 − 0.5 = 1.5. With y = +1, the margin is 1.5. For x = [1, 0], the score is 0, so its +1 margin is 0: our tie rule calls it positive, but it lies exactly on the boundary. For x = [0, 1] with y = −1, the score is 0.5 and the margin is −0.5, exposing a mistake.</p></div>
 <p>The raw score depends on the scale of w. Multiplying both w and b by ten leaves every prediction unchanged but multiplies every score by ten. The perpendicular geometric distance from x to the hyperplane is |f(x)|/||w||₂, where ||w||₂ is the square root of the sum of squared weights. A support-vector machine fixes a score scale and prefers small ||w||₂, which makes the geometric corridor wide.</p>
@@ -12,23 +36,35 @@
 <p>The <a class="term" data-term="hinge-loss" href="/glossary/hinge-loss.html">hinge loss</a> for one point is max(0, 1 − m). A margin of at least one has zero loss. A correct point with margin 0.25 still loses 0.75 because it is inside the desired corridor. A misclassified point with margin −0.5 loses 1.5. The graph is flat after one and a straight slope before one, like a door hinge.</p>
 <div class="worked-example"><h3>Add the regularization term</h3><p>Suppose w = [1, −2], λ = 0.1, and three margins are 1.4, 0.6, and −0.2. Their hinge losses are 0, 0.4, and 1.2, so the average is 1.6/3 = 0.5333. The squared weight norm is 1² + (−2)² = 5. The penalty is (λ/2)||w||² = 0.05×5 = 0.25. The complete objective is about <strong>0.7833</strong>.</p></div>
 <div class="equation">J(w,b) = (λ/2)||w||² + (1/n) Σᵢ max(0, 1 − yᵢ(wᵀxᵢ+b))</div>
-<p>Here n is the number of training points and λ controls the preference for a small weight vector. Larger λ shrinks w more strongly. Some books write an equivalent family as ||w||²/2 + CΣ hinge. The constants differ because one version averages the losses and the other sums them. Compare behavior and definitions before copying a numeric λ or C between implementations.</p>
+<p>Here n is the number of training points and λ controls the preference for a small weight vector. <code>objective</code> averages hinge loss over all n points, adds the L2 penalty once, and returns that regularized training objective. It is distinct from the per-point hinge-loss primitive and from classification accuracy. Larger λ shrinks w more strongly. Some books write an equivalent family as ||w||²/2 + CΣ hinge. The constants differ because one version averages the losses and the other sums them. Compare behavior and definitions before copying a numeric λ or C between implementations.</p>
+<pre><code class="language-rust" data-source="projects/ch16/src/main.rs">let hinge = data
+    .iter()
+    .map(|point| hinge_loss(self.score(point.features), point.label))
+    .sum::&lt;f64&gt;()
+    / data.len() as f64;
+let objective = 0.5
+    * lambda
+    * (self.weights[0] * self.weights[0] + self.weights[1] * self.weights[1])
+    + hinge;</code></pre>
 <p>This objective defines a soft-margin linear <a class="term" data-term="support-vector-machine" href="/glossary/support-vector-machine.html">support-vector machine</a>. “Soft” means points may enter the corridor or even land on the wrong side when doing so yields a better tradeoff. Perfect separation is neither always possible nor always desirable: one mislabeled outlier should not force a boundary that harms every ordinary point.</p>
 </section>
 
 <section id="linear-training"><h2>3. Turn the objective into Rust updates</h2>
-<p>The reference uses deterministic stochastic subgradient steps. For a point with margin below one, the hinge part pushes w by yx and pushes b by y. Every step also shrinks w for regularization. With learning rate η, the update is <span class="equation">w ← (1−ηλ)w + ηyx</span> and <span class="equation">b ← b + ηy</span>. When the margin is at least one, only the shrinkage remains and b stays fixed. The bias is not regularized because moving the boundary without rotating it does not narrow the corridor.</p>
-<pre><code class="language-rust">let margin = point.y * model.score(point.x);
-model.w[0] *= 1.0 - rate * lambda;
-model.w[1] *= 1.0 - rate * lambda;
-if margin &lt; 1.0 {
-    model.w[0] += rate * point.y * point.x[0];
-    model.w[1] += rate * point.y * point.x[1];
-    model.b += rate * point.y;
+<p>The reference uses deterministic stochastic subgradient steps. For a point with margin below one, the hinge part pushes w by yx and pushes b by y. Every step also shrinks w for regularization. With learning rate η, the update is <span class="equation">w ← (1−ηλ)w + ηyx</span> and <span class="equation">b ← b + ηy</span>. In the Rust interface, η is <code>learning_rate</code>. When the margin is at least one, only the shrinkage remains and b stays fixed. The bias is not regularized because moving the boundary without rotating it does not narrow the corridor.</p>
+<p>Inside <code>LinearSvm::fit</code>, the inner loop implements that update exactly:</p>
+<pre><code class="language-rust" data-source="projects/ch16/src/main.rs">for point in data {
+    let margin = point.label * model.score(point.features);
+    model.weights[0] *= 1.0 - learning_rate * lambda;
+    model.weights[1] *= 1.0 - learning_rate * lambda;
+    if margin &lt; 1.0 {
+        model.weights[0] += learning_rate * point.label * point.features[0];
+        model.weights[1] += learning_rate * point.label * point.features[1];
+        model.bias += learning_rate * point.label;
+    }
 }</code></pre>
-<p>The two-feature array maps directly to wᵀx. A production solver might use a decaying rate, randomized order, or a dual optimizer. The small fixed loop is enough to reveal the arithmetic and reproduce the same result on every run. It does not promise that one fixed rate suits arbitrary scales. Features with wildly different units should be scaled using statistics fitted on training rows only.</p>
+<p>The two-feature array maps directly to wᵀx. A production solver might use a decaying learning rate, randomized order, or a dual optimizer. The small fixed loop is enough to reveal the arithmetic and reproduce the same result on every run. It does not promise that one fixed learning rate suits arbitrary scales. Features with wildly different units should be scaled using statistics fitted on training rows only.</p>
 <p>Why are “support vectors” in the method's name? In the exact dual formulation, the learned score is a weighted sum of selected training examples. Points safely outside the corridor receive zero coefficients; points on or inside it support the final boundary. Our primal linear loop stores w directly, so it does not recover exact dual coefficients. It still optimizes the soft-margin hinge objective and demonstrates why points with margins under one drive updates.</p>
-<div class="warning"><strong>Label encoding is part of the maths.</strong><p>The margin assumes y is −1 or +1. Feeding 0 for the negative class makes y f(x) equal zero for every negative example, so its feature update also becomes zero. Validate or convert labels at the input boundary.</p></div>
+<div class="warning"><strong>Label encoding is part of the maths.</strong><p>The margin assumes the mathematical y—and Rust's <code>point.label</code>—is −1 or +1. Feeding 0 for the negative class makes y f(x) equal zero for every negative example, so its feature update also becomes zero. The reference rejects any other encoding; a reader of 0-or-1 data must convert 0 to −1 at its input boundary.</p></div>
 </section>
 
 <section id="kernels"><h2>4. Curve the boundary with similarity</h2>
@@ -37,9 +73,13 @@ if margin &lt; 1.0 {
 <div class="equation">K(a,b) = exp(−γ ||a−b||²)</div>
 <p>The positive number γ sets how quickly similarity decays with squared distance. With γ = 0.5, points [0,0] and [1,0] have similarity exp(−0.5) ≈ 0.6065. Moving the second point to [2,0] changes squared distance from one to four, so similarity becomes exp(−2) ≈ 0.1353. Nearby training points therefore influence a query more than distant ones.</p>
 <p>A kernel score has the form <span class="equation">f(x)=Σᵢ αᵢyᵢK(xᵢ,x)</span>. The reference trains α with the kernel perceptron: visit every point and increment its α when its signed score is nonpositive. This is deliberately a kernel classifier rather than a full kernel SVM optimizer. It isolates the kernel idea while the linear path supplies hinge-loss SVM training. Only points with nonzero α are needed for prediction; the demo calls them support points.</p>
-<pre><code class="language-rust">self.data.iter().zip(&amp;self.alpha)
-    .map(|(p, &amp;a)| a * p.y * rbf(p.x, x, self.gamma))
-    .sum()</code></pre>
+<pre><code class="language-rust" data-source="projects/ch16/src/main.rs">fn score(&amp;self, features: [f64; 2]) -&gt; f64 {
+    self.data
+        .iter()
+        .zip(&amp;self.alpha)
+        .map(|(point, &amp;alpha)| alpha * point.label * rbf(point.features, features, self.gamma))
+        .sum()
+}</code></pre>
 <p>A valid kernel must produce a symmetric positive-semidefinite Gram matrix, the table of K(xᵢ,xⱼ) values. Arbitrary similarity rules need not satisfy that condition. The linear kernel is simply aᵀb. A polynomial kernel such as (1+aᵀb)² introduces interactions. The RBF kernel corresponds to an infinite-dimensional feature space without constructing those features explicitly.</p>
 <p>Kernel prediction compares a new point with stored support points, so its cost grows with their count. The reference also computes similarities on demand. A full Gram matrix would use O(n²) memory. These tradeoffs make kernels excellent on some small and medium datasets but unattractive when millions of support points survive.</p>
 </section>
@@ -49,10 +89,11 @@ if margin &lt; 1.0 {
 <pre><code class="language-bash">cargo test --manifest-path projects/ch16/Cargo.toml
 cargo run --release --manifest-path projects/ch16/Cargo.toml</code></pre>
 <p>The measured fixture output reports 100.0% for the linear SVM on linearly separated points. A line reaches only 50.0% on the XOR fixture, while the RBF classifier reaches 100.0% with four support points. Those are training-fixture results, not held-out estimates. They verify that the two boundaries behave differently.</p>
-<div class="exercise"><h3>Exercise A · One hinge</h3><p>Open <a href="/code/exercises/cpu/exercises/ch16_01.rs">ch16_01.rs</a> and replace the explicit <code>todo!</code>. Run it through the course Rustlings workflow.</p><details><summary>Hint 1 · Find the signed margin</summary><p>Multiply the supplied label by the supplied score.</p></details><details><summary>Hint 2 · Clamp at zero</summary><p>Subtract that margin from one, then call <code>.max(0.0)</code>.</p></details><details><summary>Worked solution</summary><pre><code class="language-rust">(1.0 - label * score).max(0.0)</code></pre><p>For label −1 and score 0.5, the margin is −0.5 and the loss is 1.5.</p></details></div>
-<div class="exercise"><h3>Exercise B · Complete the checkpoint</h3><p>Edit <code>projects/ch16/starter/src/main.rs</code>. Its test checks an active hinge and an inactive hinge. Then copy your function into a small loop and reproduce the reference update before looking at the complete project.</p><details><summary>Hint 1 · Compute the score</summary><p>Use <code>weight[0] * x[0] + weight[1] * x[1] + bias</code>.</p></details><details><summary>Hint 2 · Combine with the label</summary><p>Hinge loss operates on <code>point.y * score</code>, not on the score alone.</p></details><details><summary>Reference answer</summary><pre><code class="language-rust">let score = weight[0] * point.x[0] + weight[1] * point.x[1] + bias;
-(1.0 - point.y * score).max(0.0)</code></pre></details></div>
-<div class="exercise"><h3>Debugging · The negative class never pushes</h3><p>A CSV reader supplies labels 0 and 1. The training loop uses them directly in <code>y * score</code> and <code>rate * y * x</code>. Explain the failure and repair the boundary.</p><details><summary>Answer</summary><p>Every row labeled zero has margin zero and contributes a zero feature update. Convert zero to −1 before training, reject other values, and leave one mapped to +1. Merely changing the prediction threshold cannot restore missing updates.</p></details></div>
+<div class="exercise"><h3>Exercise A · One hinge</h3><p>Open <a href="/code/exercises/cpu/exercises/ch16_01.rs">ch16_01.rs</a> and replace the explicit <code>todo!</code>. Run it through the course Rustlings workflow. The shared primitive <code>hinge_loss(score, label)</code> receives the raw classifier score first, then the signed target label stored in <code>Point</code>, following the prediction-before-target order of earlier loss functions; it computes one point's unregularized hinge loss, not <code>LinearSvm::objective</code>.</p><details><summary>Hint 1 · Find the signed margin</summary><p>Multiply the supplied label by the supplied score.</p></details><details><summary>Hint 2 · Clamp at zero</summary><p>Subtract that margin from one, then call <code>.max(0.0)</code>.</p></details><details><summary>Worked solution</summary><pre><code class="language-rust" data-source="exercises/cpu/solutions/ch16_01.rs">(1.0 - label * score).max(0.0)</code></pre><p>For label −1 and score 0.5, the margin is −0.5 and the loss is 1.5.</p></details></div>
+<div class="exercise"><h3>Exercise B · Complete the checkpoint</h3><p>Edit <code>projects/ch16/starter/src/main.rs</code>. Its <code>hinge_loss(score, label)</code> has exactly the same signature as the exercise and reference primitive. The caller computes <code>model.score(point.features)</code> first, then supplies that score and <code>point.label</code>; the loss function receives no model parameters. Its test checks an active hinge and an inactive hinge. Then copy your function into a small loop and reproduce the reference update before looking at the complete project.</p><details><summary>Hint 1 · Use the supplied score</summary><p>The caller already computed the weighted sum plus bias. Do not recompute it inside <code>hinge_loss</code>.</p></details><details><summary>Hint 2 · Combine with the label</summary><p>Hinge loss operates on <code>label * score</code>, not on the score alone.</p></details><details><summary>Reference answer</summary><pre><code class="language-rust" data-source="projects/ch16/src/main.rs">fn hinge_loss(score: f64, label: f64) -&gt; f64 {
+    (1.0 - label * score).max(0.0)
+}</code></pre></details></div>
+<div class="exercise"><h3>Debugging · The negative class never pushes</h3><p>A CSV reader supplies labels 0 and 1. The training loop uses them directly in <code>label * score</code> and <code>learning_rate * label * features</code>. Explain the failure and repair the boundary.</p><details><summary>Answer</summary><p>Every row labeled zero has margin zero and contributes a zero feature update. Convert zero to −1 before constructing <code>Point</code>, reject other values, and leave one mapped to +1. Merely changing the prediction threshold cannot restore missing updates.</p></details></div>
 <div class="exercise"><h3>Independent variation · Change locality</h3><p>Run the XOR model with γ = 0.05, 1, and 20. Record training accuracy, support count, and scores for [0,0]. Predict which extremes will generalize poorly to points slightly away from training examples.</p><details><summary>Worked reasoning</summary><p>At very small γ, most points look similar, so opposing labels cancel and the boundary may be too smooth. At very large γ, influence collapses around individual samples, allowing a brittle, memorizing boundary. γ = 1 separates this fixture. Only a held-out set can choose among them for generalization.</p></details></div>
 </section>
 

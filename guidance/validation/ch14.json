@@ -5,7 +5,7 @@
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch14/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.028,
+      "seconds": 0.031,
       "output": ""
     },
     {
@@ -17,64 +17,66 @@
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch14/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.029,
+      "seconds": 0.042,
       "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (projects/ch14/target/debug/deps/ch14-e79e85048c0e3f34)\n\nrunning 2 tests\ntest tests::both_models_find_middle_cluster ... ok\ntest tests::rejects_nonfinite_queries_and_overflow_instead_of_voting ... ok\n\ntest result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
       "command": "cargo run --release --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch14/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.15,
-      "output": "   Compiling ch14 v0.1.0 (/home/bigsmarty/Projects/ml/projects/ch14)\n    Finished `release` profile [optimized] target(s) in 0.13s\n     Running `projects/ch14/target/release/ch14`\nscaled query [0.0, 0.07323121295259918]; kNN class 1\nGaussian NB class 1\n"
+      "seconds": 0.017,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `projects/ch14/target/release/ch14`\nscaled query [0.0, 0.07323121295259918]; kNN class 1\nGaussian NB class 1\n"
     },
     {
       "command": "cargo fmt --manifest-path /home/bigsmarty/Projects/ml/projects/ch14/starter/Cargo.toml --check",
       "returncode": 0,
-      "seconds": 0.029,
+      "seconds": 0.027,
       "output": ""
     },
     {
       "command": "cargo clippy --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch14/starter/Cargo.toml --all-targets -- -D warnings",
       "returncode": 0,
-      "seconds": 0.041,
+      "seconds": 0.04,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
     },
     {
       "command": "cargo run --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch14/starter/Cargo.toml",
       "returncode": 0,
-      "seconds": 0.028,
+      "seconds": 0.031,
       "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running `projects/ch14/starter/target/debug/ch14_starter`\nfirst-coordinate squared difference: 9\n"
     },
     {
       "command": "cargo test --offline --manifest-path /home/bigsmarty/Projects/ml/projects/ch14/starter/Cargo.toml",
       "returncode": 101,
-      "seconds": 0.016,
-      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch14/starter/target/debug/deps/ch14_starter-2f03e78351231101)\n\nrunning 1 test\ntest three_four_five_triangle ... FAILED\n\nfailures:\n\n---- three_four_five_triangle stdout ----\n\nthread 'three_four_five_triangle' (3335) panicked at src/main.rs:4:5:\nnot yet implemented: sum the squared coordinate differences\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    three_four_five_triangle\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch14_starter`\n",
+      "seconds": 0.02,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.00s\n     Running unittests src/main.rs (projects/ch14/starter/target/debug/deps/ch14_starter-2f03e78351231101)\n\nrunning 1 test\ntest three_four_five_triangle ... FAILED\n\nfailures:\n\n---- three_four_five_triangle stdout ----\n\nthread 'three_four_five_triangle' (3016) panicked at src/main.rs:4:5:\nnot yet implemented: sum the squared coordinate differences\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    three_four_five_triangle\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\nerror: test failed, to rerun pass `--bin ch14_starter`\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch14_01.rs -o /tmp/ml-check-l9j7iuzj/solutionch14_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/solutions/ch14_01.rs -o /tmp/ml-check-r_ozui34/solutionch14_01",
       "returncode": 0,
-      "seconds": 0.047,
+      "seconds": 0.049,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-l9j7iuzj/solutionch14_01",
+      "command": "/tmp/ml-check-r_ozui34/solutionch14_01",
       "returncode": 0,
       "seconds": 0.001,
       "output": "\nrunning 1 test\ntest distance ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
     },
     {
-      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch14_01.rs -o /tmp/ml-check-l9j7iuzj/exercisech14_01",
+      "command": "rustc --edition=2021 --test /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch14_01.rs -o /tmp/ml-check-r_ozui34/exercisech14_01",
       "returncode": 0,
-      "seconds": 0.045,
+      "seconds": 0.046,
       "output": ""
     },
     {
-      "command": "/tmp/ml-check-l9j7iuzj/exercisech14_01",
+      "command": "/tmp/ml-check-r_ozui34/exercisech14_01",
       "returncode": 101,
       "seconds": 0.001,
-      "output": "\nrunning 1 test\ntest distance ... FAILED\n\nfailures:\n\n---- distance stdout ----\n\nthread 'distance' (3407) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch14_01.rs:4:5:\nnot yet implemented: zip coordinates and sum squared differences\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    distance\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "output": "\nrunning 1 test\ntest distance ... FAILED\n\nfailures:\n\n---- distance stdout ----\n\nthread 'distance' (3088) panicked at /home/bigsmarty/Projects/ml/exercises/cpu/exercises/ch14_01.rs:4:5:\nnot yet implemented: zip coordinates and sum squared differences\nnote: run with `RUST_BACKTRACE=1` environment variable to display a backtrace\n\n\nfailures:\n    distance\n\ntest result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n",
+      "learner_complete": false,
       "expected_failure": true,
       "expected_failure_observed": true
     }

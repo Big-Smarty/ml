@@ -58,3 +58,9 @@ For the grouped evaluation fixture, preserve evidence provenance with every resu
 
 ## Astra High final review (2026-09-08)
 Luna High reverified all primary-source URLs and reviewed the reference. Chapter 54 claims were reconciled with executable data, arithmetic, and output. The membership attack knows candidate labels and probabilities, implements no differential privacy, and cannot attribute discrimination causally to memorization. Its input security experiment is a parser rather than an additional HTTP server.
+
+## Consistency unification (2026-09-08)
+
+Local source verification preserved the twelve-row fixture, all measured audit outputs, the member-only 400-step training run at learning rate 0.05, and every validation boundary. The classifier now uses Chapter 4's exact stable sigmoid and binary-cross-entropy primitives and the shared `logit`, `probability`, and `predict` vocabulary. Its `loss(row)` remains intentionally per-example because the membership attack thresholds one candidate's loss; it is not the dataset-mean model loss introduced in Chapter 4.
+
+Chapter 53's actual request body is form-encoded `schema=1&x=<scalar>` and feeds a one-feature regression model. Chapter 54's parser expects comma-separated `schema=1,f0=<number>,f1=<number>` and returns two classifier features. An adapter and a different model input contract are therefore required before the Chapter 53 server can host this audit classifier. No new external claim or source was needed for these code-interface corrections.

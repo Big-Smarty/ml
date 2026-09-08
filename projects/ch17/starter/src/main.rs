@@ -2,6 +2,7 @@ type Vec2 = [f64; 2];
 type Mat2 = [[f64; 2]; 2];
 
 #[cfg(test)]
+// One normalized loop body from the reference's repeated power_iteration_from.
 fn power_step(a: Mat2, v: Vec2) -> Vec2 {
     let _ = (a, v);
     // TODO: multiply a by v, then divide the result by its Euclidean norm.

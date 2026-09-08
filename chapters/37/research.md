@@ -10,4 +10,6 @@ Route: GPT-5.6 Sol High author with bounded GPT-5.6 Luna High data-research pass
 
 The project deliberately implements only inspectable whitespace cleaning and small-corpus shingle deduplication. Its CC0 fixture is course-authored.
 
+Consistency boundary: the reference now exposes distinct parsed, cleaned, deduplicated, and split document artifacts. It stops before tokenization and window construction. Global whole-document comparison removes only exact and threshold-matched near duplicates; downstream code must still keep documents separate and add substring or semantic checks when those threats matter.
+
 Independent review: GPT-6 Astra High owned the complete lesson/code/starter/exercise audit and corrections. Bounded GPT-5.6 Luna High primary-source and technical verification covered language-model, tokenizer, attention, normalization, and corpus-audit claims. See `guidance/astra-review-29-41.md` for findings, executed gates, and inherited hardware evidence.

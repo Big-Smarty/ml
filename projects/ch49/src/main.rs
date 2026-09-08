@@ -83,7 +83,7 @@ fn feature(value: [f64; 2]) -> [f64; 2] {
     value.map(|component| component.max(0.0) + 1.0)
 }
 
-fn causal_linear_attention(
+fn causal_linear_attention_recurrent(
     queries: &[[f64; 2]],
     keys: &[[f64; 2]],
     values: &[f64],
@@ -125,7 +125,7 @@ fn causal_linear_attention(
     Ok(output)
 }
 
-fn naive_linear_attention(
+fn causal_linear_attention_scalar(
     queries: &[[f64; 2]],
     keys: &[[f64; 2]],
     values: &[f64],
@@ -188,17 +188,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let queries: Vec<_> = inputs.iter().map(|&x| [x, 0.5 * x]).collect();
     let keys: Vec<_> = inputs.iter().map(|&x| [0.25 * x, -x]).collect();
     let start = Instant::now();
-    let attention = black_box(causal_linear_attention(&queries, &keys, &inputs)?);
+    let attention = black_box(causal_linear_attention_recurrent(&queries, &keys, &inputs)?);
     let attention_time = start.elapsed();
     let prefix = 256;
     let start = Instant::now();
-    let naive = black_box(naive_linear_attention(
+    let scalar = black_box(causal_linear_attention_scalar(
         &queries[..prefix],
         &keys[..prefix],
         &inputs[..prefix],
     )?);
-    let naive_time = start.elapsed();
-    if !close(&attention[..prefix], &naive) {
+    let scalar_time = start.elapsed();
+    if !close(&attention[..prefix], &scalar) {
         return Err("recurrent and direct linear attention disagree".into());
     }
     println!(
@@ -214,7 +214,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "linear-attention recurrence={attention_time:?}, final={:.6}",
         attention[attention.len() - 1]
     );
-    println!("direct-prefix oracle for first {prefix} tokens={naive_time:?}");
+    println!("direct scalar oracle for first {prefix} tokens={scalar_time:?}");
     println!("Fixed selective coefficients are illustrative, not a trained Mamba layer.");
     println!("The scan schedule exposes parallel structure but this scalar program executes it sequentially.");
     Ok(())
@@ -245,13 +245,13 @@ mod tests {
     }
 
     #[test]
-    fn linear_attention_recurrence_matches_naive_prefixes() -> Result<(), &'static str> {
+    fn linear_attention_recurrence_matches_scalar_oracle() -> Result<(), &'static str> {
         let queries = [[0.2, -0.1], [0.5, 0.3], [-0.2, 0.7]];
         let keys = [[0.4, 0.1], [-0.1, 0.2], [0.3, -0.5]];
         let values = [2.0, -1.0, 0.5];
         assert!(close(
-            &causal_linear_attention(&queries, &keys, &values)?,
-            &naive_linear_attention(&queries, &keys, &values)?
+            &causal_linear_attention_recurrent(&queries, &keys, &values)?,
+            &causal_linear_attention_scalar(&queries, &keys, &values)?
         ));
         Ok(())
     }
@@ -262,9 +262,11 @@ mod tests {
         assert!(selective_transitions(&[f64::NAN]).is_err());
         assert!(selective_transitions(&[f64::MAX]).is_err());
         for invalid in [f64::NAN, f64::INFINITY] {
-            assert!(causal_linear_attention(&[[invalid, 0.0]], &[[0.0; 2]], &[1.0]).is_err());
-            assert!(naive_linear_attention(&[[0.0; 2]], &[[0.0; 2]], &[invalid]).is_err());
+            assert!(
+                causal_linear_attention_recurrent(&[[invalid, 0.0]], &[[0.0; 2]], &[1.0]).is_err()
+            );
+            assert!(causal_linear_attention_scalar(&[[0.0; 2]], &[[0.0; 2]], &[invalid]).is_err());
         }
-        assert!(causal_linear_attention(&[[0.0, 0.0]], &[], &[]).is_err());
+        assert!(causal_linear_attention_recurrent(&[[0.0, 0.0]], &[], &[]).is_err());
     }
 }
