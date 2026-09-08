@@ -14,7 +14,7 @@ git status --short</code></pre>
 git config --local user.email "YOUR COMMIT EMAIL"</code></pre>
 <p>The supplied <code>.gitignore</code> excludes build targets, downloaded datasets, generated pages, local tool binaries, and common model/checkpoint files. Keep those rules. Add patterns for any new model or data formats you introduce; an ignore rule does not remove a file already tracked. Keep small authored fixtures, source files, and reproducibility notes.</p>
 <p>For a newly initialized repository, stage the supplied course sources as a baseline before solving exercises. Inspect the staged list before committing:</p>
-<pre><code class="language-bash">git add -- .gitignore README.md CHAPTERS.md course.json rust-toolchain.toml justfile chapters projects exercises site tools guidance datasets
+<pre><code class="language-bash">git add -- .gitignore .helix README.md CHAPTERS.md course.json rust-toolchain.toml justfile chapters projects exercises site tools guidance datasets
 git diff --cached --stat
 git status --short
 git commit -m "Record the starting course workspace"</code></pre>

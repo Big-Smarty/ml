@@ -23,6 +23,18 @@ rustlings
 
 If the authoring installation exists in `.tools/bin`, use `../../.tools/bin/rustlings` from `exercises/cpu` instead. Chapter `src/` folders are reference projects; `starter/` folders are intentionally unfinished learner projects. Do not run a blanket test over all starters expecting success.
 
+## Helix and rust-analyzer
+
+Open Helix from the course root, for example:
+
+```sh
+helix projects/ch01/starter/src/main.rs
+```
+
+The repository's `.helix/languages.toml` links all 114 independent Cargo projects (references, starters, Rustlings, and the optional framework example). The root `rust-toolchain.toml` is the language-server root marker and requests `rust-analyzer` plus `rust-src`, alongside formatting and linting components. This enables navigation into both neighboring chapter libraries and Rust's standard library without combining the course into one Cargo workspace.
+
+If Helix was already open when these settings were added, save your work and reopen it from this directory to load the project configuration. Allow the initial project load to finish. Your existing user-level rust-analyzer settings continue to apply; the project only supplies its root and linked manifests. The settings follow [Helix's project configuration](https://docs.helix-editor.com/master/languages.html#project-and-lsp-root-selection) and [rust-analyzer's linked-project configuration](https://rust-analyzer.github.io/book/configuration#rust-analyzerlinkedprojects).
+
 ## Short commands with just
 
 The root `justfile` wraps the existing course scripts, Cargo, and the official Rustlings runner. Install [just](https://just.systems/man/en/packages.html) separately if needed; these recipes were checked with just 1.58.0. Run `just` or `just list` to see the commands. Recipes also work from a subdirectory of this repository.
