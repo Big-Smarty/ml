@@ -7,3 +7,4 @@ datasets/downloads/
 !datasets/fixtures/*.bin
 site/generated/
 .tools/
+exercises/cpu/.rustlings-state.txt

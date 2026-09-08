@@ -1,7 +1,6 @@
 // TODO: A prediction is weight * input + bias. Complete the body.
 fn predict(weight: f64, bias: f64, input: f64) -> f64 {
-    let _ = (weight, bias, input);
-    todo!("Implement the affine prediction")
+    weight * input + bias
 }
 fn main() {
     println!("{}", predict(2.0, 1.0, 3.0));
