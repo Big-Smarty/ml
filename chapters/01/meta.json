@@ -26,7 +26,7 @@
     "bias": {
       "name": "Bias",
       "definition": "An additive learned offset in a model.",
-      "explanation": "In the equation predicted y = weight × x + bias, the bias controls the prediction at x = 0. Changing it moves the entire prediction line without changing its slope. This usage differs from statistical bias, which concerns systematic estimation error, and social bias, which concerns unfair patterns in data or decisions. Later chapters use those terms too; the surrounding context determines which meaning applies."
+      "explanation": "In an affine prediction, the bias is the added constant and controls the prediction when every input is zero. Changing it moves the entire prediction line without changing its slope. This usage differs from statistical bias, which concerns systematic estimation error, and social bias, which concerns unfair patterns in data or decisions. Later chapters use those terms too; the surrounding context determines which meaning applies."
     },
     "model": {
       "name": "Model",

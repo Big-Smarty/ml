@@ -35,6 +35,15 @@ def commands(action, args):
     number, *extra = args
     number = chapter(number)
     manifest = lab_manifest(number)
+    if action in ('deps', 'lab-build', 'lint', 'asm'):
+        if extra:
+            raise ValueError(f'{action} accepts one chapter only')
+        operation = {'deps': 'fetch', 'lab-build': 'build', 'lint': 'clippy', 'asm': 'rustc'}[action]
+        flags = [] if action == 'deps' else ['--offline', '--release']
+        if action == 'lint':
+            flags += ['--all-targets']
+        trailing = ['--', '-D', 'warnings'] if action == 'lint' else ['--', '--emit=asm'] if action == 'asm' else []
+        return [['cargo', operation, *flags, '--manifest-path', manifest, *trailing]]
     if action in ('fmt', 'fmt-check'):
         if extra:
             raise ValueError('format recipes accept one chapter only')
@@ -51,10 +60,18 @@ def commands(action, args):
             flags.append('--gpu')
         return [['cargo', 'run', '--offline', '--release', '--manifest-path', manifest, '--', number, *flags, *extra]]
     if action in ('lab-test', 'test'):
-        return [['cargo', 'test', '--offline', '--manifest-path', manifest, '--', *extra]]
+        return [['cargo', 'test', '--offline', '--release', '--all-targets', '--manifest-path', manifest, '--', *extra]]
+    if action == 'gpu-test':
+        if number not in ('29', '30', '31', '32'):
+            raise ValueError('gpu-test supports chapters 29–32')
+        return [['cargo', 'test', '--offline', '--release', '--manifest-path', manifest, '--', '--ignored', '--nocapture', *extra]]
+    if action == 'reference-gpu-test':
+        if number != '36':
+            raise ValueError('the preserved decoder GPU test is chapter 36')
+        return [['cargo', 'test', '--offline', '--release', '--features', 'gpu', '--manifest-path', 'projects/ch36/Cargo.toml', '--', '--ignored', '--nocapture', *extra]]
     if action in ('reference', 'reference-test'):
         operation = 'test' if action == 'reference-test' else 'run'
-        return [['cargo', operation, '--offline', '--manifest-path', f'projects/ch{number}/Cargo.toml', '--', *extra]]
+        return [['cargo', operation, '--offline', '--release', '--manifest-path', f'projects/ch{number}/Cargo.toml', '--', *extra]]
     raise ValueError('unknown action; use just --list for the current lab commands')
 
 
@@ -73,6 +90,17 @@ def self_test():
     assert commands('solution', ['56', '--check'])[0][-3:] == ['56', '--solution', '--check']
     assert commands('verify', ['1', '02'])[1][-3:] == ['--chapters', '01', '02']
     assert commands('gpu', ['29'])[0][-2:] == ['29', '--gpu']
+    assert '--offline' not in commands('deps', ['29'])[0]
+    assert commands('lint', ['01'])[0][-3:] == ['--', '-D', 'warnings']
+    assert commands('asm', ['28'])[0][-2:] == ['--', '--emit=asm']
+    assert commands('lab-test', ['53', 'serving_monitor_and_rollback_are_real', '--ignored'])[0][-3:] == ['--', 'serving_monitor_and_rollback_are_real', '--ignored']
+    assert commands('reference-gpu-test', ['36'])[0][4:6] == ['--features', 'gpu']
+    for action, number in [('gpu-test', '01'), ('reference-gpu-test', '35')]:
+        try:
+            commands(action, [number])
+        except ValueError:
+            continue
+        raise AssertionError(f'accepted unsupported hardware recipe {action} {number}')
     assert lab_manifest('06') == lab_manifest('01')
     assert lab_manifest('07') != lab_manifest('06')
     assert len({lab_manifest(f'{i:02}') for i in range(1, 57)}) == 9

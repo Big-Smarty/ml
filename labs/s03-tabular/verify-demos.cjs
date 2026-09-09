@@ -3,14 +3,34 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+// Read mathematical display values from actual output markup while preserving fraction structure.
+// The stub's innerHTML/textContent setters model the DOM dependency used by these demos.
+function readableMath(markup) {
+  return markup.replace(/<math\b[^>]*>([\s\S]*?)<\/math>/g, (_, formula) => formula
+    .replace(/<mfrac><mn>([^<]+)<\/mn><mn>([^<]+)<\/mn><\/mfrac>/g, '$1/$2')
+    .replace(/<mo>,<\/mo>/g, ', ')
+    .replace(/<mo>=<\/mo>/g, ' = ')
+    .replace(/<[^>]*>/g, ''));
+}
+function domNode(value) {
+  let markup = '';
+  return {
+    value, listeners: {},
+    get innerHTML() { return markup; },
+    set innerHTML(html) { markup = html; },
+    get textContent() { return readableMath(markup).replace(/<[^>]*>/g, ''); },
+    set textContent(text) { markup = String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;'); },
+    addEventListener(event, fn) { this.listeners[event] = fn; }
+  };
+}
 function load(chapter, id, defaults) {
   const nodes = new Map();
   const root = { querySelector(selector) {
-    if (!nodes.has(selector)) nodes.set(selector, { value: defaults[selector] || '', textContent: '', innerHTML: '', listeners: {}, addEventListener(event, fn) { this.listeners[event] = fn; } });
+    if (!nodes.has(selector)) nodes.set(selector, domNode(defaults[selector] || ''));
     return nodes.get(selector);
   } };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, `../../chapters/${chapter}/demo.js`), 'utf8'), { document: { getElementById: key => key === id ? root : null } });
-  return { node: key => root.querySelector(key), fire(key, event, value) { const n = root.querySelector(key); if (value !== undefined) n.value = value; n.listeners[event](); }, output: () => root.querySelector('[data-output]').textContent, chart: () => root.querySelector('[data-chart]').innerHTML };
+  return { node: key => root.querySelector(key), fire(key, event, value) { const n = root.querySelector(key); if (value !== undefined) n.value = value; n.listeners[event](); }, output: () => root.querySelector('[data-output]').textContent, chart: () => readableMath(root.querySelector('[data-chart]').innerHTML) };
 }
 const sampling = load(12, 'sampling-tool', { '#s12-mode': 'bootstrap', '#s12-unit': 'machine', '#s12-sharpness': '1' });
 assert.match(sampling.output(), /\[0.5000, 0.8333\]/);

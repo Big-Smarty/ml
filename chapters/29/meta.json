@@ -24,7 +24,7 @@
     "compute-shader": {
       "name": "compute shader",
       "definition": "A GPU program launched over numbered invocations without drawing pixels.",
-      "explanation": "A compute shader expresses one small operation that many GPU invocations execute. In this chapter the actual WGSL compute kernel is the add entry point, and each invocation adds one pair of vector elements. This use of kernel means GPU program; Chapter 16's statistical kernel K(a,b) is a similarity function with a different owning context. The Rust host still owns validation, buffer creation, binding, dispatch, and synchronization."
+      "explanation": "A compute shader expresses one small operation that many GPU invocations execute. In this chapter the actual WGSL compute kernel is the add entry point, and each invocation adds one pair of vector elements. This use of kernel means GPU program; Chapter 16's two-argument statistical kernel is a similarity function with a different owning context. The Rust host still owns validation, buffer creation, binding, dispatch, and synchronization."
     },
     "storage-buffer": {
       "name": "storage buffer",
@@ -34,7 +34,7 @@
     "workgroup": {
       "name": "workgroup",
       "definition": "A fixed-size group of shader invocations scheduled together and identified within a dispatch grid.",
-      "explanation": "The chapter uses workgroups of 64 invocations. Rust computes dispatch_count(element_count, workgroup_size) with ceiling division, so two workgroups launch 128 invocation IDs for 65 elements. The WGSL guard compares each ID with dispatch_params.element_count before indexing. Workgroup size is declared in WGSL, while workgroup count is chosen by Rust. Later chapters use the fact that invocations in one workgroup can share fast temporary memory and synchronize at barriers."
+      "explanation": "The chapter uses workgroups of 64 invocations. Rust computes the workgroup count by ceiling-dividing the element count by the workgroup size, so two workgroups launch 128 invocation IDs for 65 elements. The WGSL guard compares each ID with the declared element count before indexing. Workgroup size is declared in WGSL, while workgroup count is chosen by Rust. Later chapters use the fact that invocations in one workgroup can share fast temporary memory and synchronize at barriers."
     },
     "readback": {
       "name": "readback",
@@ -147,7 +147,7 @@
     "goal": "Implement guarded parallel SAXPY and verify actual hardware output against its CPU oracle",
     "check": "just lab-check 29",
     "manual_checks": [
-      "Review the actual ch29.rs shader: one global invocation owns each valid output; workgroup size matches VECTOR_WORKGROUP_SIZE; every input load and output store is bounded; scale bits are decoded.",
+      "Trace input lengths 67 and 129, including final valid and first invalid IDs; require actual GPU goal-check parity and readback before recording hardware completion.",
       "Trace N=67 and129, including final valid and first invalid IDs; require actual --check --gpu parity/readback before recording hardware completion."
     ]
   },

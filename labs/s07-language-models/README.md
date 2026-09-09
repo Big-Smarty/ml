@@ -3,12 +3,12 @@
 This independent Cargo package carries chapters 33–39. Every default command works offline on CPU. The baseline is a useful simpler algorithm; passing it does not complete the learning goal. `--check` invokes your functions and initially exits 1 with `GOAL_NOT_MET:` and numerical evidence. Input/runtime failures have ordinary error messages. Separate solutions do not overwrite learner files.
 
 ```bash
-cargo run --offline --manifest-path labs/s07-language-models/Cargo.toml -- 33
-cargo run --offline --manifest-path labs/s07-language-models/Cargo.toml -- 33 --check
-cargo run --offline --manifest-path labs/s07-language-models/Cargo.toml -- 33 --solution --check
+just lab 33
+just lab-check 33
+just solution 33 --check
 ```
 
-From the repository root, `just lab 33`, `just lab-check 33`, and `just lab 33 --solution --check` are equivalent entry points. Replace 33 with 34–39. CLI experiment options follow the chapter number. Chapters 33, 35, 36 and 38 accept only the standard flags; their documented variations edit the named fixture/configuration values below.
+From the repository root, `just lab 33`, `just lab-check 33`, and `just solution 33 --check` are equivalent entry points. Replace 33 with 34–39. CLI experiment options follow the chapter number. Chapters 33, 35, 36 and 38 accept only the standard flags; their documented variations edit the named fixture/configuration values below.
 
 | Chapter | Working baseline | Your core implementation | Evidence and transfer |
 |---|---|---|---|
@@ -35,17 +35,17 @@ Save the standard output, exact source/configuration and data for each checkpoin
 - **39:** flags below change the actual run. The horizon is stored in the trainer configuration; `--steps` is additional updates, not a request to restart the schedule. The fixed sample policy lives in `capstone.rs::run_with`: prompt `The `, 32 new bytes, independent seed 390 and temperature 0.8.
 
 ```bash
-just lab 34 --solution --merges 8
-just lab 37 --solution --corpus documents.txt --threshold 0.8
-just lab 39 --solution --context 4 --steps 40
-just lab 39 --solution --context 8 --steps 20
-just lab 39 --solution --steps 20 --checkpoint run.bin
-just lab 39 --solution --resume run.bin --steps 20 --checkpoint run.bin
-just lab 39 --solution --corpus train.txt --validation valid.txt --steps 40
+just solution 34 --merges 8
+just solution 37 --corpus documents.txt --threshold 0.8
+just solution 39 --context 4 --steps 40
+just solution 39 --context 8 --steps 20
+just solution 39 --steps 20 --checkpoint run.bin
+just solution 39 --resume run.bin --steps 20 --checkpoint run.bin
+just solution 39 --corpus train.txt --validation valid.txt --steps 40
 just lab 39 --large-info
 ```
 
-For timing, use `cargo run --release --offline --manifest-path labs/s07-language-models/Cargo.toml -- 39 --solution ...`. The printed single-run throughput includes gradient/optimizer allocation and excludes evaluation and checkpoint I/O. It is not a stable performance benchmark. Compare actual target counts: shorter document tails can make `steps × context × microbatches` inaccurate.
+For timing, use `just solution 39 ...`. The printed single-run throughput includes gradient/optimizer allocation and excludes evaluation and checkpoint I/O. It is not a stable performance benchmark. Compare actual target counts: shorter document tails can make `steps × context × microbatches` inaccurate.
 
 ## Data and artifact contract
 
@@ -58,9 +58,9 @@ Defaults use a 4,932-parameter CPU decoder with context 4. Context 8 has 4,964 p
 ## Verification
 
 ```bash
-cargo fmt --check --manifest-path labs/s07-language-models/Cargo.toml
-cargo clippy --offline --manifest-path labs/s07-language-models/Cargo.toml --all-targets -- -D warnings
-cargo test --offline --manifest-path labs/s07-language-models/Cargo.toml
+just fmt-check 33
+just lint 33
+just lab-test 33
 node labs/s07-language-models/check_interactives.cjs
 ```
 

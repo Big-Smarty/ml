@@ -27,7 +27,7 @@
     "round-trip": {
       "name": "round trip",
       "definition": "The invariant that decoding an encoded byte sequence reproduces the original bytes exactly.",
-      "explanation": "A round-trip test compares bytes rather than displayed strings: decode(encode(bytes)) must equal bytes. It catches overlapping replacements, incorrect learned-token bytes, invalid IDs, and serialization-order mistakes. Multilingual examples are valuable because UTF-8 characters span different byte lengths and token boundaries may split them. Exact round trip establishes reversibility, not compression quality or model accuracy. A reloaded tokenizer should satisfy the same invariant and produce identical token IDs when deterministic compatibility matters."
+      "explanation": "A round-trip test compares bytes rather than displayed strings: decoding an encoding must recover exactly the original bytes. It catches overlapping replacements, incorrect learned-token bytes, invalid IDs, and serialization-order mistakes. Multilingual examples are valuable because UTF-8 characters span different byte lengths and token boundaries may split them. Exact round trip establishes reversibility, not compression quality or model accuracy. A reloaded tokenizer should satisfy the same invariant and produce identical token IDs when deterministic compatibility matters."
     }
   },
   "sources": [

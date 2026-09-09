@@ -8,10 +8,10 @@ adapter is an explicit unsupported error, never a software fallback or a pass.
 Run from the repository root:
 
 ```bash
-cargo run --manifest-path labs/s06-gpu/Cargo.toml -- 29
-cargo run --manifest-path labs/s06-gpu/Cargo.toml -- 29 --check
-cargo run --manifest-path labs/s06-gpu/Cargo.toml -- 29 --solution --check
-cargo run --release --manifest-path labs/s06-gpu/Cargo.toml -- 29 --solution --check --gpu
+just lab 29
+just lab-check 29
+just solution 29 --check
+just solution 29 --check --gpu
 ```
 
 Replace `29` with `30`, `31`, or `32`. The site also provides `just lab NN`,
@@ -37,7 +37,7 @@ After any learner CPU criteria pass, a CPU-only check returns exit3 until
 shader/source and hardware criteria are reviewed; it never labels CPU work as
 GPU completion. Chapters29/31/32 can pass the hardware checks with `--gpu` while
 the source/trace rubric remains explicit. There is no source-substring test pretending to prove an algorithm. Ordinary
-`cargo test` validates supplied baselines, error boundaries and completed
+`just lab-test 29` validates supplied baselines, error boundaries and completed
 solution numerics, and passes. A successful baseline or diagram interaction is
 not a completed learning goal.
 
@@ -106,10 +106,10 @@ the same hardware GPU; it is not a fallback adapter.
 ## Hardware and timing evidence
 
 ```bash
-cargo fmt --manifest-path labs/s06-gpu/Cargo.toml --check
-cargo clippy --manifest-path labs/s06-gpu/Cargo.toml --all-targets -- -D warnings
-cargo test --manifest-path labs/s06-gpu/Cargo.toml --all-targets
-cargo test --release --manifest-path labs/s06-gpu/Cargo.toml -- --ignored --nocapture
+just fmt-check 29
+just lint 29
+just lab-test 29
+just gpu-test 29
 node chapters/29/demo-check.cjs
 ```
 

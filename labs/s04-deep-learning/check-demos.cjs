@@ -5,7 +5,15 @@ const path = require('node:path');
 const vm = require('node:vm');
 function element(value = '') {
   return {
-    value, textContent: '', children: [], events: {},
+    value, text: '', html: '', children: [], events: {},
+    set textContent(value) { this.text = value; this.html = ''; },
+    get textContent() { return this.text; },
+    set innerHTML(value) {
+      this.html = value;
+      // Expose one-row MathML vectors as comma-separated values for numerical assertions.
+      this.text = value.replace(/<\/mtd><mtd>/g, ', ').replace(/<[^>]+>/g, '').replace(/−/g, '-');
+    },
+    get innerHTML() { return this.html; },
     append(...nodes) { this.children.push(...nodes); },
     replaceChildren(...nodes) { this.children = nodes; },
     addEventListener(name, fn) { this.events[name] = fn; }
@@ -43,15 +51,15 @@ assert.match(conv.text(), /Selected output \(0,0\).*sum 1.20/);
 assert.equal(conv.node('[data-geometry]').value, 'valid');
 const embedding = load('22', 'embedding-neighborhood', {'[data-query]': 'horizontal', '[data-scale]': '1'});
 assert.match(embedding.text(), /candidate order after excluding observed A: B, C, D/);
-assert.match(embedding.text(), /Recall@2 1, Precision@2 0.5, nDCG@2 1.0000/);
+assert.match(embedding.text(), /Recall@2=1, Precision@2=0.5, nDCG@2=1.0000/);
 const row = index => embedding.node('[data-ranking]').children[index].children.map(cell => cell.textContent);
 assert.deepEqual(row(1), ['B: held-out positive', '[0.8, 0.6]', '0.800', '0.800', '0.632']);
 embedding.change('[data-query]', 'vertical');
-assert.match(embedding.text(), /C, B, D.*rank 2.*nDCG@2 0.6309/);
+assert.match(embedding.text(), /C, B, D.*rank 2.*nDCG@2=0.6309/);
 embedding.change('[data-scale]', '3');
 assert.deepEqual(row(2), ['C: explicit negative', '[0, 3]', '3.000', '1.000', '2.000']);
 assert.match(embedding.text(), /reconstructs query code as \[0, 1, 1, -1\]/);
 embedding.click('[data-reset]');
-assert.match(embedding.text(), /Query \[1, 0\].*nDCG@2 1.0000/);
+assert.match(embedding.text(), /Query \[1, 0\].*nDCG@2=1.0000/);
 assert.equal(embedding.node('[data-scale]').value, '1');
 console.log('PASS: convolution geometry/products/ReLU/pool/backward and embedding geometry/ranking/metrics/reset');

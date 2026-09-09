@@ -3,13 +3,13 @@
 One independent, std-only Rust package. Defaults are tiny, deterministic and offline. Every learner module runs before edits. The complete answers live separately in `src/solutions/`.
 
 ```bash
-cargo run --manifest-path labs/s02-neural-networks/Cargo.toml -- 07
-cargo run --manifest-path labs/s02-neural-networks/Cargo.toml -- 07 --check
-cargo run --manifest-path labs/s02-neural-networks/Cargo.toml -- 07 --solution --check
+just lab 07
+just lab-check 07
+just solution 07 --check
 # Repeat with 08, 09, 10 or 11; course aliases are just lab NN / just lab-check NN.
 ```
 
-`--check` invokes the actual learner function. An unfinished algorithm returns exit 1 with `GOAL_NOT_MET:` and numerical evidence. Runtime, input, shape and I/O errors also return nonzero but retain their own messages. `cargo test` protects the useful baselines, supplied boundaries and solution numerics; it does not assert that unfinished learning goals pass.
+`--check` invokes the actual learner function. An unfinished algorithm returns exit 1 with `GOAL_NOT_MET:` and numerical evidence. Runtime, input, shape and I/O errors also return nonzero but retain their own messages. `just lab-test 07` protects the useful baselines, supplied boundaries and solution numerics; it does not assert that unfinished learning goals pass.
 
 | Chapter | Working baseline | Implement in the learner module | Evidence and transfer |
 |---|---|---|---|
@@ -28,17 +28,17 @@ Useful earlier checkpoints remain visible: Chapter 09's normal run reports forwa
 XOR supports explicit bounded rate, step-count and first-hidden-weight perturbations. Each invocation starts from the same initial model.
 
 ```bash
-cargo run --manifest-path labs/s02-neural-networks/Cargo.toml -- 07 --solution --steps 1000 --rate 0.1
-cargo run --manifest-path labs/s02-neural-networks/Cargo.toml -- 07 --solution --steps 1000 --rate 1
-cargo run --manifest-path labs/s02-neural-networks/Cargo.toml -- 07 --solution --shift 0.08
+just solution 07 --steps 1000 --rate 0.1
+just solution 07 --steps 1000 --rate 1
+just solution 07 --shift 0.08
 ```
 
 MLP supports optimizer selection and three initial states. `scaled` uses seed 7 and uniform width-scaled weights, `zero` zeros every parameter, and `large` multiplies initial weights by 20. Parameters are reset between invocations. The learner update initially uses SGD regardless of the requested optimizer; completing `update` adds the named stateful behavior.
 
 ```bash
-cargo run --manifest-path labs/s02-neural-networks/Cargo.toml -- 11 --solution --optimizer momentum --init scaled
-cargo run --manifest-path labs/s02-neural-networks/Cargo.toml -- 11 --solution --optimizer adam --init zero
-cargo run --manifest-path labs/s02-neural-networks/Cargo.toml -- 11 --solution --init large
+just solution 11 --optimizer momentum --init scaled
+just solution 11 --optimizer adam --init zero
+just solution 11 --init large
 ```
 
 Other lesson experiments name exact editable regions: Chapter 08’s `neuron_gradient` is invoked by normal reporting, twenty-step training and goal checks; `08 --input -0.7` changes its input. Chapter 09’s supplied `report` duplicates rows and scales upstream gradients through the learner kernel; `09 --scale 2` doubles input values. Chapter 10’s `per_class_recall` receives actual returned confusion counts, and `10 --brightness 0.5` scales only held-out inputs. Chapter 11’s supplied `report` prints first-layer gradient diagnostics; the named `resume_check` is invoked by every normal run, so the lesson’s deliberate moment-reset experiment is executable.
@@ -50,8 +50,8 @@ Other lesson experiments name exact editable regions: Chapter 08’s `neuron_gra
 An optional explicit extension accepts uncompressed official-format IDX files. It does not download. The course preparation command is the separate, network-enabled choice:
 
 ```bash
-python3 tools/prepare_mnist.py --download
-cargo run --release --manifest-path labs/s02-neural-networks/Cargo.toml -- 10 --solution \
+just mnist --download
+just solution 10 \
   --mnist datasets/downloads/mnist/fit-images-idx3-ubyte \
   datasets/downloads/mnist/fit-labels-idx1-ubyte \
   datasets/downloads/mnist/validation-images-idx3-ubyte \
@@ -69,9 +69,9 @@ Chapter 11's normal run saves and restores inside a new temporary directory, com
 ## Verify
 
 ```bash
-cargo fmt --manifest-path labs/s02-neural-networks/Cargo.toml --check
-cargo clippy --manifest-path labs/s02-neural-networks/Cargo.toml --all-targets -- -D warnings
-cargo test --manifest-path labs/s02-neural-networks/Cargo.toml
+just fmt-check 07
+just lint 07
+just lab-test 07
 node labs/s02-neural-networks/check_interactives.cjs
 ```
 

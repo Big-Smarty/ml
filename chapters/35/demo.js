@@ -19,23 +19,32 @@
   const root = document.getElementById('attention-lab');
   if (!root) return;
   const get = name => root.querySelector(`[data-field="${name}"]`);
-  const vector = xs => `[${xs.map(v=>v.toFixed(6)).join(', ')}]`;
+  const numeric = (value, digits = null) => {
+    if (!Number.isFinite(value)) throw new Error('Nonfinite illustration result');
+    const magnitude = digits === null ? String(Math.abs(value)) : Math.abs(value).toFixed(digits);
+    return `${value < 0 ? '<mo>−</mo>' : ''}<mn>${magnitude}</mn>`;
+  };
+  const vector = (values, digits = null) => `<mrow><mo>[</mo>${values.map(value => numeric(value, digits)).join('<mo>,</mo>')}<mo>]</mo></mrow>`;
+  const math = (body, display = false) => `<math xmlns="http://www.w3.org/1998/Math/MathML"${display ? ' display="block"' : ''}><mrow>${body}</mrow></math>`;
+  const scalar = (value, digits = null) => math(numeric(value, digits));
   function draw() {
-    const query = Number(get('query').value);
+    const selectedQuery = Number(get('query').value);
+    const query = Number.isInteger(selectedQuery) && selectedQuery >= 0 && selectedQuery <= 2 ? selectedQuery : 1;
+    get('query').value = String(query);
     const value = Number(get('future').value);
     const future = Number.isFinite(value) ? Math.max(-5,Math.min(100,value)) : 100;
     get('future').value=future;
     const causal = get('causal').checked;
     const r = calculate(query,future,causal);
-    get('scores').textContent = `Q=[1,0], head width=2. Raw Q·K=${vector(r.raw)}; scaled scores=${vector(r.scores)}. Allowed keys: ${causal?Array.from({length:query+1},(_,i)=>i).join(', '):'0, 1, 2 (leaking future where present)'}.`;
+    get('scores').innerHTML = `${math('<mi>Q</mi><mo>=</mo>' + vector([1,0]))}, head width ${scalar(2)}. Raw dot products ${math('<mi>Q</mi><mo>·</mo><mi>K</mi><mo>=</mo>' + vector(r.raw,6))}; scaled scores ${math(vector(r.scores,6))}. Allowed keys: ${math(vector(Array.from({length:causal ? query+1 : 3},(_,i)=>i)))}${causal ? '' : ' (leaking future where present)'}.`;
     get('bars').replaceChildren();
     r.probabilities.forEach((p,j)=>{
       const row=document.createElement('p');
-      row.textContent=`Key ${j}: probability ${p.toFixed(6)}${causal&&j>query?' — masked':''}`;
+      row.innerHTML=`Key ${scalar(j)}: probability ${scalar(p,6)}${causal&&j>query?' — masked':''}`;
       row.style.borderInlineStart=`${1+Math.round(p*24)}px solid var(--sage)`;
       row.style.paddingInlineStart='0.5rem';get('bars').append(row);
     });
-    get('result').textContent = `Weighted values O=${vector(r.output)}. Identity output projection, then residual input [1,−1] gives ${vector(r.residual)}. LayerNorm mean=${r.mean.toFixed(6)}, variance=${r.variance.toFixed(6)}, ε=0.00001, gain=[1,1], bias=[0,0] → ${vector(r.normalized)}.`;
+    get('result').innerHTML = `Weighted values ${math('<mi>O</mi><mo>=</mo>' + vector(r.output,6))}. Identity output projection, then residual input ${math(vector([1,-1]))} gives ${math(vector(r.residual,6))}. LayerNorm mean ${scalar(r.mean,6)}, variance ${scalar(r.variance,6)}, ${math('<mi>ε</mi><mo>=</mo><mn>0.00001</mn>')}, gain ${math(vector([1,1]))}, bias ${math(vector([0,0]))}; normalized output ${math(vector(r.normalized,6))}.`;
     get('explain').textContent = causal && query<2 ? 'Changing the future key score cannot affect this earlier query. Masking happens before the maximum and normalizer.' : causal ? 'At the last query, all keys are already in its available history.' : 'Unmasked attention can read later values. A favorable training loss from this leakage would not establish usable generation.';
   }
   ['query','future','causal'].forEach(name=>get(name).addEventListener('change',draw));

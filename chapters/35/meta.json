@@ -27,7 +27,7 @@
     "gradient-check": {
       "name": "gradient check",
       "definition": "A comparison between an analytical derivative and a numerical finite-difference estimate.",
-      "explanation": "For a scalar objective P and input element θ, central difference estimates the derivative as [P(θ+ε)−P(θ−ε)]/(2ε). It is slow but useful on tiny deterministic fixtures. Smooth inputs, suitable precision, and combined absolute and relative tolerances matter. This chapter sums attention outputs times a fixed upstream matrix to create a derivative probe; that probe is not a model loss or next-token cross-entropy. Causal invariance and shape tests complement numerical derivatives because agreement alone cannot prove the intended information flow."
+      "explanation": "For a scalar objective and one input element, central difference estimates the derivative by subtracting the objective at a small negative perturbation from the objective at the same positive perturbation, then dividing by twice the perturbation. It is slow but useful on tiny deterministic fixtures. Smooth inputs, suitable precision, and combined absolute and relative tolerances matter. This chapter sums attention outputs times a fixed upstream matrix to create a derivative probe; that probe is not a model loss or next-token cross-entropy. Causal invariance and shape tests complement numerical derivatives because agreement alone cannot prove the intended information flow."
     }
   },
   "sources": [

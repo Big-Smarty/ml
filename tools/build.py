@@ -44,7 +44,27 @@ def json_html(value):
     return json.dumps(value).replace('<', '\\u003c').replace('>', '\\u003e').replace('&', '\\u0026')
 
 
+def scrollable_tables(content):
+    def wrap(match):
+        table = match.group(2)
+        caption = re.search(r'<caption\b[^>]*>(.*?)</caption>', table, re.S)
+        label = plain(caption.group(1)) if caption else 'Data table'
+        return f'<div class="table-wrap" tabindex="0" role="region" aria-label="{escape(label)}">{table}</div>'
+    # Normalize an existing wrapper too, so authors do not get nested scrollers.
+    return re.sub(r'(<div class="table-wrap">\s*)?(<table\b[^>]*>.*?</table>)(?(1)\s*</div>)', wrap, content, flags=re.S)
+
+
+def inline_math(content):
+    def wrap(match):
+        expression = match.group(0)
+        if re.search(r'\bdisplay=[\"\']block[\"\']', expression.split('>', 1)[0]):
+            return expression
+        return '<span class="inline-math">' + expression + '</span>'
+    return re.sub(r'<math\b[^>]*>.*?</math>', wrap, content, flags=re.S)
+
+
 def shell(title, body, chapters, active='', extra=''):
+    body = inline_math(scrollable_tables(body))
     body = re.sub(r'href="(/code/[^"#]+\.(?:rs|toml|wgsl|md|py|json))"', r'href="\1.html"', body)
     nav = ''
     for index, part in enumerate(dict.fromkeys(c['part'] for c in chapters), 1):

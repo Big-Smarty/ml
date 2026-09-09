@@ -26,7 +26,7 @@
     "sigmoid": {
       "name": "Sigmoid",
       "definition": "The function 1 divided by 1 plus exp of the negative input.",
-      "explanation": "Sigmoid maps every finite real logit into the interval from zero to one. At zero it returns one half, and increasing the logit increases the probability smoothly. Its derivative is p(1−p), which helps simplify logistic-regression gradients. Direct evaluation can overflow for a very negative logit, so the Rust implementation uses separate positive and negative branches. This numerical rearrangement preserves the mathematics while keeping intermediate exponentials bounded."
+      "explanation": "Sigmoid maps every finite real logit into the interval from zero to one. At zero it returns one half, and increasing the logit increases the probability smoothly. Its derivative equals the output probability multiplied by its complement, which helps simplify logistic-regression gradients. Direct evaluation can overflow for a very negative logit, so the Rust implementation uses separate positive and negative branches. This numerical rearrangement preserves the mathematics while keeping intermediate exponentials bounded."
     },
     "likelihood": {
       "name": "Likelihood",

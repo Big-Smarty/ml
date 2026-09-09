@@ -7,11 +7,26 @@ import zipfile
 
 import build
 from chapter import self_test
-from verify import Page, goal_delivery_ok
+from verify import Page, goal_delivery_ok, math_errors
 
 
 def main():
     self_test()
+    assert not math_errors('<math><mfrac><mn>1</mn><mi>N</mi></mfrac></math>')
+    assert not math_errors('<math><mi>x</mi><mo>&lt;</mo><mn>2</mn></math>')
+    assert math_errors('<math><mfrac><mn>1</mn></mfrac></math>')
+    assert math_errors('<math><mi>x</mn></math>')
+    assert math_errors('<math><mo><mrow><mo>+</mo></mrow></mo></math>')
+    assert math_errors('<math><mn>2</mn>')
+    assert math_errors('<math><mo>(</mo><mi>x</mi><msup><mo>)</mo><mn>2</mn></msup></math>')
+    assert not math_errors('<math><msup><mrow><mo>(</mo><mi>x</mi><mo>)</mo></mrow><mn>2</mn></msup></math>')
+    table = '<table><caption>Numeric trace</caption><tr><td>3</td></tr></table>'
+    wrapped = build.scrollable_tables(table)
+    assert wrapped.count('class="table-wrap"') == 1 and 'aria-label="Numeric trace"' in wrapped
+    assert build.scrollable_tables('<div class="table-wrap">' + table + '</div>') == wrapped
+    assert build.inline_math('<p><math><mi>x</mi></math></p>') == '<p><span class="inline-math"><math><mi>x</mi></math></span></p>'
+    display = '<div class="equation"><math display="block"><mi>x</mi></math></div>'
+    assert build.inline_math(display) == display
     assert not goal_delivery_ok(dict(returncode=1, output="missing data"))
     assert not goal_delivery_ok(dict(returncode=101, output="GOAL_NOT_MET: panicked at x"))
     assert goal_delivery_ok(dict(returncode=1, output="GOAL_NOT_MET: expected MSE below0.01; got0.4"))

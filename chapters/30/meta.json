@@ -19,7 +19,7 @@
     "reduction": {
       "name": "reduction",
       "definition": "An operation that combines many values into fewer values using an associative rule.",
-      "explanation": "A sum reduction repeatedly combines values until one subtotal remains. Gpu::reduce_sum maps an input shaped [L] to [ceil(L/512)] partial sums at each stage, while reduce_sum_scalar maps the original [N] directly to one f32. The operation sums all values and does not average them. Addition is associative over real numbers but not exactly associative in floating-point arithmetic, so the staged and scalar accumulation orders may differ in low-order bits."
+      "explanation": "A sum reduction repeatedly combines values until one subtotal remains. At each stage, the GPU reduction maps a one-dimensional input to one partial sum per block of at most 512 values, while the scalar reduction maps the original one-dimensional input directly to one f32 result. The operation sums all values and does not average them. Addition is associative over real numbers but not exactly associative in floating-point arithmetic, so the staged and scalar accumulation orders may differ in low-order bits."
     },
     "workgroup-memory": {
       "name": "workgroup memory",
@@ -34,12 +34,12 @@
     "tile": {
       "name": "tile",
       "definition": "A small rectangular block of a larger array processed cooperatively.",
-      "explanation": "The matrix kernel uses 16×16 tiles. A 16×16 workgroup loads one tile from A and one from B, then reuses each loaded element across multiple multiply-adds. The K dimension may require several tile rounds. When dimensions are not multiples of 16, the last round contains invalid positions; those lanes load zero. Tiling changes data movement and order of accumulation while preserving the matrix product within floating-point tolerance."
+      "explanation": "The matrix kernel uses sixteen-by-sixteen tiles. A sixteen-by-sixteen workgroup loads one tile from each input matrix, then reuses each loaded element across multiple multiply-adds. The shared inner dimension may require several tile rounds. When dimensions are not multiples of sixteen, the last round contains invalid positions; those lanes load zero. Tiling changes data movement and order of accumulation while preserving the matrix product within floating-point tolerance."
     },
     "gemm": {
       "name": "GEMM",
-      "definition": "General matrix multiplication, usually the operation C = A × B with rectangular dimensions.",
-      "explanation": "For A shaped [m,k] and B shaped [k,n], GEMM returns C shaped [m,n]. Each C[row,col] is the dot product of A's row and B's column. Dense neural-network layers depend on this operation, which is why chapter 30 exposes a stable library API for later decoder chapters. The teaching kernel is real but intentionally simple; production libraries add architecture-specific vectorization, packing, and scheduling selected from measurements."
+      "definition": "General matrix multiplication: the product of two matrices, including rectangular matrices.",
+      "explanation": "GEMM multiplies a matrix shaped by output rows and shared inner width with a matrix shaped by that inner width and output columns. It returns a matrix shaped by output rows and output columns. Each result entry is the dot product of one row from the left matrix and one column from the right matrix. Dense neural-network layers depend on this operation, which is why chapter 30 exposes a stable library API for later decoder chapters. The teaching kernel is real but intentionally simple; production libraries add architecture-specific vectorization, packing, and scheduling selected from measurements."
     }
   },
   "sources": [
@@ -141,9 +141,9 @@
     "goal": "Build cooperative reduction and tiled GEMM; combine parity with a barrier/ownership explanation",
     "check": "just lab-check 30",
     "manual_checks": [
-      "Trace N=600 reduction as 600→2→1 and identify which invocation owns each scratch/subtotal write.",
+      "Trace the reduction from six hundred inputs to two subtotals and then one result; identify which invocation owns each scratch or subtotal write.",
       "Review actual MATMUL/REDUCE source for cooperative shared loads, halving tree, uniform barriers, no early edge return, and distinct output stores.",
-      "Trace the 17×19 by19×33 grid:6 workgroups,2 K rounds, edge zero filling and both barriers; attach real CPU/GPU parity when hardware is supported."
+      "Trace the product of a seventeen-by-nineteen matrix and a nineteen-by-thirty-three matrix: six workgroups, two inner-dimension rounds, edge zero filling and both barriers; attach real CPU/GPU parity when hardware is supported."
     ]
   },
   "interactives": [],

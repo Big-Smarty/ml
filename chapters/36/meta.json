@@ -23,7 +23,7 @@
     "layer-normalization": {
       "name": "layer normalization",
       "definition": "Per-token feature normalization followed by learned gain and bias.",
-      "explanation": "Layer normalization computes mean and variance across a hidden row's features, independently for each token. It centers and scales the row, then applies trainable vectors γ and β. Unlike batch normalization, it uses the same type of statistics during training and inference and does not mix examples. Backward must include the dependence of mean and variance on every feature. The chapter uses pre-normalization, so normalized values enter each learned branch while the residual identity remains unnormalized."
+      "explanation": "Layer normalization computes mean and variance across a hidden row's features, independently for each token. It centers and scales the row, then applies trainable gain and shift vectors. Unlike batch normalization, it uses the same type of statistics during training and inference and does not mix examples. Backward must include the dependence of mean and variance on every feature. The chapter uses pre-normalization, so normalized values enter each learned branch while the residual identity remains unnormalized."
     },
     "gelu": {
       "name": "Gaussian error linear unit",

@@ -19,7 +19,7 @@
     "adamw": {
       "name": "AdamW",
       "definition": "An adaptive moment optimizer that applies weight decay separately from the gradient moment update.",
-      "explanation": "AdamW tracks exponential averages of gradients and squared gradients, corrects their initialization bias, and divides the first by the square root of the second. It then adds λθ as a separate decay contribution. This separation matters because placing an L2 penalty inside the gradient lets Adam's adaptive scaling alter it. A resumable run stores both moment vectors, step, and all hyperparameters. Parameter-group policies may exclude gains or biases, but such choices must be explicit."
+      "explanation": "AdamW tracks exponential averages of gradients and squared gradients, corrects their initialization bias, and divides the first by the square root of the second. It then adds the decay strength times the current parameter as a separate contribution. This separation matters because placing an L2 penalty inside the gradient lets Adam's adaptive scaling alter it. A resumable run stores both moment vectors, step, and all hyperparameters. Parameter-group policies may exclude gains or biases, but such choices must be explicit."
     },
     "gradient-accumulation": {
       "name": "gradient accumulation",

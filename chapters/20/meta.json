@@ -28,12 +28,12 @@
     "padding": {
       "name": "padding",
       "definition": "Extra values conceptually placed around an input before a spatial operation.",
-      "explanation": "Zero padding lets a kernel be centered near an image boundary even though part of its window falls outside the stored pixels. The missing positions contribute zero. With a 3×3 kernel, stride one, and one pixel of padding, output height and width equal the input dimensions. Padding is an architectural choice, not additional observed data. Different padding policies change boundary behavior and must be applied consistently in the forward and backward passes."
+      "explanation": "Zero padding lets a kernel be centered near an image boundary even though part of its window falls outside the stored pixels. The missing positions contribute zero. With a three-by-three kernel, stride one, and one pixel of padding, output height and width equal the input dimensions. Padding is an architectural choice, not additional observed data. Different padding policies change boundary behavior and must be applied consistently in the forward and backward passes."
     },
     "stride": {
       "name": "stride",
       "definition": "The number of input positions moved between neighboring kernel applications.",
-      "explanation": "Stride one evaluates every adjacent location. Stride two skips every other position and usually reduces spatial resolution. For input size I, kernel size K, padding P, and stride S, the output size is floor((I + 2P − K)/S) + 1 when the numerator is nonnegative. Stride changes both computation and which details are retained. It should not be confused with the memory stride used to index a row-major array."
+      "explanation": "Stride one evaluates every adjacent location. Stride two skips every other position and usually reduces spatial resolution. When the padded input is at least as large as the kernel, output size is one plus the floor of the quantity formed by adding twice the padding to input size, subtracting kernel size, and dividing by stride. Stride changes both computation and which details are retained. It should not be confused with the memory stride used to index a row-major array."
     },
     "pooling": {
       "name": "pooling",
@@ -43,7 +43,7 @@
     "receptive-field": {
       "name": "receptive field",
       "definition": "The input region that can influence a particular activation.",
-      "explanation": "One 3×3 convolutional activation sees a 3×3 image patch. Deeper stacks combine nearby activations, so their effective receptive fields grow even when every kernel remains small. Pooling and stride make the field grow faster by reducing spatial resolution. Receptive field describes possible influence, not proof that every pixel contributes equally after training. It helps connect architecture choices to the scale of patterns a network can represent."
+      "explanation": "One three-by-three convolutional activation sees a three-by-three image patch. Deeper stacks combine nearby activations, so their effective receptive fields grow even when every kernel remains small. Pooling and stride make the field grow faster by reducing spatial resolution. Receptive field describes possible influence, not proof that every pixel contributes equally after training. It helps connect architecture choices to the scale of patterns a network can represent."
     }
   },
   "sources": [

@@ -2,7 +2,7 @@
   "stats": [
     {
       "chapter": "01",
-      "words": 2176,
+      "words": 2381,
       "steps": 6,
       "sessions": 2,
       "topics": 5,
@@ -10,7 +10,7 @@
     },
     {
       "chapter": "02",
-      "words": 1870,
+      "words": 2168,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -18,7 +18,7 @@
     },
     {
       "chapter": "03",
-      "words": 1850,
+      "words": 2262,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -26,7 +26,7 @@
     },
     {
       "chapter": "04",
-      "words": 1862,
+      "words": 2372,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -34,7 +34,7 @@
     },
     {
       "chapter": "05",
-      "words": 2067,
+      "words": 2238,
       "steps": 7,
       "sessions": 2,
       "topics": 5,
@@ -42,7 +42,7 @@
     },
     {
       "chapter": "06",
-      "words": 2314,
+      "words": 2476,
       "steps": 7,
       "sessions": 2,
       "topics": 4,
@@ -50,7 +50,7 @@
     },
     {
       "chapter": "07",
-      "words": 2351,
+      "words": 2848,
       "steps": 6,
       "sessions": 2,
       "topics": 3,
@@ -58,7 +58,7 @@
     },
     {
       "chapter": "08",
-      "words": 2265,
+      "words": 2568,
       "steps": 6,
       "sessions": 2,
       "topics": 3,
@@ -66,7 +66,7 @@
     },
     {
       "chapter": "09",
-      "words": 2070,
+      "words": 2683,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -74,7 +74,7 @@
     },
     {
       "chapter": "10",
-      "words": 2433,
+      "words": 2630,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -82,7 +82,7 @@
     },
     {
       "chapter": "11",
-      "words": 3459,
+      "words": 3866,
       "steps": 9,
       "sessions": 3,
       "topics": 5,
@@ -90,7 +90,7 @@
     },
     {
       "chapter": "12",
-      "words": 1946,
+      "words": 2120,
       "steps": 6,
       "sessions": 3,
       "topics": 4,
@@ -98,7 +98,7 @@
     },
     {
       "chapter": "13",
-      "words": 1974,
+      "words": 2093,
       "steps": 6,
       "sessions": 3,
       "topics": 4,
@@ -106,7 +106,7 @@
     },
     {
       "chapter": "14",
-      "words": 2045,
+      "words": 2426,
       "steps": 7,
       "sessions": 3,
       "topics": 4,
@@ -114,7 +114,7 @@
     },
     {
       "chapter": "15",
-      "words": 2190,
+      "words": 2443,
       "steps": 8,
       "sessions": 4,
       "topics": 4,
@@ -122,7 +122,7 @@
     },
     {
       "chapter": "16",
-      "words": 1657,
+      "words": 1991,
       "steps": 6,
       "sessions": 3,
       "topics": 3,
@@ -130,7 +130,7 @@
     },
     {
       "chapter": "17",
-      "words": 2084,
+      "words": 2454,
       "steps": 8,
       "sessions": 4,
       "topics": 5,
@@ -138,7 +138,7 @@
     },
     {
       "chapter": "18",
-      "words": 2016,
+      "words": 2326,
       "steps": 8,
       "sessions": 4,
       "topics": 4,
@@ -146,7 +146,7 @@
     },
     {
       "chapter": "19",
-      "words": 1927,
+      "words": 2021,
       "steps": 6,
       "sessions": 3,
       "topics": 4,
@@ -154,7 +154,7 @@
     },
     {
       "chapter": "20",
-      "words": 3203,
+      "words": 3697,
       "steps": 12,
       "sessions": 4,
       "topics": 4,
@@ -162,7 +162,7 @@
     },
     {
       "chapter": "21",
-      "words": 2446,
+      "words": 2865,
       "steps": 9,
       "sessions": 3,
       "topics": 3,
@@ -170,7 +170,7 @@
     },
     {
       "chapter": "22",
-      "words": 2856,
+      "words": 3440,
       "steps": 9,
       "sessions": 3,
       "topics": 3,
@@ -178,7 +178,7 @@
     },
     {
       "chapter": "23",
-      "words": 2984,
+      "words": 3413,
       "steps": 12,
       "sessions": 4,
       "topics": 4,
@@ -186,7 +186,7 @@
     },
     {
       "chapter": "24",
-      "words": 2661,
+      "words": 3179,
       "steps": 9,
       "sessions": 3,
       "topics": 3,
@@ -194,7 +194,7 @@
     },
     {
       "chapter": "25",
-      "words": 1989,
+      "words": 2295,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -202,7 +202,7 @@
     },
     {
       "chapter": "26",
-      "words": 1665,
+      "words": 1997,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -210,7 +210,7 @@
     },
     {
       "chapter": "27",
-      "words": 2478,
+      "words": 2824,
       "steps": 9,
       "sessions": 3,
       "topics": 4,
@@ -218,7 +218,7 @@
     },
     {
       "chapter": "28",
-      "words": 2297,
+      "words": 2471,
       "steps": 9,
       "sessions": 3,
       "topics": 5,
@@ -226,7 +226,7 @@
     },
     {
       "chapter": "29",
-      "words": 2484,
+      "words": 2633,
       "steps": 8,
       "sessions": 2,
       "topics": 6,
@@ -234,7 +234,7 @@
     },
     {
       "chapter": "30",
-      "words": 2560,
+      "words": 2978,
       "steps": 7,
       "sessions": 2,
       "topics": 4,
@@ -242,7 +242,7 @@
     },
     {
       "chapter": "31",
-      "words": 2650,
+      "words": 2922,
       "steps": 8,
       "sessions": 2,
       "topics": 3,
@@ -250,7 +250,7 @@
     },
     {
       "chapter": "32",
-      "words": 2417,
+      "words": 2493,
       "steps": 9,
       "sessions": 2,
       "topics": 5,
@@ -258,7 +258,7 @@
     },
     {
       "chapter": "33",
-      "words": 2693,
+      "words": 3013,
       "steps": 5,
       "sessions": 3,
       "topics": 4,
@@ -266,7 +266,7 @@
     },
     {
       "chapter": "34",
-      "words": 2578,
+      "words": 2606,
       "steps": 5,
       "sessions": 3,
       "topics": 4,
@@ -274,7 +274,7 @@
     },
     {
       "chapter": "35",
-      "words": 2901,
+      "words": 3720,
       "steps": 5,
       "sessions": 3,
       "topics": 5,
@@ -282,7 +282,7 @@
     },
     {
       "chapter": "36",
-      "words": 3232,
+      "words": 4031,
       "steps": 7,
       "sessions": 4,
       "topics": 4,
@@ -290,7 +290,7 @@
     },
     {
       "chapter": "37",
-      "words": 2073,
+      "words": 2108,
       "steps": 6,
       "sessions": 3,
       "topics": 5,
@@ -298,7 +298,7 @@
     },
     {
       "chapter": "38",
-      "words": 3407,
+      "words": 3938,
       "steps": 7,
       "sessions": 4,
       "topics": 5,
@@ -306,7 +306,7 @@
     },
     {
       "chapter": "39",
-      "words": 2461,
+      "words": 2551,
       "steps": 8,
       "sessions": 4,
       "topics": 5,
@@ -314,7 +314,7 @@
     },
     {
       "chapter": "40",
-      "words": 2940,
+      "words": 3144,
       "steps": 9,
       "sessions": 2,
       "topics": 4,
@@ -322,7 +322,7 @@
     },
     {
       "chapter": "41",
-      "words": 2429,
+      "words": 2676,
       "steps": 8,
       "sessions": 2,
       "topics": 4,
@@ -330,7 +330,7 @@
     },
     {
       "chapter": "42",
-      "words": 2727,
+      "words": 3247,
       "steps": 8,
       "sessions": 2,
       "topics": 4,
@@ -338,7 +338,7 @@
     },
     {
       "chapter": "43",
-      "words": 2974,
+      "words": 3677,
       "steps": 10,
       "sessions": 3,
       "topics": 3,
@@ -346,7 +346,7 @@
     },
     {
       "chapter": "44",
-      "words": 3150,
+      "words": 3420,
       "steps": 10,
       "sessions": 3,
       "topics": 4,
@@ -354,7 +354,7 @@
     },
     {
       "chapter": "45",
-      "words": 3491,
+      "words": 3800,
       "steps": 12,
       "sessions": 3,
       "topics": 3,
@@ -362,7 +362,7 @@
     },
     {
       "chapter": "46",
-      "words": 3201,
+      "words": 3699,
       "steps": 12,
       "sessions": 3,
       "topics": 4,
@@ -370,7 +370,7 @@
     },
     {
       "chapter": "47",
-      "words": 1459,
+      "words": 1715,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -378,7 +378,7 @@
     },
     {
       "chapter": "48",
-      "words": 1761,
+      "words": 2050,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -386,7 +386,7 @@
     },
     {
       "chapter": "49",
-      "words": 1458,
+      "words": 1802,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -394,7 +394,7 @@
     },
     {
       "chapter": "50",
-      "words": 2172,
+      "words": 2317,
       "steps": 9,
       "sessions": 3,
       "topics": 4,
@@ -402,7 +402,7 @@
     },
     {
       "chapter": "51",
-      "words": 2097,
+      "words": 2495,
       "steps": 9,
       "sessions": 3,
       "topics": 5,
@@ -410,7 +410,7 @@
     },
     {
       "chapter": "52",
-      "words": 1455,
+      "words": 1610,
       "steps": 6,
       "sessions": 2,
       "topics": 3,
@@ -418,7 +418,7 @@
     },
     {
       "chapter": "53",
-      "words": 1470,
+      "words": 1495,
       "steps": 6,
       "sessions": 2,
       "topics": 6,
@@ -426,7 +426,7 @@
     },
     {
       "chapter": "54",
-      "words": 2122,
+      "words": 2326,
       "steps": 9,
       "sessions": 3,
       "topics": 6,
@@ -434,7 +434,7 @@
     },
     {
       "chapter": "55",
-      "words": 1397,
+      "words": 1666,
       "steps": 6,
       "sessions": 2,
       "topics": 4,
@@ -442,7 +442,7 @@
     },
     {
       "chapter": "56",
-      "words": 2966,
+      "words": 3165,
       "steps": 12,
       "sessions": 4,
       "topics": 5,

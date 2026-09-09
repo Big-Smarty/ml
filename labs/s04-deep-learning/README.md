@@ -7,8 +7,8 @@ From the repository root:
 ```sh
 just lab 20
 just lab-check 20
-cargo run --manifest-path labs/s04-deep-learning/Cargo.toml -- 20 --solution
-cargo run --manifest-path labs/s04-deep-learning/Cargo.toml -- 20 --solution --check
+just solution 20
+just solution 20 --check
 ```
 
 Replace 20 with any chapter 20–24. A normal run is useful before editing. `--check` invokes the selected learner functions; expected unfinished-goal comparisons print `GOAL_NOT_MET:` and exit 1. Input/runtime failures remain ordinary errors. A solution check verifies the solution file, not your edits. Passing supplied tests or moving a browser control is not a claim of mastery.
@@ -28,7 +28,7 @@ Baselines have complete derivatives for their declared model or an explicitly de
 ## Session checkpoints
 
 ```sh
-cargo run --manifest-path labs/s04-deep-learning/Cargo.toml -- 20 --checkpoint convolution
+just lab 20 --checkpoint convolution
 ```
 
 All checkpoints are cumulative within their chapter and call the selected core. Add `--solution` to inspect the completed reference. Earlier checkpoints remain callable after later edits.
@@ -46,9 +46,9 @@ Full `--check` also includes the later training goal when specified. The check f
 ## Concrete experiment controls
 
 ```sh
-cargo run --manifest-path labs/s04-deep-learning/Cargo.toml -- 21 --canonical
-cargo run --manifest-path labs/s04-deep-learning/Cargo.toml -- 23 --horizon 20
-cargo run --manifest-path labs/s04-deep-learning/Cargo.toml -- 24 --rotate-negatives
+just lab 21 --canonical
+just lab 23 --horizon 20
+just lab 24 --rotate-negatives
 ```
 
 - **21** compares four canonical images with twenty requested shifted views. Both default policies use 700 image updates and print the actual update count. The baseline translation is identity until you implement it.
@@ -60,7 +60,7 @@ The lessons also name exact editable functions/settings for independent changes:
 The optional CNN extension uses prepared local MNIST IDX files:
 
 ```sh
-cargo run --release --manifest-path labs/s04-deep-learning/Cargo.toml -- 20 --mnist \
+just lab 20 --mnist \
   datasets/downloads/mnist/fit-images-idx3-ubyte \
   datasets/downloads/mnist/fit-labels-idx1-ubyte \
   datasets/downloads/mnist/validation-images-idx3-ubyte \
@@ -82,9 +82,9 @@ All source datasets above are course-authored except optional MNIST. Complete or
 ## Maintainer checks
 
 ```sh
-cargo fmt --manifest-path labs/s04-deep-learning/Cargo.toml --check
-cargo clippy --manifest-path labs/s04-deep-learning/Cargo.toml --all-targets -- -D warnings
-cargo test --manifest-path labs/s04-deep-learning/Cargo.toml
+just fmt-check 20
+just lint 20
+just lab-test 20
 node labs/s04-deep-learning/check-demos.cjs
 ```
 

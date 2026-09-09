@@ -6,6 +6,15 @@
   const geometry = root.querySelector('[data-geometry]');
   const output = root.querySelector('[data-output]');
   const table = root.querySelector('[data-map]');
+  // Templates contain fixed notation and numeric values from this illustration only.
+  const number = value => Number(value) < 0
+    ? `<mrow><mo>−</mo><mn>${String(value).replace('-', '')}</mn></mrow>`
+    : `<mn>${value}</mn>`;
+  const math = content => `<math xmlns="http://www.w3.org/1998/Math/MathML"><mrow>${content}</mrow></math>`;
+  const scalar = value => math(number(value));
+  const vector = values => math(`<mo>[</mo><mtable><mtr>${values.map(value => `<mtd>${number(value)}</mtd>`).join('')}</mtr></mtable><mo>]</mo>`);
+  const shape = side => math(`${number(side)}<mo>×</mo>${number(side)}`);
+  const coordinate = (row, column) => math(`<mo>(</mo>${number(row)}<mo>,</mo>${number(column)}<mo>)</mo>`);
   let position = 0;
   function compute(padding, stride) {
     const side = Math.floor((5 + 2 * padding - 3) / stride) + 1;
@@ -38,7 +47,7 @@
       const ic = (winner % side) * stride + j % 3 - padding;
       return throughRelu * (ir >= 0 && ir < 5 && ic >= 0 && ic < 5 ? image[ir * 5 + ic] : 0);
     });
-    output.textContent = `Input 5×5, kernel 3×3, padding ${padding}, stride ${stride}: output ${side}×${side}. Selected output (${r},${c}), nine products [${products[position].map(v => v.toFixed(2)).join(', ')}], sum ${values[position].toFixed(2)}, ReLU ${relu[position].toFixed(2)}. First 2×2 max pool is ${relu[winner].toFixed(2)}, winner (${Math.floor(winner / side)},${winner % side}). Incoming gradient 0.60 routes only to this winner; all other map cells receive zero. After ReLU, the winning pre-activation receives ${throughRelu.toFixed(2)}; its nine kernel-gradient contributions are [${kernelGradient.map(v => v.toFixed(2)).join(', ')}]. Ties choose the first row-major cell. Why does changing stride alter which evidence survives?`;
+    output.innerHTML = `Input ${shape(5)}, kernel ${shape(3)}, padding ${scalar(padding)}, stride ${scalar(stride)}: output ${shape(side)}. Selected output ${coordinate(r, c)}, nine products ${vector(products[position].map(v => v.toFixed(2)))}, sum ${scalar(values[position].toFixed(2))}, ReLU ${scalar(relu[position].toFixed(2))}. First ${shape(2)} max pool is ${scalar(relu[winner].toFixed(2))}, winner ${coordinate(Math.floor(winner / side), winner % side)}. Incoming gradient ${scalar('0.60')} routes only to this winner; all other map cells receive zero. After ReLU, the winning pre-activation receives ${scalar(throughRelu.toFixed(2))}; its nine kernel-gradient contributions are ${vector(kernelGradient.map(v => v.toFixed(2)))}. Ties choose the first row-major cell. Why does changing stride alter which evidence survives?`;
     table.replaceChildren();
     const caption = document.createElement('caption');
     caption.textContent = 'ReLU feature map; selected convolution location marked “selected”; pooling winner marked “winner”.';
@@ -48,7 +57,7 @@
       const tr = document.createElement('tr');
       for (let col = 0; col < side; col++) {
         const at = row * side + col, td = document.createElement('td');
-        td.textContent = `${relu[at].toFixed(2)}${at === position ? ' selected' : ''}${at === winner ? ' winner' : ''}`;
+        td.innerHTML = `${scalar(relu[at].toFixed(2))}${at === position ? ' selected' : ''}${at === winner ? ' winner' : ''}`;
         tr.append(td);
       }
       body.append(tr);

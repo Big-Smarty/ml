@@ -3,14 +3,14 @@
 Seven chapter entries share one CLI and the preserved Chapter 36 decoder. All data are course-authored, tiny, deterministic, offline fixtures. No model download, service, GPU or paid compute is required.
 
 ```bash
-cargo run --manifest-path labs/s08-adaptation/Cargo.toml -- 40
-cargo run --manifest-path labs/s08-adaptation/Cargo.toml -- 40 --check
-cargo run --manifest-path labs/s08-adaptation/Cargo.toml -- 40 --solution
-cargo run --manifest-path labs/s08-adaptation/Cargo.toml -- 40 --solution --check
-cargo test --manifest-path labs/s08-adaptation/Cargo.toml
+just lab 40
+just lab-check 40
+just solution 40
+just solution 40 --check
+just lab-test 40
 ```
 
-Replace 40 with any chapter 40–46. `just lab NN` and `just lab-check NN` are root shortcuts. `src/chNN.rs` contains your working baseline and readable goal check. `src/solutions/chNN.rs` is a separate completed implementation with reasoning comments and numerical tests. Baseline runs and `cargo test` pass on delivery. Learner `--check` intentionally reports unmet learning goals until you implement them; it does not deliberately crash the baseline or make ordinary tests fail.
+Replace 40 with any chapter 40–46. `just lab NN` and `just lab-check NN` are root shortcuts. `src/chNN.rs` contains your working baseline and readable goal check. `src/solutions/chNN.rs` is a separate completed implementation with reasoning comments and numerical tests. Baseline runs and `just lab-test 40` pass on delivery. Learner `--check` intentionally reports unmet learning goals until you implement them; it does not deliberately crash the baseline or make ordinary tests fail.
 
 | Chapter | Useful supplied baseline | Core implementation | Evidence |
 |---|---|---|---|

@@ -17,7 +17,7 @@
     "language-model": {
       "name": "language model",
       "definition": "A model that assigns probabilities to token sequences by predicting each next token from earlier tokens.",
-      "explanation": "A language model turns sequence modeling into repeated conditional prediction. For tokens x₁…xₜ, it estimates each probability p(xᵢ | x₁…xᵢ₋₁). Multiplying these conditional probabilities assigns a probability to the sequence; training usually minimizes their summed or averaged negative logarithms. The chapter's bigram embedding model uses only one earlier byte, while later decoder blocks use a longer causal context. Low loss on a tiny training fixture demonstrates fitting, not broad linguistic ability."
+      "explanation": "A language model turns sequence modeling into repeated conditional prediction. For each token, it estimates the probability of that token given the earlier tokens. Multiplying these conditional probabilities assigns a probability to the sequence; training usually minimizes their summed or averaged negative logarithms. The chapter's bigram embedding model uses only one earlier byte, while later decoder blocks use a longer causal context. Low loss on a tiny training fixture demonstrates fitting, not broad linguistic ability."
     },
     "n-gram": {
       "name": "n-gram",

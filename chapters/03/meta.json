@@ -21,7 +21,7 @@
     "dot-product": {
       "name": "Dot product",
       "definition": "The sum of products of corresponding entries in two equal-length vectors.",
-      "explanation": "For weights w and features x, their dot product is w₁x₁ + w₂x₂ + and so on. It converts two vectors of the same dimension into one scalar weighted sum. Adding a bias produces a multifeature affine prediction. The order and length must agree. A dot product is not elementwise output: the individual products are reduced by addition. This compact operation will reappear inside every dense neural-network layer."
+      "explanation": "A dot product multiplies corresponding weights and features, then adds all those products. It converts two vectors of the same dimension into one scalar weighted sum. Adding a bias produces a multifeature affine prediction. The order and length must agree. A dot product is not elementwise output: the individual products are reduced by addition. This compact operation will reappear inside every dense neural-network layer."
     },
     "linear-regression": {
       "name": "Linear regression",

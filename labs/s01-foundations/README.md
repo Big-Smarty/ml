@@ -5,10 +5,10 @@ Six working experiments share one small, offline Rust package with no dependenci
 From the repository root:
 
 ```sh
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01 --check
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01 --solution --check
-cargo test --manifest-path labs/s01-foundations/Cargo.toml
+just lab 01
+just lab-check 01
+just solution 01 --check
+just lab-test 01
 node labs/s01-foundations/demo_checks.js
 ```
 
@@ -29,28 +29,28 @@ Edit `src/chNN.rs`; all checks call its real functions. The counterpart `src/sol
 
 ```sh
 # Numerical trainer: rate, number of updates, or a different data condition.
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01 --rate 0.01 --steps 100
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01 --variant alternate
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01 --variant outlier
+just lab 01 --rate 0.01 --steps 100
+just lab 01 --variant alternate
+just lab 01 --variant outlier
 # Analytical counterpart supports the same controls.
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 02 --variant alternate --steps 150
+just lab 02 --variant alternate --steps 150
 # Consistent training/inference unit change; optional --rate and --steps.
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 03 --load-scale 1000000
+just lab 03 --load-scale 1000000
 # Change only policy, labels, or add one inconsistent duplicate; optional rate/steps.
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 04 --threshold 0.8
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 04 --variant reversed
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 04 --variant contradiction
+just lab 04 --threshold 0.8
+just lab 04 --variant reversed
+just lab 04 --variant contradiction
 # Validation policy controls and a whole-machine partition variation.
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 05 --miss-cost 10
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 05 --candidate 0.45
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 05 --variant extra-visit
+just lab 05 --miss-cost 10
+just lab 05 --candidate 0.45
+just lab 05 --variant extra-visit
 # Default06 compares five configurations; any options choose one custom run.
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 06 --rate 0.003
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 06 --batch 5 --seed 29 --l2 0.2
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 06 --rows 5 --batch 2 --epochs 1
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 06 --batch 5 --patience 5
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 06 --variant rotated
-cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 06 --variant shifted
+just lab 06 --rate 0.003
+just lab 06 --batch 5 --seed 29 --l2 0.2
+just lab 06 --rows 5 --batch 2 --epochs 1
+just lab 06 --batch 5 --patience 5
+just lab 06 --variant rotated
+just lab 06 --variant shifted
 ```
 
 Add `--solution` to run each completed comparison before your own implementation supports it. The supplied01 candidate baseline does not use training steps/rate to change parameters; the numerical replacement does. The supplied06 baseline explicitly rejects unsupported minibatch/L2/stopping requests. Zero epochs deliberately return the untouched model and epoch0 losses; invalid batch/rate/L2 settings still fail. Inputs are validated, options are bounded, and no default computation downloads data or runs a long workload.

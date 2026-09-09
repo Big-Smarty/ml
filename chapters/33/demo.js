@@ -21,16 +21,23 @@
   const root = document.getElementById('token-loss-lab');
   if (!root) return;
   const get = name => root.querySelector(`[data-field="${name}"]`);
+  const numeric = (value, digits = null) => {
+    if (!Number.isFinite(value)) throw new Error('Nonfinite illustration result');
+    const magnitude = digits === null ? String(Math.abs(value)) : Math.abs(value).toFixed(digits);
+    return `${value < 0 ? '<mo>−</mo>' : ''}<mn>${magnitude}</mn>`;
+  };
+  const math = (body, display = false) => `<math xmlns="http://www.w3.org/1998/Math/MathML"${display ? ' display="block"' : ''}><mrow>${body}</mrow></math>`;
+  const scalar = (value, digits = null) => math(numeric(value, digits));
   function draw() {
     const raw = Number(get('score').value);
     const score = Number.isFinite(raw) ? Math.max(-5, Math.min(5, raw)) : 2;
     get('score').value = score;
     const mode = get('mode').value;
     const r = calculate(mode, score);
-    get('ids').textContent = `IDs/labels: [${r.ids.join(', ')}]. ${r.ids.length} tokens, ${r.ids.length - 1} next-token targets; vocabulary ${r.vocabulary}.`;
-    get('counts').textContent = `First input 99 (c) → target ${r.target}. This pair occurs ${r.pairCount} times among ${r.currentCount} successors of c. In this fixture its unsmoothed count probability is 1.`;
-    get('result').textContent = `Toy classifier: target logit ${score}, every other logit 0. Target probability ${r.probability.toFixed(6)}; next-token loss ${r.loss.toFixed(6)} nats. This illustrative score is supplied, not fitted from the counts.`;
-    get('units').textContent = mode === 'scalar' ? 'Scalar labels are Unicode code points, mapped to five compact class addresses in this tiny illustrative vocabulary. This vocabulary does not cover unseen scalars.' : mode === 'bpe' ? 'One learned rule: (97,102) → 256, bytes “af”. Ordered decoding concatenates bytes; all 256 byte fallbacks remain.' : 'Byte IDs equal byte values. UTF-8 é consists of bytes 195 and 169; byte coverage includes every possible byte.';
+    get('ids').innerHTML = `<p>IDs/labels: <code>[${r.ids.join(', ')}]</code>. ${r.ids.length} tokens, ${r.ids.length - 1} next-token targets; vocabulary ${r.vocabulary}.</p>`;
+    get('counts').innerHTML = `First input/target <code>99 → ${r.target}</code> (input <code>c</code>). This pair occurs ${r.pairCount} times among ${r.currentCount} successors of <code>c</code>. In this fixture its unsmoothed count probability is ${scalar(1)}.`;
+    get('result').innerHTML = `Toy classifier: target logit ${scalar(score)}, every other logit ${scalar(0)}. Target probability ${scalar(r.probability, 6)}; next-token loss ${scalar(r.loss, 6)} nats. This illustrative score is supplied, not fitted from the counts.`;
+    get('units').innerHTML = mode === 'scalar' ? 'Scalar labels are Unicode code points, mapped to five compact class addresses in this tiny illustrative vocabulary. This vocabulary does not cover unseen scalars.' : mode === 'bpe' ? `One learned rule: <code>(97,102) → 256</code>, bytes <code>af</code>. Ordered decoding concatenates bytes; all 256 byte fallbacks remain.` : `Byte IDs equal byte values. UTF-8 <code>é</code> consists of bytes <code>[195,169]</code>; byte coverage includes every possible byte.`;
   }
   get('mode').addEventListener('change', draw);
   get('score').addEventListener('change', draw);

@@ -30,20 +30,50 @@
   const body = root.querySelector('[data-experts]');
   const tokenList = root.querySelector('[data-tokens]');
   const summary = root.querySelector('[data-summary]');
+  const mathNamespace = 'http://www.w3.org/1998/Math/MathML';
+  function mathNode(name, ...children) {
+    const node = document.createElementNS(mathNamespace, name);
+    node.append(...children);
+    return node;
+  }
+  function mathNumber(value) {
+    return mathNode('math', mathNode('mn', String(value)));
+  }
+  function mathFraction(numerator, denominator) {
+    return mathNode('math', mathNode('mfrac', mathNode('mn', String(numerator)), mathNode('mn', String(denominator))));
+  }
+  function mathRoute(token, expert) {
+    return mathNode('math', mathNode('mrow', mathNode('mn', String(token)), mathNode('mo', '→'), mathNode('msub', mathNode('mi', 'E'), mathNode('mn', String(expert)))));
+  }
   function render() {
     const [concentration, factor, alpha] = controls.map(control => Number(control.value));
-    controls.forEach(control => { root.querySelector(`[data-value="${control.dataset.control}"]`).textContent = Number(control.value).toFixed(2); });
+    controls.forEach(control => {
+      root.querySelector(`[data-value="${control.dataset.control}"]`).replaceChildren(mathNumber(Number(control.value).toFixed(2)));
+    });
     const result = calculate(concentration, factor, alpha);
     body.replaceChildren();
     for (let expert = 0; expert < 3; expert++) {
       const row = document.createElement('tr');
       [expert, result.attempted[expert], result.accepted[expert], result.attempted[expert] - result.accepted[expert], result.mean[expert].toFixed(4)].forEach(value => {
-        const cell = document.createElement('td'); cell.textContent = String(value); row.append(cell);
+        const cell = document.createElement('td');
+        cell.append(mathNumber(value));
+        row.append(cell);
       });
       body.append(row);
     }
-    tokenList.textContent = result.rows.map(row => `${row.token}→E${row.route} ${row.admitted ? 'admitted' : 'dropped'}`).join('; ');
-    summary.textContent = `Capacity ${result.capacity} per expert; ${12 - result.dropped}/12 admitted; ${result.dropped}/12 dropped. Unweighted balance ${result.rawBalance.toFixed(4)}; alpha-weighted balance ${result.balance.toFixed(4)}. Capacity changes admission only; alpha scales the displayed auxiliary loss only. No router is trained here.`;
+    tokenList.replaceChildren();
+    result.rows.forEach((row, index) => {
+      if (index) tokenList.append('; ');
+      tokenList.append(mathRoute(row.token, row.route), row.admitted ? ' admitted' : ' dropped');
+    });
+    summary.replaceChildren(
+      'Capacity ', mathNumber(result.capacity), ' per expert; ',
+      mathFraction(12 - result.dropped, 12), ' admitted; ',
+      mathFraction(result.dropped, 12), ' dropped. Unweighted balance ',
+      mathNumber(result.rawBalance.toFixed(4)), '; alpha-weighted balance ',
+      mathNumber(result.balance.toFixed(4)),
+      '. Capacity changes admission only; alpha scales the displayed auxiliary loss only. No router is trained here.'
+    );
   }
   controls.forEach(control => control.addEventListener('input', render));
   root.querySelector('[data-reset]').addEventListener('click', () => { controls.forEach((control, index) => {control.value = [0, 1, 0.02][index];}); render(); });

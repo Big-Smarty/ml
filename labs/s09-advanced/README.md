@@ -5,7 +5,7 @@ Run a complete small baseline, implement the chapter's substantial algorithms, a
 ```sh
 just lab 47
 just lab-check 47
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 47 --solution --check
+just solution 47 --check
 ```
 
 Replace 47 with any chapter 47–56. All defaults are deterministic, CPU-only, standard-library Rust experiments with no network, socket, dataset download, or optional framework dependency. This package is an independent Cargo workspace.
@@ -34,32 +34,32 @@ Every extra argument is part of an explicit command, not an ignored experimental
 Chapter 53 trains an artifact or starts an interactive loopback server:
 
 ```sh
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 53 train /tmp/s09-model.txt
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 53 serve 127.0.0.1:8787 /tmp/s09-model.txt
+just lab 53 train /tmp/s09-model.txt
+just lab 53 serve 127.0.0.1:8787 /tmp/s09-model.txt
 ```
 
 Stop that interactive server when finished. Its default offline experiment opens no socket. The existing loopback integration test is opt-in:
 
 ```sh
-cargo test --manifest-path labs/s09-advanced/Cargo.toml serving_monitor_and_rollback_are_real -- --ignored
+just lab-test 47 serving_monitor_and_rollback_are_real --ignored
 ```
 
 Chapter 55 exports only to a new path and validates imported bytes. Its separate optional Burn path may download pinned dependencies; it runs the preserved reference's own 2×2 fixture, not the active lab's 72-byte format.
 
 ```sh
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 55 export /tmp/s09-affine.bin
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 55 import /tmp/s09-affine.bin
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 55 --framework
+just lab 55 export /tmp/s09-affine.bin
+just lab 55 import /tmp/s09-affine.bin
+just lab 55 --framework
 ```
 
 After completing chapter 56, use a fresh artifact path:
 
 ```sh
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 56 train /tmp/s09-capstone.bin 160
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 56 eval /tmp/s09-capstone.bin
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 56 serve-check /tmp/s09-capstone.bin
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 56 resume /tmp/s09-capstone.bin 20
-cargo run --manifest-path labs/s09-advanced/Cargo.toml -- 56 generate /tmp/s09-capstone.bin rust 8
+just lab 56 train /tmp/s09-capstone.bin 160
+just lab 56 eval /tmp/s09-capstone.bin
+just lab 56 serve-check /tmp/s09-capstone.bin
+just lab 56 resume /tmp/s09-capstone.bin 20
+just lab 56 generate /tmp/s09-capstone.bin rust 8
 ```
 
 Add `--solution` to run reference algorithms. `serve-check` loads the checkpoint, opens an ephemeral loopback port, sends one real request, checks a 200 generation response, and exits with bounded waits. `serve CHECKPOINT [ADDRESS]` accepts one interactive request or times out waiting after 30 seconds. Custom training requires both explicit training and held-out ASCII files: `56 train CHECKPOINT STEPS TRAIN_TEXT HELDOUT_TEXT`. Extended steps are explicit and bounded to 1–100,000 per invocation. No public deployment is performed.
@@ -67,9 +67,9 @@ Add `--solution` to run reference algorithms. `serve-check` loads the checkpoint
 ## Author verification
 
 ```sh
-cargo fmt --manifest-path labs/s09-advanced/Cargo.toml --check
-cargo clippy --manifest-path labs/s09-advanced/Cargo.toml --all-targets -- -D warnings
-cargo test --manifest-path labs/s09-advanced/Cargo.toml
+just fmt-check 47
+just lint 47
+just lab-test 47
 node chapters/48/demo-check.cjs
 ```
 

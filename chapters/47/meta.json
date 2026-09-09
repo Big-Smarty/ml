@@ -27,7 +27,7 @@
     "csr": {
       "name": "Compressed sparse row",
       "definition": "A sparse matrix layout storing nonzero values, their column indices, and row offsets.",
-      "explanation": "CSR stores values and column indices in row order. Here its rows are output features and its columns are input features, matching dense weights [out_features,in_features]. A row-pointer array of length out_features plus one marks each row's half-open segment. Equal adjacent pointers represent an empty row, and the final pointer equals the stored value count. Matrix-vector multiplication visits each segment and reads the input at its stored column. Indices save arithmetic but consume memory and add indirect access."
+      "explanation": "CSR stores values and column indices in row order. Here its rows are output features and its columns are input features, matching a dense weight matrix whose first axis is output features and second axis is input features. A row-pointer array with one more entry than the number of output features marks each row's half-open segment. Equal adjacent pointers represent an empty row, and the final pointer equals the stored value count. Matrix-vector multiplication visits each segment and reads the input at its stored column. Indices save arithmetic but consume memory and add indirect access."
     },
     "structural-zero": {
       "name": "Structural zero",

@@ -3,8 +3,18 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+// Flatten the fixed MathML output for numerical assertions. Preserve powers of ten
+// as scientific notation, so a tiny discrepancy remains a number rather than glyphs.
+function mathematicalText(markup) {
+  return markup
+    .replace(/<mo>×<\/mo><msup><mn>10<\/mn><mrow>(<mo>−<\/mo>)?<mn>(\d+)<\/mn><\/mrow><\/msup>/g,
+      (_, negative, power) => `e${negative ? '-' : ''}${power}`)
+    .replace(/<[^>]+>/g, '').replaceAll('−', '-');
+}
 class Element {
   constructor(value = '') { this.value = value; this.textContent = ''; this.innerHTML = ''; this.events = {}; this.children = []; }
+  get textContent() { return this.innerHTML ? mathematicalText(this.innerHTML) : this.text; }
+  set textContent(value) { this.text = value; this.innerHTML = ''; }
   setAttribute(name, value) { this[name] = value; }
   append(...children) { this.children.push(...children); }
   replaceChildren(...children) { this.children = children; }
@@ -21,17 +31,18 @@ function load(chapter, container, defaults) {
   return { root, get: selector => elements.get(selector) };
 }
 const fit = load('01', '#neuron-fit', { '[data-w]': '0', '[data-b]': '0', svg: '', '[data-readout]': '', '[data-table]': '', '[data-reset]': '' });
-assert.match(fit.get('[data-readout]').textContent, /MSE = 9\.0000/);
+assert.match(fit.get('[data-readout]').textContent, /MSE=9\.0000/);
 fit.get('[data-w]').value = '1.5'; fit.get('[data-b]').value = '0.5'; fit.root.fire('input');
-assert.match(fit.get('[data-readout]').textContent, /MSE = 0\.7500/);
-assert.match(fit.get('[data-table]').innerHTML, /<td>2<\/td><td>5<\/td><td>3\.50<\/td><td>-1\.50<\/td>/);
+assert.match(fit.get('[data-readout]').textContent, /MSE=0\.7500/);
+const lastRow = fit.get('[data-table]').innerHTML.match(/<tr>.*?<\/tr>/g).at(-1);
+assert.deepEqual([...lastRow.matchAll(/<td>(.*?)<\/td>/g)].map(cell => mathematicalText(cell[1])), ['2', '5', '3.50', '-1.50']);
 fit.get('[data-w]').value = '-3'; fit.get('[data-b]').value = '-3'; fit.root.fire('input');
-assert.match(fit.get('[data-readout]').textContent, /MSE = 66\.0000/);
-fit.get('[data-reset]').fire('click'); assert.match(fit.get('[data-readout]').textContent, /MSE = 9\.0000/);
+assert.match(fit.get('[data-readout]').textContent, /MSE=66\.0000/);
+fit.get('[data-reset]').fire('click'); assert.match(fit.get('[data-readout]').textContent, /MSE=9\.0000/);
 
 const gradient = load('02', '#loss-gradient', { '[data-w]': '0', '[data-h]': '0.00001', svg: '', '[data-readout]': '', '[data-step]': '', '[data-reset]': '' });
-assert.match(gradient.get('[data-readout]').textContent, /analytical gradient \[-8\.000000, -2\.000000\]/);
-const discrepancy = () => Number(gradient.get('[data-readout]').textContent.match(/discrepancy=([^.]*(?:\.[^.]*)?)\.$/)[1]);
+assert.match(gradient.get('[data-readout]').textContent, /analytical gradient \[-8\.000000,-2\.000000\]/);
+const discrepancy = () => Number(gradient.get('[data-readout]').textContent.match(/discrepancy: ([^. ]*(?:\.[^.]*)?)\.$/)[1]);
 assert.ok(discrepancy() < 1e-6);
 gradient.get('[data-w]').value = '1.3'; gradient.get('[data-w]').fire('change');
 gradient.get('[data-h]').value = '1e-16'; gradient.get('[data-h]').fire('change');
@@ -51,7 +62,7 @@ assert.match(classifier.get('[data-readout]').textContent, /TP=1, FP=1, TN=1, FN
 classifier.get('[data-threshold]').value = '0.4'; classifier.root.fire('input');
 assert.match(classifier.get('[data-readout]').textContent, /TP=2, FP=1, TN=1, FN=0/);
 classifier.get('[data-threshold]').value = '1'; classifier.root.fire('input');
-assert.match(classifier.get('[data-readout]').textContent, /TP=0, FP=0, TN=2, FN=2.*precision=undefined \(no predicted positives\)/);
+assert.match(classifier.get('[data-readout]').textContent, /TP=0, FP=0, TN=2, FN=2.*precision undefined \(no predicted positives\)/);
 classifier.get('[data-threshold]').value = '0'; classifier.root.fire('input');
 assert.match(classifier.get('[data-readout]').textContent, /TP=2, FP=2, TN=0, FN=0/);
 classifier.get('[data-reset]').fire('click');

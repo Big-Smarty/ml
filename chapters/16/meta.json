@@ -15,12 +15,12 @@
   "terms": {
     "margin": {
       "name": "margin",
-      "definition": "The signed confidence y f(x) of a binary classifier on one labeled example.",
+      "definition": "The product of a binary example's label and the classifier score for that example, giving its signed confidence.",
       "explanation": "With labels encoded as -1 and +1, a positive margin means the score has the correct sign and a negative margin means a mistake. The raw functional margin changes if the whole score is rescaled. Dividing the absolute score by the weight norm gives the geometric distance to the decision plane. Support-vector machines use a fixed score convention and weight penalty to prefer a wider corridor between classes."
     },
     "hinge-loss": {
       "name": "hinge loss",
-      "definition": "The piecewise loss max(0, 1 - y f(x)) used by soft-margin linear SVMs.",
+      "definition": "The soft-margin linear SVM loss given by the greater of zero and one minus an example's signed confidence.",
       "explanation": "Hinge loss is zero for a point whose signed margin is at least one. It remains positive for a correctly classified point inside the desired margin and grows linearly for misclassified points. This concentrates updates on boundary points and violations. The loss is not differentiable exactly at margin one, so optimization uses a valid subgradient rather than an ordinary derivative at that point."
     },
     "support-vector-machine": {

@@ -24,6 +24,12 @@ function s06Reduction(level) {
   const root = document.getElementById('gpu-workgroups');
   if (!root) return;
   const find = selector => root.querySelector(selector);
+  // Only fixed MathML and numeric values enter these templates.
+  const number = value => `<mn>${Number(value)}</mn>`;
+  const math = body => `<math><mrow>${body}</mrow></math>`;
+  const dimension = (symbol, value) => math(`<mi>${symbol}</mi><mo>=</mo>${number(value)}`);
+  const vector = values => math(`<mo>[</mo>${values.map(number).join('<mo>,</mo>')}<mo>]</mo>`);
+  const address = (symbol, row, column) => math(`<mi>${symbol}</mi><mo>[</mo>${number(row)}<mo>,</mo>${number(column)}<mo>]</mo>`);
   let level = 0;
   function update() {
     const n = Number(find('#gpu-n').value);
@@ -36,12 +42,12 @@ function s06Reduction(level) {
     const geometry = find('#gpu-geometry');
     geometry.setAttribute('viewBox', `0 0 540 ${d.groups * 62 + 36}`);
     geometry.innerHTML = `<title id="gpu-geometry-title">${d.groups} workgroups for ${n} values</title><desc id="gpu-geometry-desc">${n} valid stores and ${d.unused} guarded lanes. Solid regions are valid; striped regions are unused. Exact IDs are in the text below.</desc><defs><pattern id="gpu-guard-pattern" width="8" height="8" patternUnits="userSpaceOnUse"><path d="M0 8L8 0" stroke="currentColor" stroke-width="1"/></pattern></defs>${rows.join('')}<text x="10" y="${d.groups * 62 + 19}" fill="currentColor">Solid = valid stores; stripes = guarded lanes</text>`;
-    find('[data-gpu-output="dispatch"]').textContent = `N=${n}: ${d.groups} groups launch ${d.lanes} lanes. IDs 0–${d.last} are valid; ${d.unused ? `IDs ${n}–${d.lanes - 1} are guarded off` : 'no lanes are unused'}. Last value: group ${Math.floor(d.last / 64)}, local ID ${d.last % 64}, global ID ${d.last}.`;
+    find('[data-gpu-output="dispatch"]').innerHTML = `${dimension('N', n)}: ${d.groups} groups launch ${d.lanes} lanes. IDs 0–${d.last} are valid; ${d.unused ? `IDs ${n}–${d.lanes - 1} are guarded off` : 'no lanes are unused'}. Last value: group ${Math.floor(d.last / 64)}, local ID ${d.last % 64}, global ID ${d.last}.`;
     const values = s06Reduction(level);
-    find('[data-gpu-output="reduction"]').textContent = `${level === 0 ? 'Loaded shared slots' : `After stride ${8 / 2 ** level} and its barrier`}: [${values.join(', ')}]. ${level === 3 ? 'Lane 0 stores 31. Next returns to the initial load.' : 'Every lane reaches the next barrier, including lanes no longer adding.'}`;
+    find('[data-gpu-output="reduction"]').innerHTML = `${level === 0 ? 'Loaded shared slots' : `After stride ${8 / 2 ** level} and its barrier`}: ${vector(values)}. ${level === 3 ? `Lane 0 stores ${math(number(31))}. Next returns to the initial load.` : 'Every lane reaches the next barrier, including lanes no longer adding.'}`;
     const k = Number(find('#gpu-k').value);
     const t = s06Tile(k);
-    find('[data-gpu-output="tile"]').textContent = `M=3, K=${k}, N=5: ${t.rounds} K round(s); ${t.padding} zero inner positions in the last round. C[2,3] is offset ${t.c}. ${k > 16 ? `At inner=16, A[2,16] is offset ${t.a} and B[16,3] offset ${t.b}.` : 'Inner=16 is absent, so no second tile is loaded.'} Each round: guarded loads → barrier → 16 multiply-adds → barrier. Edge lanes skip only the final store.`;
+    find('[data-gpu-output="tile"]').innerHTML = `${dimension('M', 3)}, ${dimension('K', k)}, ${dimension('N', 5)}: ${t.rounds} ${math('<mi>K</mi>')} round(s); ${t.padding} zero inner positions in the last round. ${address('C', 2, 3)} is offset ${t.c}. ${k > 16 ? `At inner index 16, ${address('A', 2, 16)} is offset ${t.a} and ${address('B', 16, 3)} offset ${t.b}.` : 'Inner index 16 is absent, so no second tile is loaded.'} Each round: guarded loads → barrier → 16 multiply-adds → barrier. Edge lanes skip only the final store.`;
     const steps = Number(find('#gpu-steps').value);
     const bytes = s06Transfers(steps);
     find('[data-gpu-output="transfers"]').textContent = `${steps} step${steps === 1 ? '' : 's'}: initial upload ${bytes.upload} bytes; final parameters ${bytes.parameters} bytes; loss history ${bytes.history} bytes; resident total ${bytes.resident} bytes. Reading parameters after every step instead totals ${bytes.eachStep} bytes. Counts include only these application buffers, not driver metadata, physical bus traffic, or time.`;

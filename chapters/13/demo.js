@@ -12,10 +12,15 @@
     strict: { name: 'New machines in the future', train: 48, valid: 18, shared: 0, result: '12/18 = .667', rule: 'Train machines 0–11 through day 3; validate machines 12–17 on days 5–7.' },
     leak: { name: 'Forbidden repair-after feature', train: 48, valid: 18, shared: 0, result: '18/18 = 1.000', rule: 'Strict membership cannot fix a field recorded after the predicted event. This perfect rule is unavailable at prediction time.' }
   };
+  function resultMath(result) {
+    // Cases are fixed authored data; parse their declared count and decimal, never HTML input.
+    const [, correct, total, value] = result.match(/^(\d+)\/(\d+) = (\.\d+|\d+\.\d+)$/);
+    return `<math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mfrac><mn>${correct}</mn><mn>${total}</mn></mfrac><mo>=</mo><mn>${value}</mn></mrow></math>`;
+  }
   function render() {
     const c = cases[policy.value];
     output.textContent = `${c.name}: training ${c.train} rows; validation ${c.valid}; shared machines ${c.shared}. ${c.rule}`;
-    chart.innerHTML = `<table><caption>Frozen development diagnostic; completed kNN except the explicit leakage rule</caption><thead><tr><th>Training rows</th><th>Validation rows</th><th>Shared machines</th><th>Correct / total</th></tr></thead><tbody><tr><td>${c.train}</td><td>${c.valid}</td><td>${c.shared}</td><td>${c.result}</td></tr></tbody></table><p>Different policies change the validation population. These measured results are stored illustrations from the completed Rust lab, not browser training or a ranking of split quality.</p>`;
+    chart.innerHTML = `<table><caption>Frozen development diagnostic; completed kNN except the explicit leakage rule</caption><thead><tr><th>Training rows</th><th>Validation rows</th><th>Shared machines</th><th>Correct / total</th></tr></thead><tbody><tr><td>${c.train}</td><td>${c.valid}</td><td>${c.shared}</td><td>${resultMath(c.result)}</td></tr></tbody></table><p>Different policies change the validation population. These measured results are stored illustrations from the completed Rust lab, not browser training or a ranking of split quality.</p>`;
   }
   policy.addEventListener('change', render);
   root.querySelector('[data-action="reset"]').addEventListener('click', () => { policy.value = 'strict'; render(); });

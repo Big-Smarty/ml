@@ -30,6 +30,22 @@ lab-test chapter *args:
 
 alias test := lab-test
 
+# Fetch a section's external dependencies explicitly while online.
+deps chapter:
+    @python3 tools/chapter.py deps "$@"
+
+# Compile an optimized lab without running it (use before benchmarks).
+lab-build chapter:
+    @python3 tools/chapter.py lab-build "$@"
+
+# Check the section's Rust code with Clippy, treating warnings as errors.
+lint chapter:
+    @python3 tools/chapter.py lint "$@"
+
+# Emit optimized assembly for the chapter's section package.
+asm chapter:
+    @python3 tools/chapter.py asm "$@"
+
 # Run the explained solution; add --check to verify its learning goal.
 solution chapter *args:
     @python3 tools/chapter.py solution "$@"
@@ -53,12 +69,20 @@ verify *chapters:
 gpu chapter *args:
     @python3 tools/chapter.py gpu "$@"
 
+# Explicit real-device tests for chapters 29–32.
+gpu-test chapter *args:
+    @python3 tools/chapter.py gpu-test "$@"
+
 # Preserved reference code, separate from the new learning labs.
 reference chapter *args:
     @python3 tools/chapter.py reference "$@"
 
 reference-test chapter *args:
     @python3 tools/chapter.py reference-test "$@"
+
+# Explicit GPU integration checks for the preserved Chapter 36 decoder.
+reference-gpu-test chapter *args:
+    @python3 tools/chapter.py reference-gpu-test "$@"
 
 # Help for optional MNIST preparation; --download explicitly opts in.
 mnist *args:

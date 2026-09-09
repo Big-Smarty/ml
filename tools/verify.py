@@ -2,12 +2,14 @@
 """Audit the new course and verify delivered labs; not a learner-completion grade."""
 from pathlib import Path
 from html.parser import HTMLParser
+from html import unescape
 from urllib.parse import urlsplit, unquote
 import argparse
 import json
 import re
 import subprocess
 import time
+import xml.etree.ElementTree as ET
 
 from build import ROOT, OUT, plain
 
@@ -63,6 +65,34 @@ def compact(text):
     return re.sub(r'\s+', '', text)
 
 
+def math_errors(content):
+    errors = []
+    if len(re.findall(r'<math\b', content)) != len(re.findall(r'</math\s*>', content)):
+        errors.append('unbalanced MathML roots')
+    arity = {'mfrac': 2, 'msub': 2, 'msup': 2, 'msubsup': 3, 'mover': 2, 'munder': 2, 'munderover': 3, 'mroot': 2}
+    for index, fragment in enumerate(re.findall(r'<math\b[^>]*>.*?</math>', content, re.S), 1):
+        try:
+            # Convert HTML named entities to XML-safe numeric references without
+            # turning a less-than operator into an opening tag.
+            fragment = re.sub(r'&[A-Za-z][A-Za-z0-9]*;', lambda m: ''.join(f'&#{ord(c)};' for c in unescape(m[0])) if unescape(m[0]) != m[0] else m[0], fragment)
+            tree = ET.fromstring(fragment)
+            if not list(tree):
+                errors.append(f'math {index} has no structured expression')
+            for element in tree.iter():
+                tag = element.tag.rsplit('}', 1)[-1]
+                if tag in arity and len(element) != arity[tag]:
+                    errors.append(f'math {index}: {tag} requires {arity[tag]} children')
+                if tag in ('mi', 'mn', 'mo') and len(element):
+                    errors.append(f'math {index}: {tag} must contain text, not nested elements')
+                if tag in ('msub', 'msup', 'msubsup') and len(element) and element[0].tag.rsplit('}', 1)[-1] == 'mo' and element[0].text in (')', ']', '}', '|', '‖'):
+                    errors.append(f'math {index}: script must group the full expression, not only its closing fence')
+                if tag == 'math' and element is not tree:
+                    errors.append(f'math {index}: nested MathML root')
+        except ET.ParseError as error:
+            errors.append(f'math {index}: invalid MathML: {error}')
+    return errors
+
+
 def chapter_audit(number, course, sections):
     folder = ROOT / 'chapters' / number
     content = (folder / 'lesson.html').read_text()
@@ -70,6 +100,9 @@ def chapter_audit(number, course, sections):
     page = Page(top_level_steps=True)
     page.feed(content)
     errors = list(page.errors)
+    errors += math_errors(content)
+    if re.search(r'\bcargo\s+(?:run|test|check|build|fmt|clippy|rustc|fetch)\b', content):
+        errors.append('learner command must use the corresponding just recipe')
     for key in ('outcomes', 'terms', 'sources', 'checks', 'limitations', 'steps', 'sessions', 'lab', 'interactives', 'topic_coverage'):
         if key not in meta:
             errors.append('missing metadata ' + key)

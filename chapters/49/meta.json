@@ -22,7 +22,7 @@
     "recurrence": {
       "name": "Recurrence",
       "definition": "A computation whose current state depends on the previous state.",
-      "explanation": "For h_t = a_t h_{t-1} + b_t, evaluation naturally proceeds left to right. Each step can consume a new token with fixed state memory, which suits autoregressive inference. The apparent serial dependency does not always prevent parallel training: when each step is an affine map, maps can be composed associatively and scanned. Recurrence describes the mathematical dependency, while an execution schedule describes how hardware evaluates it."
+      "explanation": "For this affine recurrence, each new state is the current multiplier times the previous state plus the current offset, so evaluation naturally proceeds left to right. Each step can consume a new token with fixed state memory, which suits autoregressive inference. The apparent serial dependency does not always prevent parallel training: when each step is an affine map, maps can be composed associatively and scanned. Recurrence describes the mathematical dependency, while an execution schedule describes how hardware evaluates it."
     },
     "selective-state": {
       "name": "Selective state",
@@ -32,17 +32,17 @@
     "associative-scan": {
       "name": "Associative scan",
       "definition": "A prefix computation built from an associative binary operation.",
-      "explanation": "Represent each recurrence step as an affine map (a,b). Applying a later map after an earlier map gives (a₂a₁, a₂b₁+b₂). This operation is associative, so a tree-shaped prefix schedule has logarithmic dependency depth. The Rust checkpoint uses a Hillis–Steele style schedule with O(N log N) scalar work and clones each round; it exposes the dependency structure but executes sequentially and is not a work-efficient parallel kernel."
+      "explanation": "Represent each recurrence step as an affine map with a multiplier and an offset. Composing a later map after an earlier one multiplies their multipliers and sets the new offset to the later multiplier times the earlier offset plus the later offset. This operation is associative, so a tree-shaped prefix schedule has logarithmic dependency depth. The Rust checkpoint uses a Hillis–Steele style schedule with scalar work proportional to sequence length times its logarithm and clones each round; it exposes the dependency structure but executes sequentially and is not a work-efficient parallel kernel."
     },
     "linear-attention": {
       "name": "Linear attention",
       "definition": "Attention rewritten with feature maps so key-value summaries can be accumulated without an explicit all-pairs score matrix.",
-      "explanation": "With a nonnegative feature map φ, causal linear attention stores S_t = S_{t-1}+φ(k_t)v_t and z_t = z_{t-1}+φ(k_t). A query reads φ(q_t)·S_t divided by φ(q_t)·z_t. The f64 reference accepts Q and K with shape [positions,2], scalar values [positions], and returns output [positions]. Its recurrent implementation matches the same kernel's direct scalar oracle. ReLU(x)+1 changes the kernel from the exact softmax attention used earlier; this chapter claims no equivalence to softmax."
+      "explanation": "With a nonnegative feature map, causal linear attention maintains two prefix summaries: transformed keys weighted by values, and transformed keys alone. A transformed query contracts with each summary, and the first result is divided by the second. The f64 reference accepts query and key rows with two coordinates per position, one scalar value per position, and returns one scalar per position. Its recurrent implementation matches the same kernel's direct scalar oracle. The positive ReLU-plus-one feature map changes the kernel from the exact softmax attention used earlier; this chapter claims no equivalence to softmax."
     },
     "causal-prefix": {
       "name": "Causal prefix",
       "definition": "The current position together with only earlier positions available to its computation.",
-      "explanation": "At time t, a causal model must not use keys or values from positions after t. The recurrent linear-attention implementation first adds the current key-value pair, then evaluates the current query, matching an inclusive prefix j ≤ t. A direct quadratic oracle recomputes that prefix and catches off-by-one or future-leakage bugs. Causality concerns information access, not whether the implementation uses a loop, scan, or parallel kernel."
+      "explanation": "At any time, a causal model must not use keys or values from later positions. The recurrent linear-attention implementation first adds the current key-value pair, then evaluates the current query, so its inclusive prefix contains the current and all earlier positions. A direct quadratic oracle recomputes that prefix and catches off-by-one or future-leakage bugs. Causality concerns information access, not whether the implementation uses a loop, scan, or parallel kernel."
     }
   },
   "sources": [

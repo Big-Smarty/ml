@@ -3,10 +3,10 @@
 This independent, dependency-free Rust package carries the same `X[m,k]`, stored `W[n,k]`, bias `[n]`, and output `Y[m,n]` through measurement, GEMM traversal, threads/training, and SIMD. Stable Rust 1.89+ is required for the explicit AVX-512F extension. All defaults are tiny, deterministic, offline computations. Original `projects/ch25`–`ch28` remain preserved references.
 
 ```sh
-cargo run --manifest-path labs/s05-cpu/Cargo.toml -- 25
-cargo run --manifest-path labs/s05-cpu/Cargo.toml -- 25 --check
-cargo run --manifest-path labs/s05-cpu/Cargo.toml -- 25 --solution --check
-cargo run --release --manifest-path labs/s05-cpu/Cargo.toml -- 25 --solution --bench
+just lab 25
+just lab-check 25
+just solution 25 --check
+just solution 25 --bench
 ```
 
 Replace `25` with `26`, `27`, or `28`. From the course root, `just lab NN` and `just lab-check NN` run the learner version. `--check` cannot be combined with `--bench` or `--avx512`. Unknown flags are errors. Chapter 28 supports `--avx512` for explicit execution of the wide dot; unavailable hardware returns an unsupported error. No downloads, GPU, or paid compute are involved.
@@ -53,9 +53,9 @@ Record `rustc -Vv`, CPU model, OS, build flags, precision, shape, threads/block,
 ## Checks
 
 ```sh
-cargo fmt --manifest-path labs/s05-cpu/Cargo.toml --check
-cargo clippy --manifest-path labs/s05-cpu/Cargo.toml --all-targets -- -D warnings
-cargo test --manifest-path labs/s05-cpu/Cargo.toml
+just fmt-check 25
+just lint 25
+just lab-test 25
 node labs/s05-cpu/check_demos.cjs
 ```
 

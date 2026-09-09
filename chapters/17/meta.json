@@ -28,7 +28,7 @@
     },
     "eigenvector": {
       "name": "eigenvector",
-      "definition": "A nonzero direction that a matrix scales without rotating, satisfying Cq = lambda q.",
+      "definition": "A nonzero vector that matrix multiplication sends to a scalar multiple of itself.",
       "explanation": "For a covariance matrix, an eigenvector is a direction through feature space and its eigenvalue is the sample variance along that direction. PCA keeps eigenvectors with the largest eigenvalues. The sign is arbitrary because q and -q span the same axis. When eigenvalues are nearly tied, individual eigenvectors may rotate under tiny perturbations even when their combined subspace remains useful."
     },
     "projection": {

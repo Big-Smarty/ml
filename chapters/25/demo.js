@@ -19,18 +19,32 @@
     for (const v of visits.slice(0, count)) values[v.out] += a[v.a] * b[v.b];
     return { visits, values, next: visits[count], last: count ? visits[count - 1] : null };
   }
-  if (typeof module !== 'undefined') module.exports = { trace, state };
+  const number = value => {
+    if (!Number.isFinite(value)) throw new Error('Expected a finite illustration value');
+    return `<mn>${value}</mn>`;
+  };
+  const math = body => `<math xmlns="http://www.w3.org/1998/Math/MathML"><mrow>${body}</mrow></math>`;
+  const vector = values => `<mrow><mo>[</mo>${values.map(number).join('<mo>,</mo>')}<mo>]</mo></mrow>`;
+  const index = (name, value) => `<msub><mi>${name}</mi>${number(value)}</msub>`;
+  function present(order, count) {
+    const s = state(order, count);
+    const output = `${count} of 18 products; ${count * 2} counted FLOPs; ${count * 2} explicit input reads; ${math(`<mi>C</mi><mo>=</mo>${vector(s.values)}`)}.`;
+    const next = s.next ? `Next: ${math(`${index('A', s.next.a)}<mo>×</mo>${index('B', s.next.b)}<mo>→</mo>${index('C', s.next.out)}`)}.` : 'Complete: all 18 products contributed once.';
+    const seen = s.visits.slice(0, count).map(v => v.b);
+    const log = `<p>${next}</p><p>${math('<mi>B</mi>')} offsets visited: ${seen.length ? math(vector(seen)) : '(none)'}</p><p>Source loads from ${math('<mi>A</mi>')} and ${math('<mi>B</mi>')} are counted explicitly; compiler reuse and actual cache traffic are not measured. Output allocation is one reusable six-value buffer.</p>`;
+    return { output, log };
+  }
+  if (typeof module !== 'undefined') module.exports = { trace, state, present };
   if (typeof document === 'undefined') return;
   const root = document.getElementById('memory-gemm');
   if (!root) return;
   const order = root.querySelector('#gemm-order'), output = root.querySelector('output'), log = root.querySelector('[data-trace]');
   let count = 0;
   function render() {
-    const s = state(order.value, count);
-    output.textContent = `${count} of 18 products; ${count * 2} counted FLOPs; ${count * 2} explicit A/B reads; C=[${s.values.join(',')}].`;
-    const next = s.next ? `Next: A[${s.next.a}] × B[${s.next.b}] → C[${s.next.out}].` : 'Complete: all 18 products contributed once.';
-    const seen = s.visits.slice(0, count).map(v => v.b);
-    log.textContent = `${next}\nB offsets visited: ${seen.join(', ') || '(none)'}\nA/B source loads are counted explicitly; compiler reuse and actual cache traffic are not measured. Output allocation is one reusable six-value buffer.`;
+    const view = present(order.value, count);
+    // Only fixed MathML templates and finite internally calculated numbers enter these fragments.
+    output.innerHTML = view.output;
+    log.innerHTML = view.log;
     root.querySelector('[data-action="step"]').disabled = count === 18;
     root.querySelector('[data-action="finish"]').disabled = count === 18;
   }

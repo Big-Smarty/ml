@@ -29,17 +29,17 @@
     "pairwise-ranking": {
       "name": "pairwise ranking",
       "definition": "Learning to score a preferred item above a less-preferred item for the same user.",
-      "explanation": "A pairwise example contains a user, a positive item, and a negative item. Its margin is positive score minus negative score. The stable logistic loss softplus(−margin) becomes small when the ordering is correct and confident. Updating the user and both item vectors changes their relative position. Pairwise training aligns directly with ordering, but sampled or labeled negatives define the task and can introduce bias."
+      "explanation": "A pairwise example contains a user, a positive item, and a negative item. Its margin is positive score minus negative score. Applying softplus to the negated margin gives a stable logistic loss that becomes small when the ordering is correct and confident. Updating the user and both item vectors changes their relative position. Pairwise training aligns directly with ordering, but sampled or labeled negatives define the task and can introduce bias."
     },
     "recall-at-k": {
       "name": "Recall@k",
-      "definition": "For each query q with nonempty relevant set Rq, Recall@k is |Rq ∩ TopK(q)| / |Rq|, averaged across queries.",
+      "definition": "For each query with at least one relevant item, the number of relevant items among its top k results divided by its total number of relevant items, averaged across queries.",
       "explanation": "Compute the fraction separately for each query, then average those query-level values so queries with many relevant items do not silently receive more weight. In this chapter each user is a query and has exactly one held-out relevant item, so Recall@k is one when that item appears in the top k and zero otherwise. Under this one-relevant-item condition Recall@k equals HitRate@k. With several relevant items, hit rate only asks whether at least one was retrieved, while recall counts how much of the complete relevant set was retrieved."
     },
     "ndcg": {
       "name": "nDCG",
       "definition": "Normalized discounted cumulative gain, a ranking score that rewards relevant items near the top.",
-      "explanation": "DCG adds relevance divided by a logarithmic discount based on rank, so early relevant items contribute more. Dividing by the ideal DCG produces nDCG, usually between zero and one for nonnegative relevance. With one binary relevant item, the score is 1/log₂(rank+1), using one-based rank, when the item is within k. nDCG supports graded relevance, but its meaning still depends on which candidates and judgments were included in evaluation."
+      "explanation": "DCG adds relevance divided by a logarithmic discount based on rank, so early relevant items contribute more. Dividing by the ideal DCG produces nDCG, usually between zero and one for nonnegative relevance. With one binary relevant item within the top k results, the score is the reciprocal of the base-two logarithm of one plus its one-based rank. nDCG supports graded relevance, but its meaning still depends on which candidates and judgments were included in evaluation."
     }
   },
   "sources": [

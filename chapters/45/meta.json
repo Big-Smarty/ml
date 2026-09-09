@@ -35,12 +35,12 @@
     "epsilon-greedy": {
       "name": "Epsilon-greedy policy",
       "definition": "A policy that chooses a random action with probability epsilon and a greedy action otherwise.",
-      "explanation": "Epsilon-greedy makes the exploration decision explicit. With probability ε, it samples uniformly from every action, including the current greedy action; otherwise it selects an action with the largest estimate. A fixed positive ε keeps gathering evidence but also keeps making exploratory choices at evaluation time. Annealing ε reduces exploration, though a finite run then carries no automatic guarantee that every action was sampled enough."
+      "explanation": "Epsilon-greedy makes the exploration decision explicit. With the chosen exploration probability, it samples uniformly from every action, including the current greedy action; otherwise it selects an action with the largest estimate. A fixed positive exploration probability keeps gathering evidence but also keeps making exploratory choices at evaluation time. Annealing that probability reduces exploration, though a finite run then carries no automatic guarantee that every action was sampled enough."
     },
     "q-value": {
       "name": "Action value",
       "definition": "The expected discounted return beginning with the immediate reward after taking a specified action in a specified state, then following a policy.",
-      "explanation": "Written Q^pi(s,a), an action value includes the immediate consequence of action a in state s and every later discounted reward obtained while following policy pi. In a bandit there is no later state, so Q is simply an arm's expected reward. In tabular control, a two-dimensional table stores one estimate for every state-action pair. These learned estimates are distinct from rewards supplied directly by the environment, and their meaning depends on the discount and continuation policy."
+      "explanation": "An action value under a policy includes the immediate consequence of taking an action in a state and every later discounted reward obtained while following that policy. In a bandit there is no later state, so the value is simply an arm's expected reward. In tabular control, a two-dimensional table stores one estimate for every state-action pair. These learned estimates are distinct from rewards supplied directly by the environment, and their meaning depends on the discount and continuation policy."
     },
     "temporal-difference-error": {
       "name": "Temporal-difference error",

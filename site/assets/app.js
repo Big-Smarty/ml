@@ -2,6 +2,31 @@
 (() => {
   'use strict';
   document.documentElement.classList.add('js');
+  const refreshScrollRegions = () => {
+    // Demo controls can replace tables after the static build has wrapped them.
+    document.querySelectorAll('table').forEach(table => {
+      if (table.parentElement.classList.contains('table-wrap')) return;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'table-wrap';
+      wrapper.setAttribute('role', 'region');
+      wrapper.setAttribute('aria-label', table.caption?.textContent || 'Data table');
+      table.before(wrapper);
+      wrapper.append(table);
+    });
+    document.querySelectorAll('math:not([display="block"])').forEach(math => {
+      if (math.parentElement.classList.contains('inline-math')) return;
+      const wrapper = document.createElement('span');
+      wrapper.className = 'inline-math';
+      math.before(wrapper);
+      wrapper.append(math);
+    });
+    document.querySelectorAll('.table-wrap,.equation,pre,.signature,.inline-math,p code,li code').forEach(node => {
+      node.tabIndex = node.clientWidth > 0 && node.scrollWidth > node.clientWidth + 1 ? 0 : -1;
+    });
+  };
+  window.addEventListener('load', refreshScrollRegions);
+  window.addEventListener('resize', refreshScrollRegions);
+  for (const event of ['input', 'change', 'click']) document.addEventListener(event, refreshScrollRegions);
   const key = 'first-principles-v2';
   let saved = {};
   let storageAvailable = true;

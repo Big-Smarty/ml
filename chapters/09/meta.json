@@ -1,7 +1,7 @@
 {
   "outcomes": [
     "Interpret contiguous row-major data using shapes",
-    "Compute a batched dense forward pass with weights stored [out_features,in_features]",
+    "Compute a batched dense forward pass with output features as the first weight axis and input features as the second",
     "Derive input, weight, and bias gradients from supplied output gradients",
     "Reject incompatible shapes and check a weight gradient numerically"
   ],
@@ -17,12 +17,12 @@
     "tensor": {
       "name": "Tensor",
       "definition": "An array of values with a data type and an ordered list of dimensions.",
-      "explanation": "A scalar has rank zero, a vector rank one, and a matrix rank two; higher-rank tensors add more axes. Shape tells software how flat storage maps to logical coordinates. This chapter stores rank-two f64 matrices in contiguous row-major order, gives inputs shape [batch,in_features], and gives outputs shape [batch,out_features]. A tensor abstraction may also track strides, devices, and gradient metadata, but those capabilities are omitted until a concrete need appears."
+      "explanation": "A scalar has rank zero, a vector rank one, and a matrix rank two; higher-rank tensors add more axes. Shape tells software how flat storage maps to logical coordinates. This chapter stores rank-two f64 matrices in contiguous row-major order. The input axes are batch then input features, and the output axes are batch then output features. A tensor abstraction may also track strides, devices, and gradient metadata, but those capabilities are omitted until a concrete need appears."
     },
     "row-major": {
       "name": "Row-major order",
       "definition": "A contiguous layout in which all columns of one row precede the next row.",
-      "explanation": "For a matrix with C columns, coordinate (r,c) maps to flat offset r×C+c. This layout makes each example row contiguous when activations are [batch,features], supporting simple sequential traversal. A different layout can represent the same mathematical matrix, but indexing and performance change. Correct kernels must state their convention; a silent mismatch can produce plausible numbers while multiplying the wrong elements. Shape validation alone cannot detect a layout disagreement between producers and consumers."
+      "explanation": "For a matrix, a coordinate maps to the flat offset given by its row index times the column count, plus its column index. This layout makes each example row contiguous when the first axis is batch and the second is features, supporting simple sequential traversal. A different layout can represent the same mathematical matrix, but indexing and performance change. Correct kernels must state their convention; a silent mismatch can produce plausible numbers while multiplying the wrong elements. Shape validation alone cannot detect a layout disagreement between producers and consumers."
     },
     "vector-jacobian-product": {
       "name": "Vector-Jacobian product",

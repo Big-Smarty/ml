@@ -19,7 +19,7 @@
     "residual-connection": {
       "name": "residual connection",
       "definition": "An architectural shortcut that adds a block input to a learned branch output of the same shape.",
-      "explanation": "In this chapter, residual names the architectural sum y = x + F(x), not the signed prediction error prediction - target used in regression. The identity path carries the input forward without learned weights and contributes a direct term to the backward gradient. The branch can focus on a correction rather than reconstructing the whole signal. Shapes must match for elementwise addition; projection shortcuts are needed when channel count or spatial resolution changes."
+      "explanation": "In this chapter, residual names the architectural sum of an input and a learned transformation of that input, not the signed prediction error found by subtracting the target from the prediction in regression. The identity path carries the input forward without learned weights and contributes a direct term to the backward gradient. The branch can focus on a correction rather than reconstructing the whole signal. Shapes must match for elementwise addition; projection shortcuts are needed when channel count or spatial resolution changes."
     },
     "normalization": {
       "name": "normalization",

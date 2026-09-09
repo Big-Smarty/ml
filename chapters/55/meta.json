@@ -1,6 +1,6 @@
 {
   "outcomes": [
-    "Preserve a non-square affine function across [out,in] scratch and [in,out] runtime layouts",
+    "Preserve a non-square affine function across output-by-input scratch and input-by-output runtime layouts",
     "Implement coordinate-wise forward, full gradient, and SGD-update diagnostics",
     "Export and import a validated 72-byte custom affine artifact across invocations",
     "Explain the separate optional Burn fixture and limits of general graph interchange"
@@ -27,7 +27,7 @@
     "runtime-interchange": {
       "name": "Runtime interchange",
       "definition": "Moving a specified computation and its state between execution implementations.",
-      "explanation": "Weights alone do not describe a portable model. An interchange contract identifies architecture, shapes, layout, dtype, preprocessing, and supported operations. The active lab uses an eight-byte S09AFF01 marker followed by eight little-endian f64 values for a non-square affine layer, totaling 72 bytes. An independent runtime adapts the layout and checks forward, gradient, and update parity. The optional preserved Burn program has its own 2×2 fixture and format; it does not import this new file. Neither format is an ONNX graph or a general training-resume checkpoint."
+      "explanation": "Weights alone do not describe a portable model. An interchange contract identifies architecture, shapes, layout, dtype, preprocessing, and supported operations. The active lab uses an eight-byte S09AFF01 marker followed by eight little-endian f64 values for a non-square affine layer, totaling 72 bytes. An independent runtime adapts the layout and checks forward, gradient, and update parity. The optional preserved Burn program has its own two-by-two fixture and format; it does not import this new file. Neither format is an ONNX graph or a general training-resume checkpoint."
     }
   },
   "sources": [

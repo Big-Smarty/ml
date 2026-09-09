@@ -33,7 +33,38 @@ if (typeof module !== 'undefined' && module.exports) module.exports = { inferenc
       return;
     }
     const { codes, scale, restored, error, cacheBytes, fullRows, cachedRows, weightBytes } = inferenceBudgetS08(count, bits);
-    result.textContent = `Prefix ${count} tokens: K/V cache ${cacheBytes} bytes (f32), ${2 * 2 * count} stored width-eight vectors. Full-prefix recomputation processes ${fullRows} layer-token rows; caching processes ${cachedRows}. A square two-head score tensor would use ${2 * count * count * 4} bytes; one row for a single query/head uses at most ${count * 4} score bytes; a two-key tile for a single query/head uses at most ${Math.min(count, 2) * 4} score bytes, excluding numerator/state and inputs. Int${bits} weight codes [${codes.join(', ')}], scale ${scale.toFixed(6)}, reconstructed [${restored.map(x => x.toFixed(6)).join(', ')}]. Weights plus one f32 scale: ${weightBytes} bytes versus 16 dense bytes; maximum weight error ${error.toFixed(6)}. Weight precision does not change this f32 cache.`;
+    // Build MathML from fixed element names and validated numeric values.
+    // Text nodes preserve screen-reader access without parsing interpolated HTML.
+    const mathNamespace = 'http://www.w3.org/1998/Math/MathML';
+    const element = (name, ...children) => {
+      const node = document.createElementNS(mathNamespace, name);
+      node.append(...children.map(child => typeof child === 'string' ? document.createTextNode(child) : child));
+      return node;
+    };
+    const number = value => {
+      const text = String(value);
+      return text.startsWith('-')
+        ? element('mrow', element('mo', '−'), element('mn', text.slice(1)))
+        : element('mn', text);
+    };
+    const scalar = value => element('math', number(value));
+    const vector = values => element('math', element('mrow',
+      element('mo', '['),
+      ...values.flatMap((value, index) => index === 0 ? [number(value)] : [element('mo', ','), number(value)]),
+      element('mo', ']')));
+    result.replaceChildren(
+      'Prefix ', scalar(count), ' tokens: K/V cache ', scalar(cacheBytes), ' bytes (f32), ',
+      scalar(2 * 2 * count), ' stored width-eight vectors. Full-prefix recomputation processes ',
+      scalar(fullRows), ' layer-token rows; caching processes ', scalar(cachedRows),
+      '. A square two-head score tensor would use ', scalar(2 * count * count * 4),
+      ' bytes; one row for a single query/head uses at most ', scalar(count * 4),
+      ' score bytes; a two-key tile for a single query/head uses at most ', scalar(Math.min(count, 2) * 4),
+      ' score bytes, excluding numerator/state and inputs. Int', String(bits), ' weight codes ', vector(codes),
+      ', scale ', scalar(scale.toFixed(6)), ', reconstructed ', vector(restored.map(x => x.toFixed(6))),
+      '. Weights plus one f32 scale: ', scalar(weightBytes), ' bytes versus ', scalar(16),
+      ' dense bytes; maximum weight error ', scalar(error.toFixed(6)),
+      '. Weight precision does not change this f32 cache.'
+    );
     const ns = 'http://www.w3.org/2000/svg';
     picture.replaceChildren();
     const title = document.createElementNS(ns, 'title');

@@ -7,9 +7,9 @@ From the repository root:
 ```bash
 just lab 12
 just lab-check 12
-cargo run --manifest-path labs/s03-tabular/Cargo.toml -- 12 --solution
-cargo run --manifest-path labs/s03-tabular/Cargo.toml -- 12 --solution --check
-cargo test --manifest-path labs/s03-tabular/Cargo.toml
+just solution 12
+just solution 12 --check
+just lab-test 12
 ```
 
 Replace `12` with any chapter through `19`. `--check` calls the actual selected implementation on changed data. Intentional unmet comparisons print `GOAL_NOT_MET:` and exit 1; input/runtime errors remain ordinary errors. Completed solutions pass. Unknown arguments are rejected. There is no watch runner, download, hidden training service or required hardware.
@@ -56,9 +56,9 @@ The candidate order is kNN k3/k7, Gaussian NB variance floor .02/.2, tree maximu
 Ordinary Chapter 19 runs and checks do not evaluate or print final outcomes. After recording the completed protocol and selected configuration, explicitly open the final report:
 
 ```bash
-cargo run --manifest-path labs/s03-tabular/Cargo.toml -- 19 --final
+just lab 19 --final
 # Or inspect the completed checkpoint:
-cargo run --manifest-path labs/s03-tabular/Cargo.toml -- 19 --solution --final
+just solution 19 --final
 ```
 
 Final models refit on all 144 development rows through day 7; day 8 is a gap. The final partition is machines 18–23 on days 9–11 (18 rows). The report compares one development-selected finalist from each of three families, training-majority and training-prevalence baselines, whole-machine bootstrap intervals, residual rows and missingness/regime slices. Comparing final numbers does not permit choosing a new winner on that same test. Only six final machines make uncertainty and slice conclusions fragile. The CSV is source-visible for transparency; `--final` is a pedagogical evaluation boundary, not access control.
@@ -73,8 +73,8 @@ The three browser illustrations use scoped vanilla JavaScript and labelled nativ
 
 ```bash
 node labs/s03-tabular/verify-demos.cjs
-cargo fmt --manifest-path labs/s03-tabular/Cargo.toml --check
-cargo clippy --manifest-path labs/s03-tabular/Cargo.toml --all-targets -- -D warnings
+just fmt-check 12
+just lint 12
 ```
 
 Original `projects/ch12` through `projects/ch19` remain preserved references with their own miniature fixtures and assumptions. The chapter source-tagged excerpts label that boundary explicitly.
