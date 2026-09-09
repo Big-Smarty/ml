@@ -15,6 +15,8 @@ for (const threads of [1, 3, 8]) {
 assert.deepEqual(mapper.lanes(19, 8).sums, [5, 6, 7, 8, 9, 10, 11, 12]);
 for (const width of [4, 8, 16]) assert.equal(mapper.lanes(19, width).total, 95);
 assert.deepEqual(mapper.rounding(), [1, 0]);
+assert.match(mapper.present('threads', 3, 8, 'none').map, /<mn>26\.44<\/mn>/);
+assert.match(mapper.present('rounding', 3, 8, 'none').output, /<mn>100000000<\/mn>/, 'the f32 grouping example keeps its exact integer');
 assert.equal(mapper.dispatch('avx2'), 'scalar');
 assert.equal(mapper.dispatch('both'), 'AVX2+FMA');
 console.log('Both numerical tools: deterministic calculations passed');

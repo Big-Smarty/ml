@@ -36,3 +36,11 @@ Recipe execution in this revision passed: just recipes-test, just lab 01, just s
 ## Limits of this verification
 
 The executed browser checks use the available Chromium-based in-app browser. Screen-reader/browser combinations, actual browser zoom, forced colors, and operating-system text-spacing overrides were not tested here. The 320 px layout check is a narrow-layout test, not a substitute for all zoom or assistive-technology checks. The script-free copies test static reading without app/demo execution; they are not an audit of every browser's JavaScript-disable mode. Contrast ratios are calculated for the documented palette pairs, not a claim of complete WCAG conformance. Mathematical rendering and spoken output can vary with the browser, font, operating system, and assistive technology.
+
+## Interactive number formatting follow-up
+
+A shared native-MathML formatter now gives decimal results up to four significant digits, removes trailing zeros and negative zero, preserves safe integer counts, and uses a multiplication sign and superscript power for scientific notation. Rounding occurs only when displaying results. Chapter 02 uses labelled result groups and a native Precision details disclosure with up to 17 significant digits for the probe values.
+
+The shared formatter check (`node tools/test_numbers.cjs`), all nine existing demo harnesses, 19 JavaScript syntax checks, Python course regressions, and the full 56-chapter/426-step audit passed. Rendering checks cover tiny nonzero probabilities down to the attention fixture’s approximately 10⁻⁴³ tail, exact masked zero, the unchanged f32 grouping example, control changes, and resets. An independent diff review found no remaining implementation issues.
+
+All 18 interactive chapters were checked in full-chapter view at 320 and 1366 px with no page overflow. Mathematical bounds fit their wrappers; an initial scroll-height heuristic flagged several subscripts, but inspecting their actual bounding rectangles confirmed they were not clipped. Chapter 02 was visually inspected in light and dark themes at 390 px, with the precision disclosure open and closed. Selecting weight 1.3 and probe distance 10⁻¹⁶ still shows equal probe values, numerical gradient zero, and weight-slope difference 2.8. The browser and assistive-technology limits above still apply.

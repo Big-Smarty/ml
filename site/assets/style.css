@@ -29,3 +29,5 @@ p code,li code,td code,th code{display:inline-block;max-width:100%;overflow-x:au
 
 .inline-math{display:inline-block;max-width:100%;overflow-x:auto;overflow-y:hidden;vertical-align:middle;line-height:1.5;padding:.12em .08em}.inline-math:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .lesson h1,.lesson h2,.lesson h3{overflow-wrap:break-word}
+
+.demo-values{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:.7rem 1.5rem;margin:1rem 0}.demo-values>div{min-width:0}.demo-values dt{font-size:.8rem;color:var(--muted)}.demo-values dd{margin:.1rem 0 0;font-size:1.1rem;font-variant-numeric:tabular-nums}.precision-values{grid-template-columns:1fr}

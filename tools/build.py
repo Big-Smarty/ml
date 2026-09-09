@@ -150,7 +150,7 @@ def main():
         if (folder / 'demo.js').exists():
             shutil.copy2(folder / 'demo.js', OUT / 'assets' / f'ch{number}.js')
             version = hashlib.sha256((folder / 'demo.js').read_bytes()).hexdigest()[:12]
-            extra = f'<script defer src="/assets/ch{number}.js?v={version}"></script>'
+            extra = f'<script defer src="{asset("numbers.js")}"></script><script defer src="/assets/ch{number}.js?v={version}"></script>'
         write(OUT / 'chapters' / f'{number}.html', shell(ch['title'], body, chapters, number, extra))
         for step in steps or [dict(id='', title=ch['title'])]:
             url = f'/chapters/{number}.html' + (f'?step={step["id"]}#{step["id"]}' if step['id'] else '')

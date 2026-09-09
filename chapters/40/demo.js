@@ -41,13 +41,8 @@ if (typeof module !== 'undefined' && module.exports) module.exports = { inferenc
       node.append(...children.map(child => typeof child === 'string' ? document.createTextNode(child) : child));
       return node;
     };
-    const number = value => {
-      const text = String(value);
-      return text.startsWith('-')
-        ? element('mrow', element('mo', '−'), element('mn', text.slice(1)))
-        : element('mn', text);
-    };
-    const scalar = value => element('math', number(value));
+    const scalar = value => CourseNumbers.node(document, value);
+    const number = value => scalar(value).firstChild;
     const vector = values => element('math', element('mrow',
       element('mo', '['),
       ...values.flatMap((value, index) => index === 0 ? [number(value)] : [element('mo', ','), number(value)]),
@@ -60,9 +55,9 @@ if (typeof module !== 'undefined' && module.exports) module.exports = { inferenc
       ' bytes; one row for a single query/head uses at most ', scalar(count * 4),
       ' score bytes; a two-key tile for a single query/head uses at most ', scalar(Math.min(count, 2) * 4),
       ' score bytes, excluding numerator/state and inputs. Int', String(bits), ' weight codes ', vector(codes),
-      ', scale ', scalar(scale.toFixed(6)), ', reconstructed ', vector(restored.map(x => x.toFixed(6))),
+      ', scale ', scalar(scale), ', reconstructed ', vector(restored),
       '. Weights plus one f32 scale: ', scalar(weightBytes), ' bytes versus ', scalar(16),
-      ' dense bytes; maximum weight error ', scalar(error.toFixed(6)),
+      ' dense bytes; maximum weight error ', scalar(error),
       '. Weight precision does not change this f32 cache.'
     );
     const ns = 'http://www.w3.org/2000/svg';

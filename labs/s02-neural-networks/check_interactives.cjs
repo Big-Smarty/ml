@@ -21,3 +21,28 @@ const rows=tensor.optimizer(1);close(rows[0].momentum,.8);close(rows[1].momentum
 close(rows[0].adam,.9000000005);close(rows[1].m,.18);close(rows[1].v,.003996);
 assert.ok(tensor.optimizer(0).every(r=>r.momentum===1 && r.adam===1 && r.m===0 && r.v===0));
 console.log('Three interactive tools: deterministic reset, changed input, shape, softmax and optimizer calculations pass.');
+
+// Run the actual renderers too: tiny probabilities must survive display formatting.
+const fs = require('node:fs');
+const vm = require('node:vm');
+const CourseNumbers = require('../../site/assets/numbers.js');
+function display(chapter, id, defaults) {
+ const nodes = new Map();
+ const get = selector => {
+  if (!nodes.has(selector)) nodes.set(selector, {value: defaults[selector] || '', innerHTML: '', events: {}, addEventListener(name, fn) {this.events[name] = fn;}, setAttribute() {}});
+  return nodes.get(selector);
+ };
+ const document = {querySelector: selector => selector === id ? {querySelector: get} : null};
+ vm.runInNewContext(fs.readFileSync(require.resolve(`../../chapters/${chapter}/demo.js`), 'utf8'), {document, CourseNumbers});
+ return get;
+}
+const xorDisplay = display('07', '#xor-hidden', {'[data-model]': 'hidden', '[data-threshold]': '3'});
+assert.match(xorDisplay('[data-table]').innerHTML, /<mn>3.775<\/mn>.*<mn>11<\/mn>/, 'hidden sigmoid tail stays nonzero');
+const tapeDisplay = display('08', '#autodiff-tape', {'[data-x]': '0.1'});
+assert.match(tapeDisplay('svg').innerHTML, /m=x×x: 0.01</);
+assert.doesNotMatch(tapeDisplay('[data-table]').innerHTML, /0.1000|0.0100/);
+const tensorDisplay = display('09', '#tensor-digits', {'[data-stage]': 'digits', '[data-scale]': '2', '[data-digit]': '0'});
+assert.match(tensorDisplay('[data-table]').innerHTML, /<msup><mn>10<\/mn>/, 'small digit probabilities use scientific notation');
+tensorDisplay('[data-reset]').events.click();
+assert.match(tensorDisplay('[data-readout]').innerHTML, /<mn>12.5<\/mn>/);
+console.log('Three numeric renderers pass: compact labels, tiny sigmoid/softmax values and reset.');

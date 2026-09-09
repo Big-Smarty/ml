@@ -1,20 +1,27 @@
 (() => {
-  // Fixed MathML templates receive only formatted finite numbers from this illustration.
-  const mn = value => {
-    const match = String(value).match(/^(-?)(\d+(?:\.\d+)?)(?:e([+-]?\d+))?$/i);
-    if (!match) throw new Error('Expected a finite mathematical value');
-    const mantissa = `${match[1] ? '<mo>−</mo>' : ''}<mn>${match[2]}</mn>`;
-    if (match[3] === undefined) return `<mrow>${mantissa}</mrow>`;
-    const exponent = Number(match[3]);
-    return `<mrow>${mantissa}<mo>×</mo><msup><mn>10</mn><mrow>${exponent < 0 ? '<mo>−</mo>' : ''}<mn>${Math.abs(exponent)}</mn></mrow></msup></mrow>`;
-  };
+  const mn = (value, digits) => CourseNumbers.mathml(value, digits);
   const math = body => `<math>${body}</math>`;
-  const value = number => math(mn(number));
-  const equal = (name, number) => math(`<mrow><mi${name.length > 1 ? ' mathvariant="normal"' : ''}>${name}</mi><mo>=</mo>${mn(number)}</mrow>`);
+  const value = (number, digits) => math(mn(number, digits));
+  const vector = numbers => math(`<mrow><mo>[</mo>${numbers.map(number => mn(number)).join('<mo>,</mo>')}<mo>]</mo></mrow>`);
+  const row = (label, result) => `<div><dt>${label}</dt><dd>${result}</dd></div>`;
  const root=document.querySelector('#loss-gradient');if(!root)return;const q=s=>root.querySelector(s);let w=0,b=0;
  const loss=(w,b)=>[-2,-1,0,1,2].reduce((s,x)=>s+(w*x+b-(2*x+1))**2,0)/5;
  const node=(tag,attrs,text)=>{const n=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const[k,v]of Object.entries(attrs))n.setAttribute(k,v);if(text)n.textContent=text;return n;};
- function draw(){const h=Number(q('[data-h]').value),plus=loss(w+h,b),minus=loss(w-h,b),gw=(plus-minus)/(2*h),gb=(loss(w,b+h)-loss(w,b-h))/(2*h);q('[data-readout]').innerHTML=`${equal('w',w.toFixed(4))}, ${equal('b',b.toFixed(4))}; ${math(`<mrow><mi>L</mi><mo>(</mo><mi>w</mi><mo>+</mo><mi>h</mi><mo>)</mo><mo>=</mo>${mn(plus.toPrecision(16))}</mrow>`)}, ${math(`<mrow><mi>L</mi><mo>(</mo><mi>w</mi><mo>−</mo><mi>h</mi><mo>)</mo><mo>=</mo>${mn(minus.toPrecision(16))}</mrow>`)}; analytical gradient ${math(`<mrow><mo>[</mo>${mn((4*(w-2)).toPrecision(7))}<mo>,</mo>${mn((2*(b-1)).toPrecision(7))}<mo>]</mo></mrow>`)}; numerical ${math(`<mrow><mo>[</mo>${mn(gw.toPrecision(7))}<mo>,</mo>${mn(gb.toPrecision(7))}<mo>]</mo></mrow>`)}; ${equal('MSE',loss(w,b).toPrecision(7))}. Absolute weight-slope discrepancy: ${value(Math.abs(gw-4*(w-2)).toPrecision(4))}.`;
+ function draw(){const h=Number(q('[data-h]').value),plus=loss(w+h,b),minus=loss(w-h,b),gw=(plus-minus)/(2*h),gb=(loss(w,b+h)-loss(w,b-h))/(2*h);
+ q('[data-readout]').innerHTML='<dl class="demo-values">'+[
+   row('Weight '+math('<mi>w</mi>'),value(w)),
+   row('Bias '+math('<mi>b</mi>'),value(b)),
+   row('Mean squared error',value(loss(w,b))),
+   row('Analytical gradient',vector([4*(w-2),2*(b-1)])),
+   row('Numerical gradient',vector([gw,gb])),
+   row('Weight-slope difference',value(Math.abs(gw-4*(w-2))))
+ ].join('')+'</dl>';
+ q('[data-precision]').innerHTML='<dl class="demo-values precision-values">'+[
+   row('Probe distance '+math('<mi>h</mi>'),value(h,17)),
+   row(math('<mrow><mi>L</mi><mo>(</mo><mi>w</mi><mo>+</mo><mi>h</mi><mo>)</mo></mrow>'),value(plus,17)),
+   row(math('<mrow><mi>L</mi><mo>(</mo><mi>w</mi><mo>−</mo><mi>h</mi><mo>)</mo></mrow>'),value(minus,17)),
+   row('Difference between probe values',value(plus-minus,17))
+ ].join('')+'</dl>';
  const svg=q('svg'),sx=x=>55+(x+1)*100,sy=y=>240-y*10;svg.replaceChildren(node('title',{id:'gradient-title'},'MSE as weight varies'),node('desc',{id:'gradient-desc'},'Current bias is held fixed. Dashed finite-difference slope guide and solid quadratic loss. Text reports all numbers.'));
  for(let x=-1;x<=4;x++)svg.append(node('text',{x:sx(x),y:265,fill:'currentColor','text-anchor':'middle'},String(x)));
  for(let y=0;y<=20;y+=5)svg.append(node('text',{x:40,y:sy(y)+5,fill:'currentColor','text-anchor':'end'},String(y)));

@@ -40,6 +40,7 @@ class Node {
   addEventListener(name, callback) { this.events[name] = callback; }
   set textContent(value) { this.children = []; this.text = String(value); }
   get textContent() { return this.text + this.children.map(child => child.textContent).join(''); }
+  get firstChild() { return this.children[0] ?? null; }
 }
 const positions = new Node('input'); positions.value = '5';
 const precision = new Node('select'); precision.value = '4';
@@ -50,7 +51,8 @@ const document = {
   createElementNS: (namespace, name) => new Node(name, namespace),
   createTextNode: text => new Node('#text', null, text)
 };
-vm.runInNewContext(fs.readFileSync(require.resolve('../../chapters/40/demo.js'), 'utf8'), { document });
+const CourseNumbers = require('../../site/assets/numbers.js');
+vm.runInNewContext(fs.readFileSync(require.resolve('../../chapters/40/demo.js'), 'utf8'), { document, CourseNumbers });
 function descendants(node) { return [node, ...node.children.flatMap(descendants)]; }
 const mathNodes = descendants(result).filter(node => node.name === 'math');
 assert.equal(mathNodes.length, 14);
@@ -58,13 +60,13 @@ assert.ok(mathNodes.every(node => node.namespace === 'http://www.w3.org/1998/Mat
 assert.ok(descendants(result).filter(node => node.name === 'mn').every(node => /^\d+(\.\d+)?$/.test(node.textContent)));
 assert.match(result.textContent, /K\/V cache 640 bytes/);
 assert.match(result.textContent, /codes \[−7,−2,1,7\]/);
-assert.match(result.textContent, /maximum weight error 0.057143/);
+assert.match(result.textContent, /maximum weight error 0.05714/);
 positions.value = '6'; positions.events.change();
 assert.match(result.textContent, /K\/V cache 768 bytes/);
 assert.match(result.textContent, /processes 42 layer-token rows; caching processes 12/);
 precision.value = '8'; precision.events.change();
 assert.match(result.textContent, /codes \[−127,−38,25,127\]/);
-assert.match(result.textContent, /maximum weight error 0.003150/);
+assert.match(result.textContent, /maximum weight error 0.00315/);
 positions.value = '1.5'; positions.events.change();
 assert.equal(result.textContent, 'Use an integer prefix length from 1 to 12 and select int8 or int4.');
 reset.events.click();

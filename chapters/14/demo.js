@@ -10,7 +10,7 @@
   const points = [[0, 0], [2, 0], [0, 2], [2, 2]];
   const names = ['A', 'B', 'C', 'D'];
   // Templates are fixed; only validated numbers enter mathematical tokens.
-  const mn = value => `<mn>${Number(value).toFixed(4)}</mn>`;
+  const mn = value => CourseNumbers.mathml(value);
   const mi = value => `<mi>${value}</mi>`;
   const math = body => `<math xmlns="http://www.w3.org/1998/Math/MathML">${body}</math>`;
   const scalar = value => math(mn(value));

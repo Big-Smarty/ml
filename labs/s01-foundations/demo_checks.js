@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const CourseNumbers = require('../../site/assets/numbers.js');
 // Flatten the fixed MathML output for numerical assertions. Preserve powers of ten
 // as scientific notation, so a tiny discrepancy remains a number rather than glyphs.
 function mathematicalText(markup) {
@@ -27,36 +28,38 @@ function load(chapter, container, defaults) {
   root.querySelector = selector => { assert.ok(elements.has(selector), `unexpected selector ${selector}`); return elements.get(selector); };
   const document = { querySelector: selector => selector === container ? root : null, createElementNS: () => new Element() };
   const source = fs.readFileSync(path.join(__dirname, `../../chapters/${chapter}/demo.js`), 'utf8');
-  vm.runInNewContext(source, { document, Math, Number, String, Object, Array });
+  vm.runInNewContext(source, { document, CourseNumbers, Math, Number, String, Object, Array });
   return { root, get: selector => elements.get(selector) };
 }
 const fit = load('01', '#neuron-fit', { '[data-w]': '0', '[data-b]': '0', svg: '', '[data-readout]': '', '[data-table]': '', '[data-reset]': '' });
-assert.match(fit.get('[data-readout]').textContent, /MSE=9\.0000/);
+assert.match(fit.get('[data-readout]').textContent, /MSE=9/);
 fit.get('[data-w]').value = '1.5'; fit.get('[data-b]').value = '0.5'; fit.root.fire('input');
-assert.match(fit.get('[data-readout]').textContent, /MSE=0\.7500/);
+assert.match(fit.get('[data-readout]').textContent, /MSE=0\.75/);
 const lastRow = fit.get('[data-table]').innerHTML.match(/<tr>.*?<\/tr>/g).at(-1);
-assert.deepEqual([...lastRow.matchAll(/<td>(.*?)<\/td>/g)].map(cell => mathematicalText(cell[1])), ['2', '5', '3.50', '-1.50']);
+assert.deepEqual([...lastRow.matchAll(/<td>(.*?)<\/td>/g)].map(cell => mathematicalText(cell[1])), ['2', '5', '3.5', '-1.5']);
 fit.get('[data-w]').value = '-3'; fit.get('[data-b]').value = '-3'; fit.root.fire('input');
-assert.match(fit.get('[data-readout]').textContent, /MSE=66\.0000/);
-fit.get('[data-reset]').fire('click'); assert.match(fit.get('[data-readout]').textContent, /MSE=9\.0000/);
+assert.match(fit.get('[data-readout]').textContent, /MSE=66/);
+fit.get('[data-reset]').fire('click'); assert.match(fit.get('[data-readout]').textContent, /MSE=9/);
 
-const gradient = load('02', '#loss-gradient', { '[data-w]': '0', '[data-h]': '0.00001', svg: '', '[data-readout]': '', '[data-step]': '', '[data-reset]': '' });
-assert.match(gradient.get('[data-readout]').textContent, /analytical gradient \[-8\.000000,-2\.000000\]/);
-const discrepancy = () => Number(gradient.get('[data-readout]').textContent.match(/discrepancy: ([^. ]*(?:\.[^.]*)?)\.$/)[1]);
-assert.ok(discrepancy() < 1e-6);
+const gradient = load('02', '#loss-gradient', { '[data-w]': '0', '[data-h]': '0.00001', svg: '', '[data-readout]': '', '[data-step]': '', '[data-reset]': '', '[data-precision]': '' });
+assert.match(gradient.get('[data-readout]').textContent, /Analytical gradient\[-8,-2\]/);
+const discrepancy = () => Number(gradient.get('[data-readout]').textContent.split('Weight-slope difference')[1]);
+assert.ok(discrepancy() > 0 && discrepancy() < 1e-6, 'a small nonzero error must stay visible');
+assert.match(gradient.get('[data-precision]').textContent, /8\.999920000199998/, 'probe values retain cancellation-relevant digits');
 gradient.get('[data-w]').value = '1.3'; gradient.get('[data-w]').fire('change');
 gradient.get('[data-h]').value = '1e-16'; gradient.get('[data-h]').fire('change');
 assert.ok(discrepancy() > 0.1, 'tiny h should expose loss of precision at this representable setting');
+assert.match(gradient.get('[data-precision]').textContent, /Difference between probe values0$/, 'cancelled subtraction remains exactly zero');
 gradient.get('[data-reset]').fire('click'); gradient.get('[data-step]').fire('click');
-assert.match(gradient.get('[data-readout]').textContent, /w=0\.8000, b=0\.2000/);
-assert.match(gradient.get('[data-readout]').textContent, /MSE=3\.520000/);
+assert.match(gradient.get('[data-readout]').textContent, /Weight w0\.8Bias b0\.2/);
+assert.match(gradient.get('[data-readout]').textContent, /Mean squared error3\.52/);
 
 const classifier = load('04', '#classifier-evidence', { '[data-mode]': 'probability', '[data-probability]': '', '[data-threshold-panel]': '', '[data-logit]': '0', '[data-target]': '1', '[data-threshold]': '0.5', '[data-reset]': '', svg: '', '[data-readout]': '', '[data-rows]': '' });
-assert.match(classifier.get('[data-readout]').textContent, /p=0\.500000.*BCE=0\.693147/);
+assert.match(classifier.get('[data-readout]').textContent, /p=0\.5.*BCE=0\.6931/);
 classifier.get('[data-logit]').value = '8'; classifier.get('[data-target]').value = '0'; classifier.root.fire('input');
-assert.match(classifier.get('[data-readout]').textContent, /p=0\.999665.*BCE=8\.000335/);
+assert.match(classifier.get('[data-readout]').textContent, /p=0\.9997.*BCE=8/);
 classifier.get('[data-logit]').value = '-8'; classifier.get('[data-target]').value = '1'; classifier.root.fire('input');
-assert.match(classifier.get('[data-readout]').textContent, /p=0\.000335.*BCE=8\.000335/);
+assert.match(classifier.get('[data-readout]').textContent, /p=3\.354e-4.*BCE=8/);
 classifier.get('[data-mode]').value = 'threshold'; classifier.root.fire('input');
 assert.match(classifier.get('[data-readout]').textContent, /TP=1, FP=1, TN=1, FN=1/);
 classifier.get('[data-threshold]').value = '0.4'; classifier.root.fire('input');
@@ -68,5 +71,5 @@ assert.match(classifier.get('[data-readout]').textContent, /TP=2, FP=2, TN=0, FN
 classifier.get('[data-reset]').fire('click');
 assert.equal(classifier.get('[data-mode]').value, 'probability');
 assert.equal(Number(classifier.get('[data-threshold]').value), 0.5);
-assert.match(classifier.get('[data-readout]').textContent, /p=0\.500000.*BCE=0\.693147/);
+assert.match(classifier.get('[data-readout]').textContent, /p=0\.5.*BCE=0\.6931/);
 console.log('01/02/04 demo calculations, control boundaries and deterministic resets pass.');

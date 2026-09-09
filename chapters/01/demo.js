@@ -1,13 +1,5 @@
 (() => {
-  // Fixed MathML templates receive only formatted finite numbers from this illustration.
-  const mn = value => {
-    const match = String(value).match(/^(-?)(\d+(?:\.\d+)?)(?:e([+-]?\d+))?$/i);
-    if (!match) throw new Error('Expected a finite mathematical value');
-    const mantissa = `${match[1] ? '<mo>−</mo>' : ''}<mn>${match[2]}</mn>`;
-    if (match[3] === undefined) return `<mrow>${mantissa}</mrow>`;
-    const exponent = Number(match[3]);
-    return `<mrow>${mantissa}<mo>×</mo><msup><mn>10</mn><mrow>${exponent < 0 ? '<mo>−</mo>' : ''}<mn>${Math.abs(exponent)}</mn></mrow></msup></mrow>`;
-  };
+  const mn = (value, digits) => CourseNumbers.mathml(value, digits);
   const math = body => `<math>${body}</math>`;
   const value = number => math(mn(number));
   const equal = (name, number) => math(`<mrow><mi${name.length > 1 ? ' mathvariant="normal"' : ''}>${name}</mi><mo>=</mo>${mn(number)}</mrow>`);
@@ -24,8 +16,8 @@
     svg.append(node('line',{x1:sx(-3),y1:sy(-3*w+b),x2:sx(3),y2:sy(3*w+b),stroke:'var(--accent)','stroke-width':3,'clip-path':'url(#fit-clip)'}));
     xs.forEach((x,i)=>svg.append(node('line',{x1:sx(x),x2:sx(x),y1:sy(ys[i]),y2:sy(w*x+b),stroke:'currentColor','stroke-dasharray':'4 4','clip-path':'url(#fit-clip)'}),node('circle',{cx:sx(x),cy:sy(ys[i]),r:5,fill:'currentColor'})));
     const loss=xs.reduce((s,x,i)=>s+(w*x+b-ys[i])**2,0)/5;
-    q('[data-readout]').innerHTML=`${equal('w',w.toFixed(1))}; ${equal('b',b.toFixed(1))}; ${equal('MSE',loss.toFixed(4))}; prediction at ${equal('x','0.5')}: ${value((w*0.5+b).toFixed(3))}. Lines outside the plot are clipped; values remain in the table.`;
-    q('[data-table]').innerHTML='<table><caption>Predictions and residuals (prediction minus target)</caption><thead><tr><th><math><mi>x</mi></math></th><th>Target</th><th>Prediction</th><th>Residual</th></tr></thead><tbody>'+xs.map((x,i)=>`<tr><td>${value(x)}</td><td>${value(ys[i])}</td><td>${value((w*x+b).toFixed(2))}</td><td>${value((w*x+b-ys[i]).toFixed(2))}</td></tr>`).join('')+'</tbody></table>';
+    q('[data-readout]').innerHTML=`${equal('w',w)}; ${equal('b',b)}; ${equal('MSE',loss)}; prediction at ${equal('x','0.5')}: ${value((w*0.5+b))}. Lines outside the plot are clipped; values remain in the table.`;
+    q('[data-table]').innerHTML='<table><caption>Predictions and residuals (prediction minus target)</caption><thead><tr><th><math><mi>x</mi></math></th><th>Target</th><th>Prediction</th><th>Residual</th></tr></thead><tbody>'+xs.map((x,i)=>`<tr><td>${value(x)}</td><td>${value(ys[i])}</td><td>${value((w*x+b))}</td><td>${value((w*x+b-ys[i]))}</td></tr>`).join('')+'</tbody></table>';
   }
   root.addEventListener('input',draw);q('[data-reset]').addEventListener('click',()=>{q('[data-w]').value=0;q('[data-b]').value=0;draw();});draw();
 })();

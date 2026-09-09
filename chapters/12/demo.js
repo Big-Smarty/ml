@@ -11,7 +11,7 @@
   const output = root.querySelector('[data-output]');
   const chart = root.querySelector('[data-chart]');
   // Only finite numeric values enter these fixed MathML templates.
-  const token = value => `<mn>${Number(value).toFixed(4)}</mn>`;
+  const token = value => CourseNumbers.mathml(value);
   const scalar = value => `<math xmlns="http://www.w3.org/1998/Math/MathML">${token(value)}</math>`;
   const interval = (lo, hi) => `<math xmlns="http://www.w3.org/1998/Math/MathML"><mrow><mo>[</mo>${token(lo)}<mo>,</mo>${token(hi)}<mo>]</mo></mrow></math>`;
   let seed = 7n;

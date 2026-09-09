@@ -22,10 +22,8 @@
     return [f(f(100000000 + -100000000) + 1), f(100000000 + f(-100000000 + 1))];
   }
   function dispatch(features) { return features === 'both' || features === 'wide' ? 'AVX2+FMA' : 'scalar'; }
-  const number = value => {
-    if (!Number.isFinite(value)) throw new Error('Expected a finite illustration value');
-    return value < 0 ? `<mrow><mo>−</mo><mn>${-value}</mn></mrow>` : `<mn>${value}</mn>`;
-  };
+  const numbers = typeof module !== 'undefined' ? require('../../site/assets/numbers.js') : CourseNumbers;
+  const number = value => numbers.mathml(value);
   const math = body => `<math xmlns="http://www.w3.org/1998/Math/MathML"><mrow>${body}</mrow></math>`;
   const vector = values => `<mrow><mo>[</mo>${values.map(number).join('<mo>,</mo>')}<mo>]</mo></mrow>`;
   const interval = (a, b) => `<mrow><mo>[</mo>${number(a)}<mo>,</mo>${number(b)}<mo>)</mo></mrow>`;
@@ -35,7 +33,7 @@
       const means = shards.reduce((sum, shard) => sum + shard.sum / (shard.end - shard.start), 0) / shards.length;
       return {
         output: `7 rows, ${count} requested workers: ${math(shards.map(shard => interval(shard.start, shard.end)).join('<mo>,</mo>'))}. All 7 rows covered exactly once.`,
-        map: `<p>Private squared-error sums: ${math(shards.map(shard => number(shard.sum)).join('<mo>+</mo>') + '<mo>=</mo>' + number(140))}.</p><p>Creation-order reduction, then divide by all 7 rows: ${math('<mi mathvariant="normal">MSE</mi><mo>=</mo><mfrac>' + number(140) + number(7) + '</mfrac><mo>=</mo>' + number(20))}.</p><p>Mean of shard means would be ${math(number(Number(means.toFixed(6))))}; it is wrong when unequal shards carry different means.</p>`
+        map: `<p>Private squared-error sums: ${math(shards.map(shard => number(shard.sum)).join('<mo>+</mo>') + '<mo>=</mo>' + number(140))}.</p><p>Creation-order reduction, then divide by all 7 rows: ${math('<mi mathvariant="normal">MSE</mi><mo>=</mo><mfrac>' + number(140) + number(7) + '</mfrac><mo>=</mo>' + number(20))}.</p><p>Mean of shard means would be ${math(number(means))}; it is wrong when unequal shards carry different means.</p>`
       };
     }
     if (mode === 'lanes') {

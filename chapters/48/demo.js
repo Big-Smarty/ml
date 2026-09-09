@@ -37,7 +37,7 @@
     return node;
   }
   function mathNumber(value) {
-    return mathNode('math', mathNode('mn', String(value)));
+    return CourseNumbers.node(document, value);
   }
   function mathFraction(numerator, denominator) {
     return mathNode('math', mathNode('mfrac', mathNode('mn', String(numerator)), mathNode('mn', String(denominator))));
@@ -48,13 +48,13 @@
   function render() {
     const [concentration, factor, alpha] = controls.map(control => Number(control.value));
     controls.forEach(control => {
-      root.querySelector(`[data-value="${control.dataset.control}"]`).replaceChildren(mathNumber(Number(control.value).toFixed(2)));
+      root.querySelector(`[data-value="${control.dataset.control}"]`).replaceChildren(mathNumber(Number(control.value)));
     });
     const result = calculate(concentration, factor, alpha);
     body.replaceChildren();
     for (let expert = 0; expert < 3; expert++) {
       const row = document.createElement('tr');
-      [expert, result.attempted[expert], result.accepted[expert], result.attempted[expert] - result.accepted[expert], result.mean[expert].toFixed(4)].forEach(value => {
+      [expert, result.attempted[expert], result.accepted[expert], result.attempted[expert] - result.accepted[expert], result.mean[expert]].forEach(value => {
         const cell = document.createElement('td');
         cell.append(mathNumber(value));
         row.append(cell);
@@ -70,8 +70,8 @@
       'Capacity ', mathNumber(result.capacity), ' per expert; ',
       mathFraction(12 - result.dropped, 12), ' admitted; ',
       mathFraction(result.dropped, 12), ' dropped. Unweighted balance ',
-      mathNumber(result.rawBalance.toFixed(4)), '; alpha-weighted balance ',
-      mathNumber(result.balance.toFixed(4)),
+      mathNumber(result.rawBalance), '; alpha-weighted balance ',
+      mathNumber(result.balance),
       '. Capacity changes admission only; alpha scales the displayed auxiliary loss only. No router is trained here.'
     );
   }
