@@ -1,0 +1,413 @@
+{
+  "section": "07",
+  "package": "s07-language-models",
+  "chapters": [
+    "33",
+    "34",
+    "35",
+    "36",
+    "37",
+    "38",
+    "39"
+  ],
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.042,
+      "output": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "seconds": 0.047,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.02s\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml"
+      ],
+      "returncode": 0,
+      "seconds": 0.089,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.02s\n     Running unittests src/main.rs (labs/s07-language-models/target/debug/deps/s07_language_models-70ca6fbb274f2b53)\n\nrunning 16 tests\ntest attention::tests::supplied_baseline_and_full_solution ... ok\ntest training::lab_tests::windows_never_cross_documents ... ok\ntest training::tests::clipping_uses_f64_norm_and_rejects_invalid_values ... ok\ntest corpus::cli_tests::threshold_flag_changes_the_actual_near_copy_decision ... ok\ntest corpus::goal_regression_tests::wrong_survivor_link_cannot_pass_on_counts_alone ... ok\ntest training::tests::first_adamw_step_matches_hand_calculation ... ok\ntest training::tests::malformed_checkpoint_is_rejected_before_allocation ... ok\ntest training::tests::schedule_includes_first_warmup_and_decay_end ... ok\ntest corpus::tests::baseline_reference_and_solution ... ok\ntest tokenizer::tests::bytes_are_working_and_solution_roundtrips ... ok\ntest decoder::tests::baseline_and_solution ... ok\ntest training::tests::accumulation_equals_explicit_average ... ok\ntest training::tests::resume_reproduces_the_next_step ... ok\ntest byte_model::lab_tests::supplied_baseline_and_solution ... ok\ntest training::lab_tests::working_sgd_and_complete_optimizer ... ok\ntest capstone::tests::complete_capstone_and_cli_boundaries ... ok\n\ntest result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s\n\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "33"
+      ],
+      "returncode": 0,
+      "seconds": 0.649,
+      "output": "   Compiling s07-language-models v0.1.0 (/home/bigsmarty/.codex/worktrees/15f2/ml/labs/s07-language-models)\n    Finished `release` profile [optimized] target(s) in 0.62s\n     Running `labs/s07-language-models/target/release/s07-language-models 33`\nunits: \u00e9 = 2 bytes; Unicode trigrams = 2\nobserved bigrams=45 count-model validation loss=5.54518\nembedding model train=5.54524->3.40618 validation=3.50954; width=4 seed=33\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "33",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.027,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 33 --solution --check`\n33 goal passed: embedding/output/bias derivatives and unfamiliar loss reduction\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "33",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.024,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 33 --check`\nGOAL_NOT_MET: add-one count loss for unseen a\u2192d must be ln(258), got 5.545177444479562\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "34"
+      ],
+      "returncode": 0,
+      "seconds": 0.024,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 34`\nrules=[]; vocabulary=256\n\"na\u00efve caf\u00e9 \u5496\u5561 \u2014 caf\u00e9 \u5496\u5561\": scalars=23 bytes=36 tokens=36 bytes/token=1.000 roundtrip=true\n\"caf\u00e9 \ud83d\ude42 unseen\": scalars=13 bytes=17 tokens=17 bytes/token=1.000 roundtrip=true\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "34",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.023,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 34 --solution --check`\n34 goal passed: full BPE, ties, overlap, boundaries, serialization and unfamiliar bytes\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "34",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.024,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 34 --check`\nGOAL_NOT_MET: banana's tied pair should select (97,110); got []. Implement count/select/replace/repeat.\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "35"
+      ],
+      "returncode": 0,
+      "seconds": 0.023,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 35`\nQ=[1.0, 0.0, 0.0, 1.0] K=[1.0, 0.0, 1.0, 1.0] V=[2.0, 0.0, 0.0, 4.0] [T,D]=[2,2]\nprobabilities=[1.000000, 0.000000, 0.500000, 0.500000]; output=[2.000000, 0.000000, 1.000000, 2.000000]; dQ=[0.000000, 0.000000, 0.000000, 0.000000]\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "35",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.024,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 35 --solution --check`\n35 goal passed: scaled QK, causal invariance, every QKV derivative and upstream scaling\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "35",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.022,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 35 --check`\nGOAL_NOT_MET: content-dependent QK scores should give output[2]=0.660476901; got 1. Replace uniform causal averaging.\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "36"
+      ],
+      "returncode": 0,
+      "seconds": 0.023,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 36`\n[T,D]=[4,4], heads=2, head width=2, FF=[4,7], layers=2, parameters=422\nlearner first logits=[0.02396, 0.00608, 0.00371, -0.00233, 0.00042, -0.02288, 0.00616, -0.02399]\nsupplied complete decoder trains all families: loss=2.08673->0.16346\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "36",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.024,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 36 --solution --check`\n36 goal passed: two-layer full forward, causal prefix and LayerNorm x/gain/bias gradients\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "36",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.023,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 36 --check`\nGOAL_NOT_MET: complete two-layer decoder forward differs by 0.116746; implement both pre-norm branches and residual paths\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "37"
+      ],
+      "returncode": 0,
+      "seconds": 0.024,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 37`\nwhitespace recipe=v1, trigrams=lowercase sets, Jaccard threshold=0.8\nparsed=4 retained=3 removed=1\nCORPUS_AUDIT_V1\ndoc=0395e3366ad8f6e4 split=train title=\"Rust notes\" license=\"course-authored CC0\" source=\"bundled CC0\" bytes=56\ndoc=3950cbc517bcaf1e split=train title=\"Model notes\" license=\"course-authored CC0\" source=\"bundled CC0\" bytes=61\ndoc=a76650e9efebd262 split=train title=\"Held-out prose\" license=\"course-authored CC0\" source=\"bundled CC0\" bytes=66\nremoved=ef4b82a667ed4678 duplicate_of=0395e3366ad8f6e4 similarity=1.000 title=\"Duplicate\" license=\"course-authored CC0\" source=\"bundled CC0\" bytes=56\ncounts={\"train\": 3}\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "37",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.023,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 37 --solution --check`\n37 goal passed: cleaning, exact/near dedup, links, source, split and invalid inputs\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "37",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.024,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 37 --check`\nGOAL_NOT_MET: near-duplicate decisions differ from the reference\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "38"
+      ],
+      "returncode": 0,
+      "seconds": 0.025,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 38`\nactual decoder training: data loss=5.57375->4.08042; step=24 persistent bytes=59184\ncheckpoint next update matches, including moments/cursor/RNG/step\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "38",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.024,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 38 --solution --check`\n38 goal passed: schedule, token-weighted accumulation, clipping, AdamW and exact resume\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "38",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.023,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 38 --check`\nGOAL_NOT_MET: schedule at completed step 0: expected 0.25, got 1\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "39"
+      ],
+      "returncode": 0,
+      "seconds": 0.028,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 39`\nworking baseline: first training document, one microbatch, SGD; evaluation reports first block only\nbyte IDs 0..255; config=Config { vocab_size: 256, context: 4, width: 8, heads: 2, layers: 1, ff_width: 12 }; initial seeds for new runs=(38,99)\nsteps=0->40 targets=160; train nats/target=5.554674->5.046777; validation=5.542398->5.259614\nvalidation bits/target=7.588018; block history restarts; train bytes=613 validation bytes=689\nparameters=4932 persistent bytes=59184; training seconds=0.001420; targets/s=112700.2; CPU f32 (single run, includes gradient allocation, excludes eval/checkpoint)\nsample seed=390 temperature=0.8 raw=[84, 104, 101, 32, 0, 97, 84, 121, 29, 179, 228, 54, 187, 119, 8, 67, 19, 16, 44, 119, 32, 255, 157, 231, 107, 111, 250, 56, 144, 144, 96, 39, 112, 125, 38, 32]\ndisplay=\"The \\0aTy\\u{1d}\ufffd\ufffd6\ufffdw\\u{8}C\\u{13}\\u{10},w \ufffd\ufffd\ufffdko\ufffd8\ufffd\ufffd`'p}& \"\nselected training algorithm resumes its exact next update\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "39",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.027,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 39 --solution --check`\n39 goal passed: train/evaluate full decoder, all families, tails, data binding, generation and resume; pattern loss=5.55422->0.46844\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s07-language-models/Cargo.toml",
+        "--",
+        "39",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.024,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.01s\n     Running `labs/s07-language-models/target/release/s07-language-models 39 --check`\nGOAL_NOT_MET: evaluation must weight every target including document tails: learner=5.61149502 expected=5.57079029\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    }
+  ]
+}

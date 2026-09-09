@@ -1,23 +1,33 @@
-# Chapter 21 research notes
+# Chapter 21: redesign research and implementation record
 
-Route: chapter authored by the assigned high-reasoning author after bounded source verification by `gpt-5.6-luna` at high reasoning. Verification date: 2026-09-08. The two-block Rust experiment and fixture are original.
+Author route: one GPT-6 Astra High section owner, 2026-09-09. Read the complete previous lesson, metadata, research notes, reference and starter sources before redesign. The active AUTHORING/CHAPTER_TEMPLATE/ASSIGNMENTS/NUMERICS contract replaces historical Rustlings and broken-starter requirements. Reference projects remain unchanged; tested numerical algorithms are adapted into labs/s04-deep-learning with learner-selected cores and separate explained solutions.
 
-- He et al., “Deep Residual Learning for Image Recognition,” CVPR 2016, https://openaccess.thecvf.com/content_cvpr_2016/html/He_Deep_Residual_Learning_CVPR_2016_paper.html. Supports the residual formulation F(x)+x, parameter-free identity shortcuts, and the optimization motivation for deep residual networks.
-- Ioffe and Szegedy, “Batch Normalization,” ICML 2015, https://proceedings.mlr.press/v37/ioffe15.html. Supports mini-batch normalization as part of a trainable network. The project instead uses per-image normalization and labels that difference everywhere.
-- Simard, Steinkraus, and Platt, “Best Practices for Convolutional Neural Networks Applied to Visual Document Analysis,” ICDAR 2003, https://doi.org/10.1109/ICDAR.2003.1227801. Supports the role of image distortions as training augmentation in document recognition.
-- Cubuk et al., “AutoAugment,” CVPR 2019, https://openaccess.thecvf.com/content_CVPR_2019/html/Cubuk_AutoAugment_Learning_Augmentation_Strategies_From_Data_CVPR_2019_paper.html. Supports treating operation, probability, and magnitude as a policy. We do not reproduce policy search.
+## Evidence and source claims
 
-The validation perturbations are deterministic and disjoint from training arrays, but the set remains a functional smoke test rather than a performance estimate.
+The following primary sources were previously verified in the course's 2026-09-08 research and independent review. This redesign reuses those bounded claims; it does not claim a new literature search or reproduction of the papers' full experiments.
 
-## Consistency revision, 2026-09-08
+- Deep Residual Learning for Image Recognition — https://openaccess.thecvf.com/content_cvpr_2016/html/He_Deep_Residual_Learning_CVPR_2016_paper.html
+  Original residual-network paper.
+- Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift — https://proceedings.mlr.press/v37/ioffe15.html
+  Primary batch-normalization paper.
+- Best Practices for Convolutional Neural Networks Applied to Visual Document Analysis — https://doi.org/10.1109/ICDAR.2003.1227801
+  Primary study of CNN image distortions on MNIST.
+- AutoAugment: Learning Augmentation Strategies From Data — https://openaccess.thecvf.com/content_CVPR_2019/html/Cubuk_AutoAugment_Learning_Augmentation_Strategies_From_Data_CVPR_2019_paper.html
+  Primary learned augmentation-policy study.
 
-The chapter-local interface was aligned with the preceding dense and convolutional classifiers without changing the experiment: `loss_grad` became `loss_and_gradient`, `rate` became `learning_rate`, and the stable objective is named `cross_entropy_from_logits(logits, target)`. `ForwardCache`, `ResidualBlockCache`, and `Gradient` now name their roles. Layer derivatives use `output_gradient` and `input_gradient`; the array passed from block two into block one is `first_block_output_gradient`. The normalization mean, variance, and backward sums all reduce over the 36 pixels of one image. The identity-shortcut exercise now maps explicitly to the addition inside `ResidualNet::residual_block_forward`.
+## Active learning route
 
+- Session 1: Implement per-image mean/variance scaling and verify shifted and constant arrays.
+- Session 2: Differentiate normalization and trace first-block credit through both blocks.
+- Session 3: Implement zero-padded translation and compare canonical/five-shift policies.
 
-## Independent Astra review, 2026-09-08
+Every session has worked values, named Rust work, a checkpoint or controlled experiment, optional explanation and a changed-input transfer task. Baseline success demonstrates a functioning earlier model, not the completed learning goal. The chapter's --check calls the selected learner core. Intentional numerical mismatches return GOAL_NOT_MET; malformed CLI/data errors remain ordinary errors. Cargo tests cover the supplied machinery and completed solution without requiring unfinished learner goals to pass.
 
-GPT-6 Astra High independently read the full lesson, metadata, research, reference, starter, and Rustlings exercise/solution. Bounded GPT-5.6 Luna High primary-source and technical verification covered chapters 20–24; the researcher supplied checks and source findings, while Astra implemented the corrections.
+## Boundaries
 
-Checked the two-block chain and normalization derivative. Reordered cross-entropy, checked common large logits and invalid images, and added finite update checks. Corrected metadata to identify the tested first-block kernel gradient and both trained residual blocks. The four validation images remain perturbations of the same source bases.
+- Per-image normalization without learned affine parameters, not batch normalization
+- Two single-channel blocks and a two-class head
+- Four validation arrays remain perturbations of the same source patterns
+- Tiny baseline can match or beat the more elaborate model; no universal normalization/augmentation advantage
 
-Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+The numerical handoff and actual commands/results are in guidance/redesign/section-04.md. Browser tools are arithmetic illustrations and never execute Rust or certify completion. Source snippets carry exact data-source paths. The learning design follows the provided worked-example, retrieval and interactive research synthesis as a design inference, not evidence of measured learning gains in this course.

@@ -1,0 +1,257 @@
+{
+  "section": "05",
+  "package": "s05-cpu",
+  "chapters": [
+    "25",
+    "26",
+    "27",
+    "28"
+  ],
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.033,
+      "output": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml"
+      ],
+      "returncode": 0,
+      "seconds": 0.03,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (labs/s05-cpu/target/debug/deps/s05_cpu-48e21f24a8a8e2fc)\n\nrunning 7 tests\ntest ch27::boundary_checks::both_training_paths_reject_invalid_data ... ok\ntest ch27::tests::invalid_update_is_atomic ... ok\ntest ch25::tests::baseline_runs_and_solution_meets_goal ... ok\ntest common::tests::scalar_and_boundaries ... ok\ntest ch26::tests::baseline_and_solution ... ok\ntest ch28::tests::baselines_and_solution ... ok\ntest ch27::tests::baseline_and_parallel ... ok\n\ntest result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "25"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 25`\nX=[[1,2,3],[4,5,6]], W=[[1,3,5],[2,4,6]], bias=[0,0]; Y=[22.0, 28.0, 49.0, 64.0]\nwarmups=0 samples=1 median=230ns range=230ns..230ns\nBaseline single-call dense timer: replace measure with warmups and repeated samples; debug timing is not performance evidence. checksum=163\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "25",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 25 --solution --check`\nchapter 25: automatic checks passed; inspect any source-review criteria in the lesson\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "25",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 25 --check`\nGOAL_NOT_MET: requested 3 warmups + 11 samples; observed 1 calls, 1 samples, 0 warmups. Implement the measurement plan.\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "26"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 26`\nX=[[1,2,3],[4,5,6]], W=[[1,3,5],[2,4,6]], bias=[0,0]; Y=[22.0, 28.0, 49.0, 64.0]\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "26",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 26 --solution --check`\nchapter 26: automatic checks passed; inspect any source-review criteria in the lesson\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "26",
+        "--check"
+      ],
+      "returncode": 3,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 26 --check`\nGOAL_REVIEW_REQUIRED: shape Shape { m: 3, k: 5, n: 7 } block 1: visited 1 tiles, expected 105; implement the full blocked traversal and count visits\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": true
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "27"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 27`\nX=[[1,2,3],[4,5,6]], W=[[1,3,5],[2,4,6]], bias=[0,0]; Y=[22.0, 28.0, 49.0, 64.0]\n31 rows, 4 features, requested 3 workers, 60 steps lr=0.2: training MSE 0.611521 -> 0.000080; synthetic mechanics, not held-out evaluation\nfirst predictions=[0.33076718, 0.87169814, -0.4445488]\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "27",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.018,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 27 --solution --check`\n31 rows, 4 features, requested 3 workers, 60 steps lr=0.2: training MSE 0.611521 -> 0.000080; synthetic mechanics, not held-out evaluation\nfirst predictions=[0.33076718, 0.87169814, -0.4445488]\nchapter 27: automatic checks passed; inspect any source-review criteria in the lesson\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "27",
+        "--check"
+      ],
+      "returncode": 3,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 27 --check`\nGOAL_REVIEW_REQUIRED: expected 3 distinct scoped workers, observed 1 receipts (serial baseline uses calling thread); implement row partitioning\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": true
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "28"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 28`\nX=[[1,2,3],[4,5,6]], W=[[1,3,5],[2,4,6]], bias=[0,0]; Y=[22.0, 28.0, 49.0, 64.0]\ndot backend=scalar\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "28",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 28 --solution --check`\nactual capabilities: AVX2+FMA=true, AVX-512F=true\nSIMD check: portable lanes, forced scalar, dispatch, tails and every hardware-supported wide path verified\nchapter 28: automatic checks passed; inspect any source-review criteria in the lesson\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s05-cpu/Cargo.toml",
+        "--",
+        "28",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s05-cpu/target/release/s05-cpu 28 --check`\nGOAL_NOT_MET: expected eight lane sums [5,6,7,8,9,10,11,12] and tail 27; got [95.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], tail 0; implement complete vectors then tail\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    }
+  ]
+}

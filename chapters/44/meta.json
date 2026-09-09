@@ -7,12 +7,16 @@
     "Measure hit@1, attribution, coverage, and abstention"
   ],
   "lessons": [
-    "Begin with a lexical baseline",
-    "Learn embeddings and search them exactly",
-    "Assemble evidence before answering",
-    "Evaluate support and abstain",
-    "Run, debug, and extend",
-    "Before you move on"
+    "Can the answer be traced to external evidence?",
+    "What does lexical retrieval reward?",
+    "Can a baseline distinguish a short fact from a long distraction?",
+    "How do learned embeddings change the ranking?",
+    "Does the exact index search the vectors you actually trained?",
+    "How do selected passages become attributed answers?",
+    "What happens to errors when the system abstains?",
+    "Can we measure supported answers without rewarding abstention alone?",
+    "Can you locate a failure in the retrieval pipeline?",
+    "Sources and further reading"
   ],
   "terms": {
     "lexical-retrieval": {
@@ -83,5 +87,99 @@
     "Answerer is extractive and cannot synthesize across passages",
     "Abstention thresholds are fixture-specific and uncalibrated",
     "Known-term and score gates can accept unsupported questions containing familiar terms; extraction guarantees provenance, not relevance"
-  ]
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "continuity",
+      "title": "Can the answer be traced to external evidence?",
+      "session": 1,
+      "minutes": 5
+    },
+    {
+      "id": "lexical",
+      "title": "What does lexical retrieval reward?",
+      "session": 1,
+      "minutes": 14
+    },
+    {
+      "id": "lexical-build",
+      "title": "Can a baseline distinguish a short fact from a long distraction?",
+      "session": 1,
+      "minutes": 21
+    },
+    {
+      "id": "dense",
+      "title": "How do learned embeddings change the ranking?",
+      "session": 2,
+      "minutes": 19
+    },
+    {
+      "id": "dense-build",
+      "title": "Does the exact index search the vectors you actually trained?",
+      "session": 2,
+      "minutes": 21
+    },
+    {
+      "id": "context",
+      "title": "How do selected passages become attributed answers?",
+      "session": 3,
+      "minutes": 9
+    },
+    {
+      "id": "abstention",
+      "title": "What happens to errors when the system abstains?",
+      "session": 3,
+      "minutes": 10
+    },
+    {
+      "id": "practice",
+      "title": "Can we measure supported answers without rewarding abstention alone?",
+      "session": 3,
+      "minutes": 20
+    },
+    {
+      "id": "review",
+      "title": "Can you locate a failure in the retrieval pipeline?",
+      "session": 3,
+      "minutes": 3
+    },
+    {
+      "id": "sources",
+      "title": "Sources and further reading",
+      "session": 3,
+      "minutes": 1
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Build a lexical baseline",
+      "goal": "Implement BM25 and explain length/saturation counterexamples"
+    },
+    {
+      "id": 2,
+      "title": "Train and search embeddings",
+      "goal": "Run both-tower training and implement the exact inner-product index"
+    },
+    {
+      "id": 3,
+      "title": "Evaluate evidence",
+      "goal": "Assemble source text and compute coverage/selective risk including unsupported overlap"
+    }
+  ],
+  "lab": {
+    "package": "s08-adaptation",
+    "chapter": "44",
+    "entry": "labs/s08-adaptation/src/ch44.rs",
+    "goal": "Implement BM25 and explain length/saturation counterexamples; Run both-tower training and implement the exact inner-product index; Assemble source text and compute coverage/selective risk including unsupported overlap",
+    "check": "just lab-check 44"
+  },
+  "topic_coverage": {
+    "Retrieval baselines": "lexical",
+    "embeddings": "dense",
+    "indexing": "dense-build",
+    "grounded evaluation": "practice"
+  },
+  "interactives": []
 }

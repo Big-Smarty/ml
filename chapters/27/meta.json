@@ -1,19 +1,182 @@
 {
-  "outcomes": ["Map a one-output linear model to the course's row-major dense convention", "Distinguish one-row predict from scalar and threaded batch-prediction wrappers", "Return loss and parameter derivatives together from scalar and parallel fused APIs", "Reduce private worker sums in fixed order and divide once by the complete batch size", "Run actual parallel training with one simultaneous update"],
-  "lessons": ["Dense-to-linear continuity", "Batch partitioning", "Private gradient sums", "Deterministic reduction", "Parallel project", "Review and transfer"],
+  "outcomes": [
+    "Partition dense inference into disjoint scoped workers",
+    "Compute private loss and parameter-gradient sums",
+    "Reduce in fixed shard order and average once by the complete batch",
+    "Verify one simultaneous update and actual loss-reducing training",
+    "Measure launch-inclusive inference latency and justify a threshold"
+  ],
+  "lessons": [
+    "Which dense outputs can different workers own?",
+    "Can the program prove that workers covered the batch?",
+    "What can threading make slower?",
+    "What does each training worker need to return?",
+    "Can private sums become one complete gradient?",
+    "What does a fixed reduction order guarantee?",
+    "Does one simultaneous update actually train?",
+    "Where should the application switch to threads?",
+    "Can you explain both ownership and numerical correctness?"
+  ],
   "terms": {
-    "partition": {"name":"Partition","definition":"A division of a workload into disjoint pieces whose union covers the original work.","explanation":"Batch rows can be partitioned because every row uses the same read-only parameters and produces its own prediction. Correct half-open ranges contain each row exactly once, including a shorter final shard when division is uneven. A partition is more than a chunk size: it defines ownership. Parallel prediction assigns disjoint output slices; training assigns private gradient buffers. The parent combines only after every worker completes."},
-    "scoped-thread": {"name":"Scoped thread","definition":"A thread whose lifetime is bounded by a scope that joins it before returning.","explanation":"Rust scoped threads may borrow stack-owned slices and models because the scope guarantees those references outlive every worker. This avoids cloning large inputs or adding reference counting solely to satisfy a 'static requirement. The guarantee covers lifetime, not numerical correctness: code must still partition mutable outputs without overlap, handle worker panics deliberately, and choose enough work to justify thread creation and joining overhead."},
-    "gradient-shard": {"name":"Gradient shard","definition":"A private parameter-gradient sum accumulated by one worker over its assigned examples.","explanation":"Each training worker starts a zeroed Gradient, visits its rows in fixed order, and accumulates a loss sum plus weight and bias derivative sums without synchronization. Gradient is derivative data in f64, separate from the Model's learned f32 parameter storage. The parent combines all shards and divides once by the complete batch size, including when the final shard is shorter. Private shards avoid races and hot locks while making reduction order explicit."},
-    "deterministic-reduction": {"name":"Deterministic reduction","definition":"Combining partial results using a fixed grouping and order independent of worker completion timing.","explanation":"Floating-point addition rounds and is not associative. If workers update a shared sum in scheduler order, repeated runs can differ even when a mutex prevents races. This project stores partials by shard index and reduces them in ascending order. That gives scheduling-independent results for a fixed partition and build. It does not promise bitwise equality across thread counts, CPUs, compiler flags, vector widths, or fused operations; those can change grouping or rounding."}
+    "partition": {
+      "name": "Partition",
+      "definition": "A division of a workload into disjoint pieces whose union covers the original work.",
+      "explanation": "Batch rows can be partitioned because every row uses the same read-only parameters and produces its own prediction. Correct half-open ranges contain each row exactly once, including a shorter final shard when division is uneven. A partition is more than a chunk size: it defines ownership. Parallel prediction assigns disjoint output slices; training assigns private gradient buffers. The parent combines only after every worker completes."
+    },
+    "scoped-thread": {
+      "name": "Scoped thread",
+      "definition": "A thread whose lifetime is bounded by a scope that joins it before returning.",
+      "explanation": "Rust scoped threads may borrow stack-owned slices and models because the scope guarantees those references outlive every worker. This avoids cloning large inputs or adding reference counting solely to satisfy a 'static requirement. The guarantee covers lifetime, not numerical correctness: code must still partition mutable outputs without overlap, handle worker panics deliberately, and choose enough work to justify thread creation and joining overhead."
+    },
+    "gradient-shard": {
+      "name": "Gradient shard",
+      "definition": "A private parameter-gradient sum accumulated by one worker over its assigned examples.",
+      "explanation": "Each training worker starts a zeroed Gradient, visits its rows in fixed order, and accumulates a loss sum plus weight and bias derivative sums without synchronization. Gradient is derivative data in f64, separate from the Model's learned f32 parameter storage. The parent combines all shards and divides once by the complete batch size, including when the final shard is shorter. Private shards avoid races and hot locks while making reduction order explicit."
+    },
+    "deterministic-reduction": {
+      "name": "Deterministic reduction",
+      "definition": "Combining partial results using a fixed grouping and order independent of worker completion timing.",
+      "explanation": "Floating-point addition rounds and is not associative. If workers update a shared sum in scheduler order, repeated runs can differ even when a mutex prevents races. This project stores partials by shard index and reduces them in ascending order. That gives scheduling-independent results for a fixed partition and build. It does not promise bitwise equality across thread counts, CPUs, compiler flags, vector widths, or fused operations; those can change grouping or rounding."
+    }
   },
   "sources": [
-    {"title":"Rust thread::scope","url":"https://doc.rust-lang.org/stable/std/thread/fn.scope.html","note":"Borrowing and automatic join guarantees"},
-    {"title":"Rust slice documentation","url":"https://doc.rust-lang.org/stable/std/primitive.slice.html","note":"Disjoint mutable slice partitioning"},
-    {"title":"Parallel Reproducible Summation","url":"https://doi.org/10.1109/TC.2014.2345391","note":"Original reproducible parallel-sum algorithms"},
-    {"title":"Numerical reproducibility for parallel reduction","url":"https://doi.org/10.1016/j.parco.2015.09.001","note":"Multicore reduction analysis"},
-    {"title":"Rust f32 documentation","url":"https://doc.rust-lang.org/stable/std/primitive.f32.html","note":"Floating-point semantics and portability"}
+    {
+      "title": "Rust thread::scope",
+      "url": "https://doc.rust-lang.org/stable/std/thread/fn.scope.html",
+      "note": "Borrowing and automatic join guarantees"
+    },
+    {
+      "title": "Rust slice documentation",
+      "url": "https://doc.rust-lang.org/stable/std/primitive.slice.html",
+      "note": "Disjoint mutable slice partitioning"
+    },
+    {
+      "title": "Parallel Reproducible Summation",
+      "url": "https://doi.org/10.1109/TC.2014.2345391",
+      "note": "Original reproducible parallel-sum algorithms"
+    },
+    {
+      "title": "Numerical reproducibility for parallel reduction",
+      "url": "https://doi.org/10.1016/j.parco.2015.09.001",
+      "note": "Multicore reduction analysis"
+    },
+    {
+      "title": "Rust f32 documentation",
+      "url": "https://doc.rust-lang.org/stable/std/primitive.f32.html",
+      "note": "Floating-point semantics and portability"
+    }
   ],
-  "checks": ["predict_batch_parallel matches predict_batch for every row", "loss_and_gradient_parallel agrees with scalar loss_and_gradient within tolerance", "Workers return sums and 31 rows split across three unequal shards are divided by 31 exactly once", "Three-shard training on 31 rows lowers MSE by at least 1000 times", "Empty prediction succeeds while empty training, zero threads, and invalid shapes fail"],
-  "limitations": ["Operating-system threads are created for each call rather than retained in a pool", "Private gradients require one parameter-sized buffer per shard", "Fixed-order reduction is reproducible only for a fixed partition, build, and target", "The synthetic linear fixture validates mechanics rather than held-out generalization"]
+  "checks": [
+    "Distinct actual worker receipts and complete dense output agreement on uneven batches",
+    "Private loss and every gradient match scalar whole-batch calculations on 31,17,2 rows",
+    "Hand gradient/update and 60-step loss decrease pass; overflowing update leaves model unchanged",
+    "Transfer: threshold wrapper compares both execution paths and records launch-inclusive timing"
+  ],
+  "limitations": [
+    "Operating-system threads are created for each call rather than retained in a pool",
+    "Private gradients require one parameter-sized buffer per shard",
+    "Fixed-order reduction is reproducible only for a fixed partition, build, and target",
+    "The synthetic linear fixture validates mechanics rather than held-out generalization"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "partition",
+      "title": "Which dense outputs can different workers own?",
+      "session": 1,
+      "minutes": 11
+    },
+    {
+      "id": "inference-checkpoint",
+      "title": "Can the program prove that workers covered the batch?",
+      "session": 1,
+      "minutes": 20
+    },
+    {
+      "id": "partition-transfer",
+      "title": "What can threading make slower?",
+      "session": 1,
+      "minutes": 6
+    },
+    {
+      "id": "gradients",
+      "title": "What does each training worker need to return?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "gradient-checkpoint",
+      "title": "Can private sums become one complete gradient?",
+      "session": 2,
+      "minutes": 20
+    },
+    {
+      "id": "reproducibility",
+      "title": "What does a fixed reduction order guarantee?",
+      "session": 2,
+      "minutes": 7
+    },
+    {
+      "id": "run",
+      "title": "Does one simultaneous update actually train?",
+      "session": 3,
+      "minutes": 10
+    },
+    {
+      "id": "practice",
+      "title": "Where should the application switch to threads?",
+      "session": 3,
+      "minutes": 19
+    },
+    {
+      "id": "review",
+      "title": "Can you explain both ownership and numerical correctness?",
+      "session": 3,
+      "minutes": 7
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Partition dense inference",
+      "goal": "Implement scoped workers over disjoint output slices"
+    },
+    {
+      "id": 2,
+      "title": "Reduce private training sums",
+      "goal": "Implement fixed-order loss and gradient reduction with one batch average"
+    },
+    {
+      "id": 3,
+      "title": "Train and measure a policy",
+      "goal": "Verify simultaneous training and implement a measured inference threshold"
+    }
+  ],
+  "lab": {
+    "package": "s05-cpu",
+    "chapter": "27",
+    "entry": "labs/s05-cpu/src/ch27.rs",
+    "goal": "Verify simultaneous training and implement a measured inference threshold",
+    "check": "just lab-check 27",
+    "manual_checks": [
+      "Inspect parallel_dense: nonempty input chunks correspond to disjoint mutable output chunks; workers borrow immutable parameters, and joins/errors are handled.",
+      "Inspect loss_parallel: each worker owns private loss/gradient sums, parent reduces in creation order, divides by complete batch once, and updates only after all workers finish.",
+      "Worker receipts and numerical parity supplement source inspection; fixed grouping is not a cross-thread-count bitwise guarantee. Report thread launch/join allocation scope."
+    ]
+  },
+  "topic_coverage": {
+    "Partitioning": "partition",
+    "scoped threads": "inference-checkpoint",
+    "gradient reduction": "gradient-checkpoint",
+    "reproducibility": "reproducibility"
+  },
+  "interactives": [
+    {
+      "id": "threads-lanes",
+      "title": "Threads and SIMD lane mapper",
+      "file": "demo.js",
+      "anchor": "threads-lanes",
+      "illustration": true
+    }
+  ]
 }

@@ -1,77 +1,170 @@
 {
-    "outcomes": [
-        "Implement per-layer decoder KV caching",
-        "Verify cached logits against every full prefix",
-        "Apply temperature and top-k sampling",
-        "Schedule and stream multiple requests"
-    ],
-    "lessons": [
-        "Code and terminology carried forward",
-        "Reuse the past without changing the model",
-        "Match full-prefix logits, layer by layer",
-        "Turn logits into a controlled choice",
-        "Schedule requests and stream completed tokens",
-        "Run and investigate",
-        "Before you move on"
-    ],
-    "terms": {
-        "kv-cache": {
-            "name": "KV cache",
-            "definition": "Stored attention keys and values from earlier sequence positions.",
-            "explanation": "During autoregressive decoding, earlier hidden states do not change. Their projected keys and values can be retained in each decoder layer and reused by later queries. This avoids repeating their projection and feed-forward work. Cache memory still grows with layers, sequence positions, request batch size, head width, and precision, and every new query still reads the relevant cached keys and values during attention."
-        },
-        "top-k-sampling": {
-            "name": "top-k sampling",
-            "definition": "Sampling after retaining only the k highest-logit token IDs.",
-            "explanation": "Top-k sampling ranks candidate token IDs by logit, excludes every token outside the first k, renormalizes the remaining probability mass, and draws one token ID from that smaller set. With k equal to one it becomes greedy decoding. A larger k allows more variety but can admit weak candidates. The useful setting depends on the model, prompt, temperature, evaluation goal, and desired run reproducibility."
-        },
-        "continuous-batching": {
-            "name": "continuous batching",
-            "definition": "Changing the active request batch between one-token decoding iterations.",
-            "explanation": "Autoregressive serving advances requests one token at a time. Continuous batching uses those iteration boundaries to admit new requests and remove finished ones, rather than holding a fixed batch until its longest request completes. Each request retains separate tokens, cache, stopping state, and randomness. Actual gains depend on kernel shapes, scheduling overhead, cache capacity, fairness policy, and the request-length distribution."
-        },
-        "token-streaming": {
-            "name": "token streaming",
-            "definition": "Delivering sampled token IDs before the whole response is complete.",
-            "explanation": "A streaming interface emits each available token or text chunk as generation proceeds. The user can begin reading after the first token, reducing perceived latency and time to first output. Streaming does not inherently reduce the model computations or total completion time. A deployed stream additionally needs cancellation, backpressure, error signaling, and a transport protocol that preserves chunk order across the complete response."
-        }
+  "outcomes": [
+    "Implement per-layer decoder KV caching",
+    "Verify cached logits against every full prefix",
+    "Apply temperature and top-k sampling",
+    "Schedule and stream multiple requests"
+  ],
+  "lessons": [
+    "Can we generate the same logits while recomputing less?",
+    "Which internal values remain valid after a new token?",
+    "What changes when a prefix grows or weights shrink?",
+    "How can we prove every cached layer is correct?",
+    "How do temperature and top-k change a choice?",
+    "Which request should produce the next visible token?",
+    "Can the generator serve unequal requests fairly?",
+    "Can you explain the cache and serving tradeoffs?",
+    "Sources and further reading"
+  ],
+  "terms": {
+    "kv-cache": {
+      "name": "KV cache",
+      "definition": "Stored attention keys and values from earlier sequence positions.",
+      "explanation": "During autoregressive decoding, earlier hidden states do not change. Their projected keys and values can be retained in each decoder layer and reused by later queries. This avoids repeating their projection and feed-forward work. Cache memory still grows with layers, sequence positions, request batch size, head width, and precision, and every new query still reads the relevant cached keys and values during attention."
     },
-    "sources": [
-        {
-            "title": "PagedAttention",
-            "url": "https://arxiv.org/abs/2309.06180",
-            "note": "KV-cache memory management and serving measurements."
-        },
-        {
-            "title": "Orca",
-            "url": "https://www.usenix.org/conference/osdi22/presentation/yu",
-            "note": "Iteration-level scheduling and selective batching."
-        },
-        {
-            "title": "Transformers logits processors",
-            "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/generation/logits_process.py",
-            "note": "Primary implementation of temperature and top-k transforms."
-        },
-        {
-            "title": "TGI streaming",
-            "url": "https://huggingface.co/docs/text-generation-inference/en/conceptual/streaming",
-            "note": "Official streaming behavior and latency distinction."
-        },
-        {
-            "title": "The Curious Case of Neural Text Degeneration",
-            "url": "https://arxiv.org/abs/1904.09751",
-            "note": "Sampling tradeoffs and unreliable probability tails."
-        }
-    ],
-    "checks": [
-        "Cached logits differ from full-prefix last-row logits by less than 2e-5",
-        "Cache stores exactly two width-sized vectors per layer and position",
-        "Top-k one always returns the maximum-logit token",
-        "Context overflow returns an error"
-    ],
-    "limitations": [
-        "Scalar CPU scheduler does not fuse requests into batched matrix kernels",
-        "Cache uses the fixed learned-position window and must be replayed after cropping",
-        "Tiny random model establishes equivalence, not language quality or serving speed"
-    ]
+    "top-k-sampling": {
+      "name": "top-k sampling",
+      "definition": "Sampling after retaining only the k highest-logit token IDs.",
+      "explanation": "Top-k sampling ranks candidate token IDs by logit, excludes every token outside the first k, renormalizes the remaining probability mass, and draws one token ID from that smaller set. With k equal to one it becomes greedy decoding. A larger k allows more variety but can admit weak candidates. The useful setting depends on the model, prompt, temperature, evaluation goal, and desired run reproducibility."
+    },
+    "continuous-batching": {
+      "name": "continuous batching",
+      "definition": "Changing the active request batch between one-token decoding iterations.",
+      "explanation": "Autoregressive serving advances requests one token at a time. Continuous batching uses those iteration boundaries to admit new requests and remove finished ones, rather than holding a fixed batch until its longest request completes. Each request retains separate tokens, cache, stopping state, and randomness. Actual gains depend on kernel shapes, scheduling overhead, cache capacity, fairness policy, and the request-length distribution."
+    },
+    "token-streaming": {
+      "name": "token streaming",
+      "definition": "Delivering sampled token IDs before the whole response is complete.",
+      "explanation": "A streaming interface emits each available token or text chunk as generation proceeds. The user can begin reading after the first token, reducing perceived latency and time to first output. Streaming does not inherently reduce the model computations or total completion time. A deployed stream additionally needs cancellation, backpressure, error signaling, and a transport protocol that preserves chunk order across the complete response."
+    }
+  },
+  "sources": [
+    {
+      "title": "PagedAttention",
+      "url": "https://arxiv.org/abs/2309.06180",
+      "note": "KV-cache memory management and serving measurements."
+    },
+    {
+      "title": "Orca",
+      "url": "https://www.usenix.org/conference/osdi22/presentation/yu",
+      "note": "Iteration-level scheduling and selective batching."
+    },
+    {
+      "title": "Transformers logits processors",
+      "url": "https://github.com/huggingface/transformers/blob/main/src/transformers/generation/logits_process.py",
+      "note": "Primary implementation of temperature and top-k transforms."
+    },
+    {
+      "title": "TGI streaming",
+      "url": "https://huggingface.co/docs/text-generation-inference/en/conceptual/streaming",
+      "note": "Official streaming behavior and latency distinction."
+    },
+    {
+      "title": "The Curious Case of Neural Text Degeneration",
+      "url": "https://arxiv.org/abs/1904.09751",
+      "note": "Sampling tradeoffs and unreliable probability tails."
+    }
+  ],
+  "checks": [
+    "Cached logits differ from full-prefix last-row logits by less than 2e-5",
+    "Cache stores exactly two width-sized vectors per layer and position",
+    "Top-k one always returns the maximum-logit token",
+    "Context overflow returns an error"
+  ],
+  "limitations": [
+    "Scalar CPU scheduler does not fuse requests into batched matrix kernels",
+    "Cache uses the fixed learned-position window and must be replayed after cropping",
+    "Tiny random model establishes equivalence, not language quality or serving speed"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "continuity",
+      "title": "Can we generate the same logits while recomputing less?",
+      "session": 1,
+      "minutes": 5
+    },
+    {
+      "id": "cache",
+      "title": "Which internal values remain valid after a new token?",
+      "session": 1,
+      "minutes": 8
+    },
+    {
+      "id": "inference-work",
+      "title": "What changes when a prefix grows or weights shrink?",
+      "session": 1,
+      "minutes": 7
+    },
+    {
+      "id": "implementation",
+      "title": "How can we prove every cached layer is correct?",
+      "session": 1,
+      "minutes": 20
+    },
+    {
+      "id": "sampling",
+      "title": "How do temperature and top-k change a choice?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "serving",
+      "title": "Which request should produce the next visible token?",
+      "session": 2,
+      "minutes": 9
+    },
+    {
+      "id": "experiment",
+      "title": "Can the generator serve unequal requests fairly?",
+      "session": 2,
+      "minutes": 17
+    },
+    {
+      "id": "review",
+      "title": "Can you explain the cache and serving tradeoffs?",
+      "session": 2,
+      "minutes": 3
+    },
+    {
+      "id": "sources",
+      "title": "Sources and further reading",
+      "session": 2,
+      "minutes": 1
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Cache the decoder",
+      "goal": "Implement incremental inference and prove every-prefix parity and work counts"
+    },
+    {
+      "id": 2,
+      "title": "Sample and serve",
+      "goal": "Implement controlled sampling and fair event order on unequal requests"
+    }
+  ],
+  "lab": {
+    "package": "s08-adaptation",
+    "chapter": "40",
+    "entry": "labs/s08-adaptation/src/ch40.rs",
+    "goal": "Implement incremental inference and prove every-prefix parity and work counts; Implement controlled sampling and fair event order on unequal requests",
+    "check": "just lab-check 40"
+  },
+  "topic_coverage": {
+    "KV cache": "cache",
+    "sampling": "sampling",
+    "batching": "serving",
+    "streaming": "serving"
+  },
+  "interactives": [
+    {
+      "id": "inference-budget",
+      "title": "Inference memory, work and quantization",
+      "file": "demo.js",
+      "anchor": "inference-work",
+      "illustration": true
+    }
+  ]
 }

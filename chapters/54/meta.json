@@ -6,11 +6,15 @@
     "Distinguish predictive association from a causal intervention claim"
   ],
   "lessons": [
-    "One score cannot audit every risk",
-    "Interpretability and robustness",
-    "Fairness and privacy measurements",
-    "Security boundaries and causal limits",
-    "Run, challenge, and transfer"
+    "What does removing one feature explain?",
+    "How large a nearby change crosses the decision threshold?",
+    "Can you tell a changed explanation from a changed model?",
+    "Which denominator belongs to each error rate?",
+    "Can an attack distinguish members from easy examples?",
+    "Can your report expose a hidden disparity without inventing certainty?",
+    "Which inputs should never reach the numerical model?",
+    "How can every stratum disagree with the pooled comparison?",
+    "Can you state exactly what each audit result supports?"
   ],
   "terms": {
     "feature-attribution": {
@@ -40,21 +44,41 @@
     }
   },
   "sources": [
-    {"title": "Sanity Checks for Saliency Maps", "url": "https://proceedings.neurips.cc/paper/2018/hash/294a8ed24b1ad22ec2e7efea049b8737-Abstract.html", "note": "Model and data randomization checks"},
-    {"title": "Towards Deep Learning Models Resistant to Adversarial Attacks", "url": "https://arxiv.org/abs/1706.06083", "note": "Threat-model-specific robust optimization"},
-    {"title": "The Algorithmic Foundations of Differential Privacy", "url": "https://privacytools.seas.harvard.edu/sites/g/files/omnuum6656/files/privacytools/files/the_algorithmic_foundations_of_differential_privacy.pdf", "note": "DP definition, mechanisms, and composition"},
-    {"title": "Membership Inference Attacks Against Machine Learning Models", "url": "https://www.ieee-security.org/TC/SP2017/papers/313.pdf", "note": "Black-box membership inference"},
-    {"title": "Inherent Trade-Offs in the Fair Determination of Risk Scores", "url": "https://arxiv.org/abs/1609.05807", "note": "Fairness criterion incompatibilities"},
-    {"title": "The Seven Tools of Causal Inference", "url": "https://ftp.cs.ucla.edu/pub/stat_ser/r481.pdf", "note": "Observational and interventional distinctions"}
+    {
+      "title": "Sanity Checks for Saliency Maps",
+      "url": "https://proceedings.neurips.cc/paper/2018/hash/294a8ed24b1ad22ec2e7efea049b8737-Abstract.html",
+      "note": "Model and data randomization checks"
+    },
+    {
+      "title": "Towards Deep Learning Models Resistant to Adversarial Attacks",
+      "url": "https://arxiv.org/abs/1706.06083",
+      "note": "Threat-model-specific robust optimization"
+    },
+    {
+      "title": "The Algorithmic Foundations of Differential Privacy",
+      "url": "https://privacytools.seas.harvard.edu/sites/g/files/omnuum6656/files/privacytools/files/the_algorithmic_foundations_of_differential_privacy.pdf",
+      "note": "DP definition, mechanisms, and composition"
+    },
+    {
+      "title": "Membership Inference Attacks Against Machine Learning Models",
+      "url": "https://www.ieee-security.org/TC/SP2017/papers/313.pdf",
+      "note": "Black-box membership inference"
+    },
+    {
+      "title": "Inherent Trade-Offs in the Fair Determination of Risk Scores",
+      "url": "https://arxiv.org/abs/1609.05807",
+      "note": "Fairness criterion incompatibilities"
+    },
+    {
+      "title": "The Seven Tools of Causal Inference",
+      "url": "https://ftp.cs.ucla.edu/pub/stat_ser/r481.pdf",
+      "note": "Observational and interventional distinctions"
+    }
   ],
   "checks": [
-    "Group A and B metrics report counts, accuracy, positive rate, TPR, and FPR",
-    "A radius-0.25 perturbation reports boundary flips and maximum probability change",
-    "A loss-threshold membership attack evaluates a model trained only on marked member rows",
-    "Model::loss returns one row's stable binary cross-entropy rather than a dataset mean",
-    "Nonfinite, out-of-range, and wrong-schema inputs are rejected before scoring",
-    "The Chapter 54 comma-separated two-feature input is explicitly distinguished from Chapter 53's form-encoded scalar request",
-    "The crude association is +0.30 while the equal-stratum standardized association is -0.10"
+    "Run the working learner baseline with just lab 54; implement the complete named algorithms and run just lab-check 54.",
+    "Run the separate solution goal checks and package tests; compare actual numerical intermediates described in each session.",
+    "Complete each session’s changed-input explanation; passing executable checks does not grade explanatory reasoning."
   ],
   "limitations": [
     "The fictional twelve-row fixture is too small for policy conclusions or uncertainty estimates",
@@ -62,5 +86,95 @@
     "The membership experiment measures one attack and does not prove privacy when it fails",
     "No differential privacy mechanism or budget is implemented",
     "The standardized contrast remains associational without causal assumptions"
-  ]
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "interpretability",
+      "title": "What does removing one feature explain?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "robustness",
+      "title": "How large a nearby change crosses the decision threshold?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "explanation-check",
+      "title": "Can you tell a changed explanation from a changed model?",
+      "session": 1,
+      "minutes": 16
+    },
+    {
+      "id": "fairness",
+      "title": "Which denominator belongs to each error rate?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "privacy",
+      "title": "Can an attack distinguish members from easy examples?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "group-check",
+      "title": "Can your report expose a hidden disparity without inventing certainty?",
+      "session": 2,
+      "minutes": 16
+    },
+    {
+      "id": "security",
+      "title": "Which inputs should never reach the numerical model?",
+      "session": 3,
+      "minutes": 10
+    },
+    {
+      "id": "causal",
+      "title": "How can every stratum disagree with the pooled comparison?",
+      "session": 3,
+      "minutes": 12
+    },
+    {
+      "id": "practice",
+      "title": "Can you state exactly what each audit result supports?",
+      "session": 3,
+      "minutes": 16
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Explain one decision and challenge nearby inputs",
+      "goal": "Compute baseline-dependent attribution and a named perturbation test."
+    },
+    {
+      "id": 2,
+      "title": "Count who receives which errors",
+      "goal": "Implement subgroup confusion rates and interpret uncertainty and privacy controls."
+    },
+    {
+      "id": 3,
+      "title": "Separate protected boundaries from causal evidence",
+      "goal": "Test parsing boundaries and reconstruct a confounding reversal."
+    }
+  ],
+  "lab": {
+    "package": "s09-advanced",
+    "chapter": "54",
+    "entry": "labs/s09-advanced/src/ch54.rs",
+    "goal": "Implement subgroup audit metrics and explain tested attribution, perturbation, membership, parser, and causal limits.",
+    "check": "just lab-check 54"
+  },
+  "topic_coverage": {
+    "Interpretability": "interpretability",
+    "robustness": "robustness",
+    "privacy": "privacy",
+    "security": "security",
+    "fairness": "fairness",
+    "causal limits": "causal"
+  },
+  "interactives": []
 }

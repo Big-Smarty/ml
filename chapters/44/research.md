@@ -1,3 +1,13 @@
+# Chapter 44: September 2026 redesign verification
+
+Route: one GPT-6 Astra High section owner read the complete original lesson, metadata, research and reference implementations, plus the supplied advanced/interactive/learning-science evidence synthesis. No chapter subauthors or new research delegation. The original source verification below is retained as historical provenance; this current record supersedes old starter/exercise and implementation-scope statements.
+
+BM25, trained dual word-average embeddings, exact inner-product search, source text extraction and distinct coverage/risk denominators execute. The fourth query France lunar chess champion actually passes the heuristic gate despite being unsupported: source provenance does not establish relevance. No generative LM answering is claimed.
+
+The author rechecked the primary PPO and InstructGPT records for the added algorithm/pipeline attribution. New numeric claims come from executable course fixtures, not borrowed benchmark outcomes. See `guidance/redesign/section-08.md` for actual commands, values, prerequisite audit and limits.
+
+## Preserved source-verification history
+
 # Chapter 44 research notes
 
 Route: Sol High author with bounded GPT-5.6 Luna High research. Primary sources verified 2026-09-08.

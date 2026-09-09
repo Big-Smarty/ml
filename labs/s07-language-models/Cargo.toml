@@ -1,0 +1,13 @@
+[package]
+name = "s07-language-models"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+gpu = ["dep:ch30", "ch36/gpu"]
+
+[dependencies]
+ch36 = { path = "../../projects/ch36" }
+ch30 = { path = "../../projects/ch30", optional = true }
+
+[workspace]

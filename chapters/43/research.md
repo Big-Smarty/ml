@@ -1,3 +1,13 @@
+# Chapter 43: September 2026 redesign verification
+
+Route: one GPT-6 Astra High section owner read the complete original lesson, metadata, research and reference implementations, plus the supplied advanced/interactive/learning-science evidence synthesis. No chapter subauthors or new research delegation. The original source verification below is retained as historical provenance; this current record supersedes old starter/exercise and implementation-scope statements.
+
+New required response masks use telescoping prefix loss/gradient sums through the unchanged decoder API. Full LoRA updates both old factors and verifies direct/merged projection parity. Temperature-two gradient uses coefficients -tau*(p_tau-q_tau) over hard-target gradients; a finite-difference check validates the direct tau-squared objective. Real train, unseen-prefix, generic-retention and distillation-transfer evaluations run. Repeated backwards and full cloned effective models are explicit computational limitations.
+
+The author rechecked the primary PPO and InstructGPT records for the added algorithm/pipeline attribution. New numeric claims come from executable course fixtures, not borrowed benchmark outcomes. See `guidance/redesign/section-08.md` for actual commands, values, prerequisite audit and limits.
+
+## Preserved source-verification history
+
 # Chapter 43 research notes
 
 Route: Sol High author with bounded GPT-5.6 Luna High research. Primary sources verified 2026-09-08.

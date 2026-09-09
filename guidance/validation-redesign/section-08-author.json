@@ -1,0 +1,138 @@
+[
+  {
+    "chapter": 40,
+    "baseline": {
+      "exit": 0,
+      "stdout": "full-prefix baseline/oracle worst logit error: 0.00000000\nstored K+V scalars after 5 tokens: 0\nstream short: token 8\nstream short: token 9\nstream long: token 5\nstream long: token 8\nstream long: token 9\n",
+      "stderr": ""
+    },
+    "learner_check": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: recomputed 42 layer-token projection rows; cache goal is 12\n"
+    },
+    "solution": {
+      "exit": 0,
+      "stdout": "goal: every-prefix logits, 192 cached scalars, top-k and three-request fairness pass\n",
+      "stderr": ""
+    },
+    "learner_stages": {
+      "exit": 0,
+      "stdout": "stage 1 embedding: error=0.03640460; GOAL_NOT_MET\nstage 2 append: K/V rows=1/1; earlier rows retained=false; GOAL_NOT_MET\nstage 3 attention: equal-score mean error=1.00000000; GOAL_NOT_MET\nstage 4 incremental prefix: error=0.06758814, scalars=32, projection rows=6; GOAL_NOT_MET\n",
+      "stderr": ""
+    },
+    "solution_stages": {
+      "exit": 0,
+      "stdout": "stage 1 embedding: error=0.00000000; PASS\nstage 2 append: K/V rows=2/2; earlier rows retained=true; PASS\nstage 3 attention: equal-score mean error=0.00000000; PASS\nstage 4 incremental prefix: error=0.00000000, scalars=96, projection rows=6; PASS\n",
+      "stderr": ""
+    }
+  },
+  {
+    "chapter": 41,
+    "baseline": {
+      "exit": 0,
+      "stdout": "Baseline uses global-scale int8 for both requested precisions; build per-row packed storage.\ndense output: [-1.9705882, -7.647059, -5.8970585]; fp32 weight bytes=72\nrequested int8, int8-only baseline: output=[-1.9974523, -7.642427, -5.917091], bytes=30, rmse=0.019531, max_abs=0.026864\nrequested int4, int8-only baseline: output=[-1.9974523, -7.642427, -5.917091], bytes=30, rmse=0.019531, max_abs=0.026864\ndecoder int8: loss=2.500345 (fp32=2.500316), max_logit_error=0.000223, final_argmax=8\ndecoder int4: loss=2.500345 (fp32=2.500316), max_logit_error=0.000223, final_argmax=8\n",
+      "stderr": ""
+    },
+    "learner_check": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: pack signed int4 including odd tails; one byte per code is not int4 storage\n"
+    },
+    "solution": {
+      "exit": 0,
+      "stdout": "decoder int8: loss=2.500288 (fp32=2.500316), max_logit_error=0.000244, final_argmax=8\ndecoder int4: loss=2.501305 (fp32=2.500316), max_logit_error=0.005999, final_argmax=8\ngoal: signed packing, per-row scales, wide accumulation and real decoder comparison pass\n",
+      "stderr": ""
+    }
+  },
+  {
+    "chapter": 42,
+    "baseline": {
+      "exit": 0,
+      "stdout": "GQA mapping: query heads 0,1 -> KV 0; heads 2,3 -> KV 1\nmax |scalar - tiled| = 0.00000000\nmaterialized score estimate: 400 bytes; actual peak score vector per query/head: 5 entries\n",
+      "stderr": ""
+    },
+    "learner_check": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: implement online numerator/denominator merge: bounded scores must match every oracle coordinate\n"
+    },
+    "solution": {
+      "exit": 0,
+      "stdout": "goal: uneven tiles, large scores, causal coverage and GQA oracle agreement pass\n",
+      "stderr": ""
+    }
+  },
+  {
+    "chapter": 43,
+    "baseline": {
+      "exit": 0,
+      "stdout": "SFT loss: 1.3315 -> 0.0147\nfixed-A adapter zero-init max change=0.0; loss 1.3315 -> 1.2979; trained 16 of 784 base parameters\nLoRA unseen-prefix full-sequence loss 2.5665 -> 2.5396; generic retention 0.1890 -> 0.1887\ndistillation mean KL at tau=1: 1.79547 -> 0.01147\nresponse-masked SFT: train 1.3315 -> 0.0147; unseen prompt prefixes 2.5665 -> 0.8148\nmasked SFT generic-cycle retention loss 0.1890 -> 2.2172\ntau=2 evaluation of tau=1-trained baseline: transfer 0.97544 -> 0.05766; unseen tokens 0.67255 -> 0.25166\n",
+      "stderr": ""
+    },
+    "learner_check": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: masked prompt targets changed the response gradient; implement prefix-gradient selection\n"
+    },
+    "solution": {
+      "exit": 0,
+      "stdout": "response-masked SFT: train 1.9059 -> 0.0077; unseen prompt prefixes 1.9057 -> 0.0077\nmasked SFT generic-cycle retention loss 0.1890 -> 1.4812\ntau=2 distillation KL: transfer 0.74459 -> 0.01597; unseen tokens 0.47346 -> 0.23136\ngoal: response mask, frozen trained LoRA and temperature gradient pass\n",
+      "stderr": ""
+    }
+  },
+  {
+    "chapter": 44,
+    "baseline": {
+      "exit": 0,
+      "stdout": "dense training cross-entropy: 1.0984 -> 0.6028\ndense held-out retrieval hit@1: 3/3\nquery: Which satellites orbit the red planet?\n  lexical overlap top=planet scores=[0.0, 0.0, 0.0]\n  context=[planet] Mars has two moons named Phobos and Deimos.\n  extracted=Mars has two moons named Phobos and Deimos. [planet]\nquery: What is the French capital?\n  lexical overlap top=france scores=[0.0, 1.0, 0.0]\n  context=[france] Paris is the capital city of France.\n  extracted=Paris is the capital city of France. [france]\nquery: Who won the lunar chess final?\n  lexical overlap top=planet scores=[0.0, 0.0, 0.0]\n  abstain: retrieved evidence is unsupported or ambiguous\nquery: France lunar chess champion\n  lexical overlap top=france scores=[0.0, 1.0, 0.0]\n  context=[france] Paris is the capital city of France.\n  extracted=Paris is the capital city of France. [france]\ngrounded evaluation: dense hit@1=3/3, correct supported source=2/2, answered=3/4, answers with matching source label=3/3, unsupported abstained=1/2\nthreshold=0: coverage=1.00, selective risk=Some(0.5)\nthreshold=0.5: coverage=0.75, selective risk=Some(0.25)\nthreshold=0.85: coverage=0.25, selective risk=Some(0.0)\nthreshold=1: coverage=0.00, selective risk=Some(0.0)\nOverlapping unsupported example: 'France lunar chess champion'. A source ID proves provenance, not relevance.\n",
+      "stderr": ""
+    },
+    "learner_check": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: implement BM25 saturation and document-length normalization; overlap alone ties these documents\n"
+    },
+    "solution": {
+      "exit": 0,
+      "stdout": "threshold=0: coverage=1.00, selective risk=Some(0.5)\nthreshold=0.5: coverage=0.75, selective risk=Some(0.33333334)\nthreshold=0.85: coverage=0.25, selective risk=Some(0.0)\nthreshold=1: coverage=0.00, selective risk=None\nOverlapping unsupported example: 'France lunar chess champion'. A source ID proves provenance, not relevance.\ngoal: BM25, exact search, dense transfer, context and selective evaluation pass\n",
+      "stderr": ""
+    }
+  },
+  {
+    "chapter": 45,
+    "baseline": {
+      "exit": 0,
+      "stdout": "round-robin baseline value estimates: [0.140, 0.552, 0.858]\ngrid policy from states 0..3: [\"right\", \"right\", \"right\", \"right\"]\nREINFORCE action probabilities: [0.500, 0.500] -> [0.002, 0.998]\nTiny simulated rewards verify mechanics, not performance in a real environment.\nepsilon=0, expected cumulative regret seeds 7,19,31,47,59: [2800.0, 2800.0, 2800.0, 2800.0, 2800.0]\nepsilon=0.1, expected cumulative regret seeds 7,19,31,47,59: [130.4, 128.8, 152.4, 164.1, 159.7]\nepsilon=0.3, expected cumulative regret seeds 7,19,31,47,59: [422.6, 392.4, 401.4, 401.2, 407.0]\non-policy 100-sample baseline before PPO: [0.11057968740356915, 0.889420312596431]\n",
+      "stderr": ""
+    },
+    "learner_check": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: epsilon zero must select only the initial greedy arm in this fixture; replace round-robin collection\n"
+    },
+    "solution": {
+      "exit": 0,
+      "stdout": "epsilon=0, expected cumulative regret seeds 7,19,31,47,59: [2800.0, 2800.0, 2800.0, 2800.0, 2800.0]\nepsilon=0.1, expected cumulative regret seeds 7,19,31,47,59: [130.4, 128.8, 152.4, 164.1, 159.7]\nepsilon=0.3, expected cumulative regret seeds 7,19,31,47,59: [422.6, 392.4, 401.4, 401.2, 407.0]\nPPO sampled 32-transition batches, four epochs, frozen old policy: [0.00868795895385989, 0.9913120410461401]\ngoal: bandit, exact chain values, REINFORCE and PPO training pass\n",
+      "stderr": ""
+    }
+  },
+  {
+    "chapter": 46,
+    "baseline": {
+      "exit": 0,
+      "stdout": "Reference DPO pair at equal odds: 0.6931471805599453\nchosen-only supervised baseline loss: 1.1629 -> 0.0177\nlearned prompt policies: [[0.009196443343420159, 0.9825270885236564, 0.008276468132923327], [0.008635159584389755, 0.008974282993415112, 0.9823905574221952]]\nverifier-selected supervised target policy after 200 steps: [0.0034, 0.9932, 0.0034]\nThe categorical fixture checks objective mechanics; it is not language-model alignment evidence.\nfeature-average baseline (requested 200 optimizer steps; no optimizer yet)\nreward model weights=[1.0000, 0.0000]; held-out equal-length correct/wrong scores 1.0000/0.0000\nfeature-average baseline (requested 200 optimizer steps; no optimizer yet)\nconfounded reward data: weights=[1.0000, 1.0000]; novel wrong-but-long response [0,2] score=2.0000\nopposed-pair loss=0.726312; balanced conflicts cannot both reach zero\nincomplete verifier example: '5' passes 2+3 equality but supplies no requested derivation\n",
+      "stderr": ""
+    },
+    "learner_check": {
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: implement DPO's frozen-reference relative margin, not winner-only supervised loss\n"
+    },
+    "solution": {
+      "exit": 0,
+      "stdout": "reward model weights=[3.6288, 0.0000]; held-out equal-length correct/wrong scores 3.6288/0.0000\nconfounded reward data: weights=[2.1744, 2.1744]; novel wrong-but-long response [0,2] score=4.3489\nopposed-pair loss=0.693147; balanced conflicts cannot both reach zero\nincomplete verifier example: '5' passes 2+3 equality but supplies no requested derivation\ngoal: DPO gradient/order, trained verifier policy and learned reward transfer pass\n",
+      "stderr": ""
+    }
+  }
+]

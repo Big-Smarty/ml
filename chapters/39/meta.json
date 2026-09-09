@@ -7,15 +7,14 @@
     "Measure tokens per second without fabricating scale claims"
   ],
   "lessons": [
-    "Carry forward the decoder and trainer contracts",
-    "Define the experiment",
-    "Train the complete tiny decoder",
-    "Compute a target-weighted held-out metric",
-    "Generate a continuation",
-    "Save, load, and continue",
-    "Budget the larger option",
-    "Practice, debug, and extend",
-    "Review and transfer"
+    "What claim will this training experiment test?",
+    "How do we make every update a real section checkpoint?",
+    "Does the reported loss include every reserved target?",
+    "What changes when the model must continue its own text?",
+    "Can another run reproduce the next update?",
+    "What evidence belongs beside the checkpoint file?",
+    "Which larger run can we afford to claim?",
+    "What did this scratch model actually learn?"
   ],
   "terms": {
     "temperature": {
@@ -57,18 +56,108 @@
     }
   ],
   "checks": [
-    "Tiny test trains the complete decoder, lowers fixture loss, resumes the exact next public training update, rejects changed training IDs, and generates",
-    "Default run performs 40 optimizer steps over 960 target tokens, evaluates a separate held-out document, and reports measured throughput",
-    "Unequal held-out blocks are weighted by their target counts",
-    "Default and large configurations have byte vocabulary 256 and exactly 10,896 and 14,442,496 parameters",
-    "Large-info prints exactly 14,442,496 parameters without allocation",
-    "Large mode instantiates the real Trainer and requires an explicit step budget",
-    "After training binds a nonzero fingerprint, a resumed update rejects changed training IDs"
+    "just lab 39 runs the useful bounded learner baseline",
+    "just lab-check 39 calls the learner algorithms and fails until the full chapter goal is implemented",
+    "just lab 39 --solution --check checks the separate explained solution",
+    "Integrate actual document-safe accumulated training",
+    "Evaluate every target and generate from the trained decoder",
+    "Reproduce interrupted training with the same artifacts and call policy",
+    "Report controlled context/resource comparison with explicit limits",
+    "Supplied package tests verify numerical and boundary behavior; learner-written explanations and independent experiment reports are self-assessed"
   ],
   "limitations": [
-    "Bundled text is too small for useful language quality",
-    "The CLI checks exact 32-byte overlap; semantic decontamination needs additional detectors beyond Chapter 37’s whole-document audit",
-    "Large smoke performs one CPU forward and no extended training",
-    "GPU bridge is not fully resident"
-  ]
+    "Tiny CC0 corpus and model demonstrate mechanics, not broad language competence",
+    "Exact 32-byte overlap guard is not semantic decontamination",
+    "CLI takes one train and one validation byte file; multi-document APIs do not consume the chapter37 manifest",
+    "Single-run timing includes gradient allocation; large/GPU training remains explicit preserved reference work",
+    "Exact resume requires matching lab algorithm, corpus, context and microbatch policy"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "corpus",
+      "title": "What claim will this training experiment test?",
+      "session": 1,
+      "minutes": 15
+    },
+    {
+      "id": "tiny",
+      "title": "How do we make every update a real section checkpoint?",
+      "session": 1,
+      "minutes": 25
+    },
+    {
+      "id": "validation-metric",
+      "title": "Does the reported loss include every reserved target?",
+      "session": 2,
+      "minutes": 16
+    },
+    {
+      "id": "generation",
+      "title": "What changes when the model must continue its own text?",
+      "session": 2,
+      "minutes": 24
+    },
+    {
+      "id": "checkpoints",
+      "title": "Can another run reproduce the next update?",
+      "session": 3,
+      "minutes": 15
+    },
+    {
+      "id": "resume-audit",
+      "title": "What evidence belongs beside the checkpoint file?",
+      "session": 3,
+      "minutes": 25
+    },
+    {
+      "id": "scale",
+      "title": "Which larger run can we afford to claim?",
+      "session": 4,
+      "minutes": 15
+    },
+    {
+      "id": "report",
+      "title": "What did this scratch model actually learn?",
+      "session": 4,
+      "minutes": 25
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "What claim will this training experiment test?",
+      "goal": "Integrate actual document-safe accumulated training"
+    },
+    {
+      "id": 2,
+      "title": "Does the reported loss include every reserved target?",
+      "goal": "Evaluate every target and generate from the trained decoder"
+    },
+    {
+      "id": 3,
+      "title": "Can another run reproduce the next update?",
+      "goal": "Reproduce interrupted training with the same artifacts and call policy"
+    },
+    {
+      "id": 4,
+      "title": "Which larger run can we afford to claim?",
+      "goal": "Report controlled context/resource comparison with explicit limits"
+    }
+  ],
+  "lab": {
+    "package": "s07-language-models",
+    "chapter": "39",
+    "entry": "labs/s07-language-models/src/ch39.rs",
+    "goal": "Integrate actual document-safe accumulated training; Evaluate every target and generate from the trained decoder; Reproduce interrupted training with the same artifacts and call policy; Report controlled context/resource comparison with explicit limits",
+    "check": "just lab-check 39"
+  },
+  "topic_coverage": {
+    "Training": "tiny",
+    "validation": "validation-metric",
+    "checkpoints": "checkpoints",
+    "generation": "generation",
+    "resource budgeting": "scale"
+  },
+  "interactives": []
 }

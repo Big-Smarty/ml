@@ -1,0 +1,20 @@
+// Run with Node.js; tests the exact pure calculations used by both browser tools.
+const assert = require('node:assert/strict');
+const token = require('../../chapters/33/demo.js').calculate;
+const attention = require('../../chapters/35/demo.js').calculate;
+const close = (a,b,tolerance=1e-9) => assert.ok(Math.abs(a-b)<tolerance, `${a} != ${b}`);
+const byte = token();
+assert.equal(byte.ids.length,11);assert.equal(byte.target,97);assert.equal(byte.vocabulary,256);
+close(byte.loss,3.569828349260124);close(byte.probability,0.02816068706823159);
+const scalar = token('scalar');assert.equal(scalar.ids.length,9);assert.equal(scalar.vocabulary,5);
+const bpe = token('bpe');assert.deepEqual(bpe.ids,[99,256,195,169,32,99,256,195,169]);assert.equal(bpe.target,256);
+assert.ok(token('bytes',3).loss<byte.loss);
+const masked = attention();
+close(masked.probabilities[0],0.7310585786300049);assert.equal(masked.probabilities[2],0);
+close(masked.output[0],3.0757656854799804);close(masked.output[1],0.4621171572600098);
+assert.deepEqual(masked,attention(1,100,true));
+assert.deepEqual(masked.output,attention(1,-5,true).output);
+assert.deepEqual(attention(0).output,[2,1]);
+close(attention(1,100,false).output[0],20);
+close(masked.normalized.reduce((a,b)=>a+b,0),0);
+console.log('2 interactive calculations pass: units, target loss, one BPE merge, causal counterfactual, residual and normalization');

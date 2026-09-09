@@ -8,12 +8,18 @@
     "Separate tiny-fixture evidence from language quality and performance claims"
   ],
   "lessons": [
-    "Preserve the contextual decoder",
-    "Keep the selected router probability",
-    "Derive capacity and balancing",
-    "Run a controlled dense comparison",
-    "Train, resume, load and serve",
-    "Debug and challenge the capstone"
+    "What should the next character depend on?",
+    "Where does an expert sit inside the tensor flow?",
+    "Can a token follow learned routing while preserving its residual?",
+    "How does a language-model loss reach an unselected router logit?",
+    "Which saved values does a two-layer expert need?",
+    "Can the whole model agree with numerical derivatives?",
+    "How do you compare dense and sparse models fairly enough to learn something?",
+    "Why must evaluation avoid future-dependent capacity decisions?",
+    "Can the sparse model learn under a changed declared capacity?",
+    "Which state makes resumed training the same computation?",
+    "Can the trained file answer a bounded real request?",
+    "Can you hand over a reproducible trained experiment?"
   ],
   "terms": {
     "selected-expert-gate": {
@@ -60,16 +66,9 @@
     }
   ],
   "checks": [
-    "One-expert logits agree with independent dense decoder oracle within 1e-12",
-    "Future-token perturbation and prefix shortening preserve earlier inference logits",
-    "All small-model parameter derivatives pass f64 finite differences away from ties",
-    "Router task gradients are nonzero with auxiliary coefficient zero; unselected expert task gradients are zero",
-    "Capacity counts attempted and accepted routes; dropped tokens keep task loss and shared gradients but have no expert gradient",
-    "Public parameter span labels, order, ranges and the 3,303/2,879 total/active counts remain exact",
-    "Checkpoint next update resumes exactly and rejects malformed or changed training state",
-    "Fragmented requests yield complete 200 or 400 responses with correct byte length",
-    "Default 160-step run updates router, all experts, embeddings, attention and normalization",
-    "Custom corpus inputs require an explicit held-out file and reject equal/shared 32-byte passages"
+    "Run the working learner baseline with just lab 56; implement the complete named algorithms and run just lab-check 56.",
+    "Run the separate solution goal checks and package tests; compare actual numerical intermediates described in each session.",
+    "Complete each session’s changed-input explanation; passing executable checks does not grade explanatory reasoning."
   ],
   "limitations": [
     "Single-head single-block CPU f64 decoder using manual full backpropagation and SGD; no GPU or distributed expert communication",
@@ -80,5 +79,117 @@
     "Cyclic training windows create an artificial corpus-wrap transition; evaluation resets context at windows",
     "Local server handles one request, lacks authentication/TLS/batching/KV cache and does not provide a production service",
     "Eight-million-element configuration check is an aggregate structural bound, not peak process memory; extended training remains explicit"
-  ]
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "capstone",
+      "title": "What should the next character depend on?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "architecture",
+      "title": "Where does an expert sit inside the tensor flow?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "forward-build",
+      "title": "Can a token follow learned routing while preserving its residual?",
+      "session": 1,
+      "minutes": 16
+    },
+    {
+      "id": "router-gradient",
+      "title": "How does a language-model loss reach an unselected router logit?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "expert-gradient",
+      "title": "Which saved values does a two-layer expert need?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "backward-build",
+      "title": "Can the whole model agree with numerical derivatives?",
+      "session": 2,
+      "minutes": 16
+    },
+    {
+      "id": "training",
+      "title": "How do you compare dense and sparse models fairly enough to learn something?",
+      "session": 3,
+      "minutes": 12
+    },
+    {
+      "id": "evaluation",
+      "title": "Why must evaluation avoid future-dependent capacity decisions?",
+      "session": 3,
+      "minutes": 10
+    },
+    {
+      "id": "training-check",
+      "title": "Can the sparse model learn under a changed declared capacity?",
+      "session": 3,
+      "minutes": 16
+    },
+    {
+      "id": "checkpoint",
+      "title": "Which state makes resumed training the same computation?",
+      "session": 4,
+      "minutes": 12
+    },
+    {
+      "id": "serving",
+      "title": "Can the trained file answer a bounded real request?",
+      "session": 4,
+      "minutes": 10
+    },
+    {
+      "id": "practice",
+      "title": "Can you hand over a reproducible trained experiment?",
+      "session": 4,
+      "minutes": 16
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Read the whole contextual model",
+      "goal": "Trace token shapes and preserve the dense decoder while adding routed expert forward execution."
+    },
+    {
+      "id": 2,
+      "title": "Send the task gradient through routing",
+      "goal": "Implement the full sparse backward pass and verify derivatives away from routing boundaries."
+    },
+    {
+      "id": 3,
+      "title": "Compare actual learning under declared budgets",
+      "goal": "Train dense and sparse models and interpret held-out loss and routing evidence."
+    },
+    {
+      "id": 4,
+      "title": "Resume and serve the trained artifact",
+      "goal": "Verify complete recovery and a bounded real local generation request."
+    }
+  ],
+  "lab": {
+    "package": "s09-advanced",
+    "chapter": "56",
+    "entry": "labs/s09-advanced/src/ch56.rs",
+    "goal": "Implement and verify the full sparse decoder block, train against a dense baseline, evaluate, resume, and serve a bounded real request.",
+    "check": "just lab-check 56"
+  },
+  "topic_coverage": {
+    "Sparse MoE language model": "architecture",
+    "dense baseline": "training",
+    "training": "training-check",
+    "serving": "serving",
+    "evaluation": "evaluation"
+  },
+  "interactives": []
 }

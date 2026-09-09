@@ -1,0 +1,9 @@
+[package]
+name = "s08-adaptation"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ch36 = { path = "../../projects/ch36" }
+
+[workspace]

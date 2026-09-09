@@ -1,72 +1,71 @@
-# Arguments are passed as quoted positional values, never interpolated into shell code.
+# Arguments are quoted positional values, never interpolated into shell code.
 set positional-arguments
 
-# List the available course commands (also the default).
 help:
     @just --list
 
 alias list := help
 
-# Build the offline course website.
+# Build the offline guide into dist; never edits learner files.
 build:
     @python3 tools/build.py
 
-# Build and serve the website on localhost; optional port defaults to 8000.
+# Build and serve the guide; optional port defaults to 8000.
 serve port="8000":
     @python3 tools/serve.py --port "$1"
 
-# Run a reference chapter in release mode: just run 1 [program arguments...].
-run chapter *args:
-    @python3 tools/chapter.py run "$@"
+# Run a working chapter experiment: just lab 1 [experiment arguments...].
+lab chapter *args:
+    @python3 tools/chapter.py lab "$@"
 
-# Test a reference chapter; remaining arguments go to the Rust test runner.
-test chapter *args:
-    @python3 tools/chapter.py test "$@"
+alias run := lab
 
-# Run a learner starter; it should launch before you complete its TODO.
-starter chapter *args:
-    @python3 tools/chapter.py starter "$@"
+# Check your implementation against the chapter learning goal.
+lab-check chapter *args:
+    @python3 tools/chapter.py lab-check "$@"
 
-# Test a starter; failure at the guided TODO is intentional until you solve it.
-starter-test chapter *args:
-    @python3 tools/chapter.py starter-test "$@"
+# Check the supplied baseline, plumbing and separate solutions for this section.
+lab-test chapter *args:
+    @python3 tools/chapter.py lab-test "$@"
 
-# Format one reference chapter.
+alias test := lab-test
+
+# Run the explained solution; add --check to verify its learning goal.
+solution chapter *args:
+    @python3 tools/chapter.py solution "$@"
+
+# Format the chapter's section package.
 fmt chapter:
     @python3 tools/chapter.py fmt "$@"
 
-# Check reference formatting without changing files.
 fmt-check chapter:
     @python3 tools/chapter.py fmt-check "$@"
 
-# Build and audit content/links; omit chapters to check the whole course.
+# Audit content, metadata, source excerpts and links (authoring check).
 check *chapters:
     @python3 tools/chapter.py check "$@"
 
-# Build and run existing content/Rust/starter/exercise gates; omit chapters for all.
+# Audit the guide and run lab delivery checks, not a learner-completion grade.
 verify *chapters:
     @python3 tools/chapter.py verify "$@"
 
-# Open the official Rustlings runner, or pass a subcommand such as run ch01_01.
-exercises *args:
-    @python3 tools/chapter.py exercises "$@"
-
-# Explicit GPU run: chapters 29–32, or chapter 39 with its GPU feature enabled.
+# Explicit hardware execution for the GPU section; see each lab's flags.
 gpu chapter *args:
     @python3 tools/chapter.py gpu "$@"
 
-# Explicit ignored hardware tests: chapters 29–32 or 36.
-gpu-test chapter *args:
-    @python3 tools/chapter.py gpu-test "$@"
+# Preserved reference code, separate from the new learning labs.
+reference chapter *args:
+    @python3 tools/chapter.py reference "$@"
 
-# Show MNIST preparation help; downloading requires an explicit --download.
+reference-test chapter *args:
+    @python3 tools/chapter.py reference-test "$@"
+
+# Help for optional MNIST preparation; --download explicitly opts in.
 mnist *args:
     @python3 tools/prepare_mnist.py "$@"
 
-# Check chapter validation and literal argument forwarding without running models.
 recipes-test:
     @python3 tools/chapter.py self-test
 
-# Check shared API signatures, chapter transitions, glossary ownership, and tagged excerpts.
 consistency:
     @python3 tools/check_consistency.py

@@ -1,19 +1,167 @@
 {
-  "outcomes": ["Compute raw preference scores from user and item embeddings", "Train matrix factors with a stable regularized pairwise ranking loss", "Keep held-out positives out of optimization", "Calculate Recall@k, Precision@k, and nDCG@k from ranked candidates"],
-  "lessons": ["From sparse interactions to vectors", "Pairwise ranking", "Ranking metrics", "Run the recommender", "Practice and debug", "Review and transfer"],
+  "outcomes": [
+    "Implement simultaneous user/positive/negative updates and verify six derivatives",
+    "Implement binary nDCG with general multi-relevant denominators",
+    "Compare an explicit negative policy and complete a controlled experiment across the section"
+  ],
+  "lessons": [
+    "What does it mean to recommend an unseen item?",
+    "How can sparse interactions support a full score matrix?",
+    "Train all three vectors to improve one ordering",
+    "Which candidates make a held-out score meaningful?",
+    "What do recall, precision and rank discount actually count?",
+    "Implement rank-sensitive metrics for more than one relevant item",
+    "Did learning both tables improve held-out ordering?",
+    "What changes when a different negative supplies the contrast?",
+    "Choose one representation experiment and explain its failure"
+  ],
   "terms": {
-    "embedding": {"name":"embedding","definition":"A vector representation of an entity or input, obtained from a lookup table or computed by an encoder.","explanation":"This chapter learns lookup tables: a user or item ID selects one row, and training changes that row's coordinates. Other systems compute an embedding from an input with an encoder, such as a network that maps an image or text sequence to a vector. In this recommender, user and item embeddings share a latent space and their dot product is a raw preference score. Coordinates usually lack a unique human meaning because rotating every vector together can preserve all dot products. New users and items need a separate cold-start strategy."},
-    "matrix-factorization": {"name":"matrix factorization","definition":"An approximation of a user-item score matrix by products of lower-dimensional vectors.","explanation":"If U holds user embeddings and V holds item embeddings, the predicted score matrix is approximately UVᵀ. Each score is one user-vector/item-vector dot product. The factor dimension controls capacity and computation. Factorization shares evidence through nearby vectors, which is useful when the observed interaction matrix is sparse. Missing entries are not automatically negatives; the objective must state how observed positives, explicit negatives, confidence, and unobserved pairs are treated."},
-    "pairwise-ranking": {"name":"pairwise ranking","definition":"Learning to score a preferred item above a less-preferred item for the same user.","explanation":"A pairwise example contains a user, a positive item, and a negative item. Its margin is positive score minus negative score. The stable logistic loss softplus(−margin) becomes small when the ordering is correct and confident. Updating the user and both item vectors changes their relative position. Pairwise training aligns directly with ordering, but sampled or labeled negatives define the task and can introduce bias."},
-    "recall-at-k": {"name":"Recall@k","definition":"For each query q with nonempty relevant set Rq, Recall@k is |Rq ∩ TopK(q)| / |Rq|, averaged across queries.","explanation":"Compute the fraction separately for each query, then average those query-level values so queries with many relevant items do not silently receive more weight. In this chapter each user is a query and has exactly one held-out relevant item, so Recall@k is one when that item appears in the top k and zero otherwise. Under this one-relevant-item condition Recall@k equals HitRate@k. With several relevant items, hit rate only asks whether at least one was retrieved, while recall counts how much of the complete relevant set was retrieved."},
-    "ndcg": {"name":"nDCG","definition":"Normalized discounted cumulative gain, a ranking score that rewards relevant items near the top.","explanation":"DCG adds relevance divided by a logarithmic discount based on rank, so early relevant items contribute more. Dividing by the ideal DCG produces nDCG, usually between zero and one for nonnegative relevance. With one binary relevant item, the score is 1/log₂(rank+1), using one-based rank, when the item is within k. nDCG supports graded relevance, but its meaning still depends on which candidates and judgments were included in evaluation."}
+    "embedding": {
+      "name": "embedding",
+      "definition": "A vector representation of an entity or input, obtained from a lookup table or computed by an encoder.",
+      "explanation": "This chapter learns lookup tables: a user or item ID selects one row, and training changes that row's coordinates. Other systems compute an embedding from an input with an encoder, such as a network that maps an image or text sequence to a vector. In this recommender, user and item embeddings share a latent space and their dot product is a raw preference score. Coordinates usually lack a unique human meaning because rotating every vector together can preserve all dot products. New users and items need a separate cold-start strategy."
+    },
+    "matrix-factorization": {
+      "name": "matrix factorization",
+      "definition": "An approximation of a user-item score matrix by products of lower-dimensional vectors.",
+      "explanation": "If U holds user embeddings and V holds item embeddings, the predicted score matrix is approximately UVᵀ. Each score is one user-vector/item-vector dot product. The factor dimension controls capacity and computation. Factorization shares evidence through nearby vectors, which is useful when the observed interaction matrix is sparse. Missing entries are not automatically negatives; the objective must state how observed positives, explicit negatives, confidence, and unobserved pairs are treated."
+    },
+    "pairwise-ranking": {
+      "name": "pairwise ranking",
+      "definition": "Learning to score a preferred item above a less-preferred item for the same user.",
+      "explanation": "A pairwise example contains a user, a positive item, and a negative item. Its margin is positive score minus negative score. The stable logistic loss softplus(−margin) becomes small when the ordering is correct and confident. Updating the user and both item vectors changes their relative position. Pairwise training aligns directly with ordering, but sampled or labeled negatives define the task and can introduce bias."
+    },
+    "recall-at-k": {
+      "name": "Recall@k",
+      "definition": "For each query q with nonempty relevant set Rq, Recall@k is |Rq ∩ TopK(q)| / |Rq|, averaged across queries.",
+      "explanation": "Compute the fraction separately for each query, then average those query-level values so queries with many relevant items do not silently receive more weight. In this chapter each user is a query and has exactly one held-out relevant item, so Recall@k is one when that item appears in the top k and zero otherwise. Under this one-relevant-item condition Recall@k equals HitRate@k. With several relevant items, hit rate only asks whether at least one was retrieved, while recall counts how much of the complete relevant set was retrieved."
+    },
+    "ndcg": {
+      "name": "nDCG",
+      "definition": "Normalized discounted cumulative gain, a ranking score that rewards relevant items near the top.",
+      "explanation": "DCG adds relevance divided by a logarithmic discount based on rank, so early relevant items contribute more. Dividing by the ideal DCG produces nDCG, usually between zero and one for nonnegative relevance. With one binary relevant item, the score is 1/log₂(rank+1), using one-based rank, when the item is within k. nDCG supports graded relevance, but its meaning still depends on which candidates and judgments were included in evaluation."
+    }
   },
   "sources": [
-    {"title":"Matrix Factorization Techniques for Recommender Systems","url":"https://doi.org/10.1109/MC.2009.263","note":"Primary overview of latent-factor recommendation."},
-    {"title":"Collaborative Filtering for Implicit Feedback Datasets","url":"https://doi.org/10.1109/ICDM.2008.22","note":"Primary weighted factorization treatment of implicit feedback and confidence."},
-    {"title":"BPR: Bayesian Personalized Ranking from Implicit Feedback","url":"https://www.auai.org/uai2009/papers/UAI2009_0139_48141db02b9f0b02bc7158819ebfa2c7.pdf","note":"Original BPR objective and LearnBPR algorithm."},
-    {"title":"Cumulated Gain-based Evaluation of IR Techniques","url":"https://doi.org/10.1145/582415.582418","note":"Primary source for discounted and normalized cumulative gain."}
+    {
+      "title": "Matrix Factorization Techniques for Recommender Systems",
+      "url": "https://doi.org/10.1109/MC.2009.263",
+      "note": "Primary overview of latent-factor recommendation."
+    },
+    {
+      "title": "Collaborative Filtering for Implicit Feedback Datasets",
+      "url": "https://doi.org/10.1109/ICDM.2008.22",
+      "note": "Primary weighted factorization treatment of implicit feedback and confidence."
+    },
+    {
+      "title": "BPR: Bayesian Personalized Ranking from Implicit Feedback",
+      "url": "https://www.auai.org/uai2009/papers/UAI2009_0139_48141db02b9f0b02bc7158819ebfa2c7.pdf",
+      "note": "Original BPR objective and LearnBPR algorithm."
+    },
+    {
+      "title": "Cumulated Gain-based Evaluation of IR Techniques",
+      "url": "https://doi.org/10.1145/582415.582418",
+      "note": "Primary source for discounted and normalized cumulative gain."
+    }
   ],
-  "checks": ["Pairwise analytic and numerical gradients agree", "Stable softplus remains finite at extreme margins", "Training lowers the mean regularized loss over eight training triples", "Ranking metrics average four query-level values over a declared candidate set that excludes training positives"],
-  "limitations": ["The interaction matrix contains four users and six items with explicit course-authored negatives", "Evaluation has one held-out relevant item per query, so its Recall@k is also HitRate@k", "The model has two factors and no user/item biases", "Cold start, exposure bias, diversity, fairness, and online impact are outside the executable"]
+  "checks": [
+    "Item-only baseline lowers training loss while exposing worse held-out recall",
+    "Six coordinate updates checked against finite differences on an unfamiliar triple and settings",
+    "Multi-relevant ranking case checks recall, precision, discount and ideal normalization",
+    "Held-out interactions excluded from training; full solution lowers pairwise loss and improves ranking",
+    "Alternate explicit negatives are exposed through --rotate-negatives with printed triples"
+  ],
+  "limitations": [
+    "Four users,six items,two factors and explicit negatives",
+    "Four candidates and one held-out positive per query, not full-catalog evaluation",
+    "No biases, cold-start encoder, approximate retrieval or online outcome study",
+    "The fixture does not estimate exposure effects, fairness, diversity or user satisfaction"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "embeddings",
+      "title": "What does it mean to recommend an unseen item?",
+      "session": 1,
+      "minutes": 9
+    },
+    {
+      "id": "factorization",
+      "title": "How can sparse interactions support a full score matrix?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "pairwise",
+      "title": "Train all three vectors to improve one ordering",
+      "session": 1,
+      "minutes": 21
+    },
+    {
+      "id": "split",
+      "title": "Which candidates make a held-out score meaningful?",
+      "session": 2,
+      "minutes": 8
+    },
+    {
+      "id": "metrics",
+      "title": "What do recall, precision and rank discount actually count?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "metric-code",
+      "title": "Implement rank-sensitive metrics for more than one relevant item",
+      "session": 2,
+      "minutes": 20
+    },
+    {
+      "id": "experiment",
+      "title": "Did learning both tables improve held-out ordering?",
+      "session": 3,
+      "minutes": 8
+    },
+    {
+      "id": "sampling",
+      "title": "What changes when a different negative supplies the contrast?",
+      "session": 3,
+      "minutes": 12
+    },
+    {
+      "id": "review",
+      "title": "Choose one representation experiment and explain its failure",
+      "session": 3,
+      "minutes": 20
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Train a shared preference space",
+      "goal": "Implement simultaneous user/positive/negative updates and verify six derivatives"
+    },
+    {
+      "id": 2,
+      "title": "Implement ranking evaluation",
+      "goal": "Implement binary nDCG with general multi-relevant denominators"
+    },
+    {
+      "id": 3,
+      "title": "Compare and defend a section experiment",
+      "goal": "Compare an explicit negative policy and complete a controlled experiment across the section"
+    }
+  ],
+  "lab": {
+    "package": "s04-deep-learning",
+    "chapter": "24",
+    "entry": "labs/s04-deep-learning/src/ch24.rs",
+    "goal": "Train both factor tables with simultaneous pairwise gradients and replace nCG with binary nDCG",
+    "check": "just lab-check 24"
+  },
+  "topic_coverage": {
+    "Embeddings": "embeddings",
+    "matrix factorization": "factorization",
+    "ranking metrics": "metrics"
+  },
+  "interactives": []
 }

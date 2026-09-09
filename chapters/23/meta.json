@@ -1,17 +1,23 @@
 {
   "outcomes": [
-    "Unroll a recurrent state over time",
-    "Derive and check BPTT gradients through shared recurrent weights",
-    "Trace LSTM input, forget, output, and candidate paths",
-    "Distinguish teacher-forced one-step evaluation from free-running inference on a later contiguous segment"
+    "Implement recurrent forward and explain its signed-input cache",
+    "Accumulate all shared RNN parameter derivatives through time",
+    "Carry hidden and cell derivatives through a modern LSTM",
+    "Implement generated-prefix LSTM rollout and compare horizon-specific errors"
   ],
   "lessons": [
-    "Order changes the prediction problem",
-    "RNNs and BPTT",
-    "LSTM memory",
-    "Temporal evaluation",
-    "Practice and debug",
-    "Review and transfer"
+    "What changes when the previous observation becomes context?",
+    "Implement a state that survives the loop",
+    "Which value is the input, and which is the target?",
+    "How does a later mistake change an earlier recurrent use?",
+    "Build the complete recurrent reverse pass",
+    "When does repeated multiplication lose the past?",
+    "Can memory have an additive route through time?",
+    "Carry both hidden-state and cell-state credit",
+    "How would you distinguish useful memory from extra parameters?",
+    "Which targets are genuinely later than fitting?",
+    "Implement a forecast that consumes its own predictions",
+    "Can you explain where a forecast's errors accumulate?"
   ],
   "terms": {
     "recurrent-neural-network": {
@@ -32,7 +38,7 @@
     "teacher-forcing": {
       "name": "teacher forcing",
       "definition": "Supplying true previous sequence values as model inputs during training or explicitly teacher-forced evaluation.",
-      "explanation": "Teacher forcing supplies the true previous value or token to predict the next one. It is standard during sequence training and may also be chosen explicitly for one-step evaluation, where it isolates conditional next-step quality and prevents model errors from becoming later inputs. Free-running inference instead feeds each generated output back as the next input, so errors can accumulate. Results from these settings answer different questions and must be labeled. This chapter reports explicitly teacher-forced one-step MSE; it does not claim free-running forecast quality."
+      "explanation": "Teacher forcing supplies the actual previous observation during training or explicitly observed-input evaluation. Free-running inference instead feeds generated predictions back as inputs, so errors can affect later inputs. The chapter reports both protocols, with a state reset at the chronological boundary, and prints horizon-specific squared errors separately. Their numbers answer different questions and should not be relabelled as equivalent forecasting quality."
     }
   },
   "sources": [
@@ -68,15 +74,127 @@
     }
   ],
   "checks": [
-    "RNN and LSTM loss_and_gradient parameter derivatives match central differences",
-    "Both RNN and LSTM reduce later one-step validation MSE",
-    "Training targets all precede validation targets",
-    "Stable sigmoid avoids overflow for large negative inputs"
+    "All supplied forecasting baselines run on 80 training and 40 later targets",
+    "RNN states and input/recurrent gradients checked on an unfamiliar signed sequence",
+    "LSTM candidate-input and forget-bias gradients checked through time",
+    "Rollout seed 0.63 checks two sequential predictions and carried state;CLI horizon accepts 1..40",
+    "Full solution improves initialization while retaining the LSTM-versus-persistence failure"
   ],
   "limitations": [
-    "The signal is deterministic and course-authored",
-    "Models have one hidden scalar and use full-sequence gradient descent",
-    "Evaluation is explicitly teacher-forced one-step forecasting, not free-running inference",
-    "One temporal split does not quantify variability across origins"
-  ]
+    "One hidden scalar per model and a deterministic course-authored signal",
+    "One chronological origin; no uncertainty or real-world forecasting claim",
+    "Teacher-forced and free-running numbers use different input protocols and target ranges",
+    "Generated-prefix replay is O(horizon²), bounded to 40 by CLI; a stateful API is the long-horizon upgrade"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "state",
+      "title": "What changes when the previous observation becomes context?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "unroll",
+      "title": "Implement a state that survives the loop",
+      "session": 1,
+      "minutes": 20
+    },
+    {
+      "id": "targets",
+      "title": "Which value is the input, and which is the target?",
+      "session": 1,
+      "minutes": 8
+    },
+    {
+      "id": "bptt",
+      "title": "How does a later mistake change an earlier recurrent use?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "reverse",
+      "title": "Build the complete recurrent reverse pass",
+      "session": 2,
+      "minutes": 20
+    },
+    {
+      "id": "credit",
+      "title": "When does repeated multiplication lose the past?",
+      "session": 2,
+      "minutes": 8
+    },
+    {
+      "id": "lstm",
+      "title": "Can memory have an additive route through time?",
+      "session": 3,
+      "minutes": 12
+    },
+    {
+      "id": "lstm-backward",
+      "title": "Carry both hidden-state and cell-state credit",
+      "session": 3,
+      "minutes": 20
+    },
+    {
+      "id": "memory",
+      "title": "How would you distinguish useful memory from extra parameters?",
+      "session": 3,
+      "minutes": 8
+    },
+    {
+      "id": "evaluation",
+      "title": "Which targets are genuinely later than fitting?",
+      "session": 4,
+      "minutes": 10
+    },
+    {
+      "id": "rollout",
+      "title": "Implement a forecast that consumes its own predictions",
+      "session": 4,
+      "minutes": 20
+    },
+    {
+      "id": "review",
+      "title": "Can you explain where a forecast's errors accumulate?",
+      "session": 4,
+      "minutes": 10
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Unroll an ordered hidden state",
+      "goal": "Implement recurrent forward and explain its signed-input cache"
+    },
+    {
+      "id": 2,
+      "title": "Implement full RNN BPTT",
+      "goal": "Accumulate all shared RNN parameter derivatives through time"
+    },
+    {
+      "id": 3,
+      "title": "Extend LSTM credit through both states",
+      "goal": "Carry hidden and cell derivatives through a modern LSTM"
+    },
+    {
+      "id": 4,
+      "title": "Evaluate observed-input and free-running forecasts",
+      "goal": "Implement generated-prefix LSTM rollout and compare horizon-specific errors"
+    }
+  ],
+  "lab": {
+    "package": "s04-deep-learning",
+    "chapter": "23",
+    "entry": "labs/s04-deep-learning/src/ch23.rs",
+    "goal": "Extend one-lag/truncated/persistence baselines to full recurrent forward, BPTT and LSTM rollout",
+    "check": "just lab-check 23"
+  },
+  "topic_coverage": {
+    "RNNs": "state",
+    "BPTT": "bptt",
+    "LSTMs": "lstm",
+    "temporal evaluation": "evaluation"
+  },
+  "interactives": []
 }

@@ -6,11 +6,12 @@
     "Measure image-to-text Recall@1 on perturbed paired examples"
   ],
   "lessons": [
-    "Two modalities, one comparison space",
-    "Contrastive alignment by hand",
-    "Train the Rust dual encoder",
-    "Retrieval evaluation and failure modes",
-    "Practice and transfer"
+    "How can four pixels be compared with a word?",
+    "Why does the correct pair need competitors?",
+    "Can your loss resist the all-pairs-equal solution?",
+    "What does Recall@1 count?",
+    "When is a mismatched pair actually a valid answer?",
+    "Can the retrieval result survive a changed candidate contract?"
   ],
   "terms": {
     "multimodal-encoder": {
@@ -30,22 +31,99 @@
     }
   },
   "sources": [
-    {"title": "Learning Transferable Visual Models From Natural Language Supervision", "url": "https://arxiv.org/abs/2103.00020", "note": "CLIP dual encoders and symmetric contrastive loss"},
-    {"title": "ALIGN", "url": "https://arxiv.org/abs/2102.05918", "note": "Normalized dual-encoder contrastive learning"},
-    {"title": "LiT", "url": "https://arxiv.org/abs/2111.07991", "note": "Locked-image text tuning and retrieval evaluation"},
-    {"title": "OpenAI CLIP model card", "url": "https://github.com/openai/CLIP/blob/main/model-card.md", "note": "Documented evaluation and deployment limitations"}
+    {
+      "title": "Learning Transferable Visual Models From Natural Language Supervision",
+      "url": "https://arxiv.org/abs/2103.00020",
+      "note": "CLIP dual encoders and symmetric contrastive loss"
+    },
+    {
+      "title": "ALIGN",
+      "url": "https://arxiv.org/abs/2102.05918",
+      "note": "Normalized dual-encoder contrastive learning"
+    },
+    {
+      "title": "LiT",
+      "url": "https://arxiv.org/abs/2111.07991",
+      "note": "Locked-image text tuning and retrieval evaluation"
+    },
+    {
+      "title": "OpenAI CLIP model card",
+      "url": "https://github.com/openai/CLIP/blob/main/model-card.md",
+      "note": "Documented evaluation and deployment limitations"
+    }
   ],
   "checks": [
-    "Symmetric contrastive loss falls below one quarter of its initial value",
-    "Training updates both the image and text parameter matrices",
-    "Training-pair Recall@1 reaches 100 percent",
-    "Perturbed variants of the three same base patterns reach 100 percent Recall@1",
-    "Alternate supplied images, candidates, and temperature change the corresponding calculations",
-    "Zero, nonfinite, and out-of-vocabulary inputs are rejected"
+    "Run the working learner baseline with just lab 52; implement the complete named algorithms and run just lab-check 52.",
+    "Run the separate solution goal checks and package tests; compare actual numerical intermediates described in each session.",
+    "Complete each session’s changed-input explanation; passing executable checks does not grade explanatory reasoning."
   ],
   "limitations": [
     "The vocabulary contains three shape words and does not demonstrate open-vocabulary language understanding",
     "Perturbed evaluation examples share the three training concepts and are not an independent generalization benchmark",
     "Finite-difference optimization is practical only because the model has fourteen parameters"
-  ]
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "modalities",
+      "title": "How can four pixels be compared with a word?",
+      "session": 1,
+      "minutes": 11
+    },
+    {
+      "id": "contrastive",
+      "title": "Why does the correct pair need competitors?",
+      "session": 1,
+      "minutes": 13
+    },
+    {
+      "id": "alignment",
+      "title": "Can your loss resist the all-pairs-equal solution?",
+      "session": 1,
+      "minutes": 16
+    },
+    {
+      "id": "retrieval",
+      "title": "What does Recall@1 count?",
+      "session": 2,
+      "minutes": 11
+    },
+    {
+      "id": "negatives",
+      "title": "When is a mismatched pair actually a valid answer?",
+      "session": 2,
+      "minutes": 11
+    },
+    {
+      "id": "practice",
+      "title": "Can the retrieval result survive a changed candidate contract?",
+      "session": 2,
+      "minutes": 16
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Build a comparison between unlike inputs",
+      "goal": "Implement normalized dual-encoder similarities and symmetric contrastive loss."
+    },
+    {
+      "id": 2,
+      "title": "Ask whether retrieval learned the intended relationship",
+      "goal": "Train both towers and diagnose negative and evaluation assumptions."
+    }
+  ],
+  "lab": {
+    "package": "s09-advanced",
+    "chapter": "52",
+    "entry": "labs/s09-advanced/src/ch52.rs",
+    "goal": "Implement and train symmetric contrastive dual encoders and distinguish narrow retrieval checks from generalization.",
+    "check": "just lab-check 52"
+  },
+  "topic_coverage": {
+    "Image and text encoders": "modalities",
+    "contrastive alignment": "contrastive",
+    "retrieval": "retrieval"
+  },
+  "interactives": []
 }

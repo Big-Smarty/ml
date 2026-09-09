@@ -1,17 +1,137 @@
 {
-  "outcomes": ["Map GEMM notation and transposed dense weights to row-major offsets", "Explain how loop order changes spatial locality", "Implement a cache-blocked scalar matrix multiplication with edge tiles", "Reuse and correctly clear caller-owned output storage", "Benchmark multiple correct kernels without claiming a predetermined winner"],
-  "lessons": ["Matrix traversal", "Loop ordering", "Cache blocking", "Allocation reuse", "Locality practice", "Review and transfer"],
+  "outcomes": [
+    "Map GEMM notation and transposed dense weights to row-major offsets",
+    "Explain how loop order changes spatial locality",
+    "Implement a cache-blocked scalar matrix multiplication with edge tiles",
+    "Reuse and correctly clear caller-owned output storage",
+    "Benchmark multiple correct kernels without claiming a predetermined winner"
+  ],
+  "lessons": [
+    "Why can a different traversal compute the same answer?",
+    "What changes when the column loop moves inside?",
+    "Why does the second call need the same answer?",
+    "How do small tiles cover an odd matrix?",
+    "Can you implement the complete blocked kernel?",
+    "When is a locality improvement worth keeping?"
+  ],
   "terms": {
-    "cache-locality": {"name":"Cache locality","definition":"Access patterns that reuse recently fetched data or nearby addresses.","explanation":"Temporal locality reuses the same value before it leaves a fast memory level. Spatial locality uses neighboring values brought in by the same cache line. In row-major matrix multiplication, an inner column loop walks adjacent B and C entries while reusing one A scalar. Locality often reduces expensive data movement, but the performance effect depends on shape, cache hierarchy, compiler, and competing work, so it remains a measurement question."},
-    "cache-blocking": {"name":"Cache blocking","definition":"Partitioning loops into smaller tiles so a working set can be reused in cache.","explanation":"A blocked matrix multiplication steps through subranges of rows, shared indices, and columns before moving to another tile. Edge tiles use shorter ranges when dimensions are not divisible by the block size. The mathematical products are unchanged, though their accumulation grouping may differ. Block size is hardware- and shape-dependent: a small tile adds overhead, while a large tile may exceed cache. The reference keeps one explicit value for learners to measure and tune."},
-    "allocation-reuse": {"name":"Allocation reuse","definition":"Keeping an owned buffer across repeated operations and overwriting it for each result.","explanation":"Training and inference often repeat operations with stable shapes. Allocating a new output inside each kernel call mixes allocator cost with arithmetic and increases latency variation. Passing a mutable slice lets the caller allocate once. Accumulating kernels must still clear the slice exactly once before adding contributions; reuse never permits stale values. End-to-end measurements may include allocation when the application really performs it, but kernel comparisons should use identical preallocated storage."}
+    "cache-locality": {
+      "name": "Cache locality",
+      "definition": "Access patterns that reuse recently fetched data or nearby addresses.",
+      "explanation": "Temporal locality reuses the same value before it leaves a fast memory level. Spatial locality uses neighboring values brought in by the same cache line. In row-major matrix multiplication, an inner column loop walks adjacent B and C entries while reusing one A scalar. Locality often reduces expensive data movement, but the performance effect depends on shape, cache hierarchy, compiler, and competing work, so it remains a measurement question."
+    },
+    "cache-blocking": {
+      "name": "Cache blocking",
+      "definition": "Partitioning loops into smaller tiles so a working set can be reused in cache.",
+      "explanation": "A blocked matrix multiplication steps through subranges of rows, shared indices, and columns before moving to another tile. Edge tiles use shorter ranges when dimensions are not divisible by the block size. The mathematical products are unchanged, though their accumulation grouping may differ. Block size is hardware- and shape-dependent: a small tile adds overhead, while a large tile may exceed cache. The reference keeps one explicit value for learners to measure and tune."
+    },
+    "allocation-reuse": {
+      "name": "Allocation reuse",
+      "definition": "Keeping an owned buffer across repeated operations and overwriting it for each result.",
+      "explanation": "Training and inference often repeat operations with stable shapes. Allocating a new output inside each kernel call mixes allocator cost with arithmetic and increases latency variation. Passing a mutable slice lets the caller allocate once. Accumulating kernels must still clear the slice exactly once before adding contributions; reuse never permits stale values. End-to-end measurements may include allocation when the application really performs it, but kernel comparisons should use identical preallocated storage."
+    }
   },
   "sources": [
-    {"title":"Anatomy of High-Performance Matrix Multiplication","url":"https://www.cs.utexas.edu/~flame/books/ACMTOMS.pdf","note":"Original layered-memory GEMM analysis"},
-    {"title":"Intel Optimization Reference Manual","url":"https://cdrdv2-public.intel.com/671488/248966-Software-Optimization-Manual-V1-048.pdf","note":"Cache blocking and tiling"},
-    {"title":"Rust Vec documentation","url":"https://doc.rust-lang.org/stable/std/vec/struct.Vec.html","note":"Capacity and allocation reuse"},
-    {"title":"Rust slice documentation","url":"https://doc.rust-lang.org/stable/std/primitive.slice.html","note":"Safe chunking and remainders"}
+    {
+      "title": "Anatomy of High-Performance Matrix Multiplication",
+      "url": "https://www.cs.utexas.edu/~flame/books/ACMTOMS.pdf",
+      "note": "Original layered-memory GEMM analysis"
+    },
+    {
+      "title": "Intel Optimization Reference Manual",
+      "url": "https://cdrdv2-public.intel.com/671488/248966-Software-Optimization-Manual-V1-048.pdf",
+      "note": "Cache blocking and tiling"
+    },
+    {
+      "title": "Rust Vec documentation",
+      "url": "https://doc.rust-lang.org/stable/std/vec/struct.Vec.html",
+      "note": "Capacity and allocation reuse"
+    },
+    {
+      "title": "Rust slice documentation",
+      "url": "https://doc.rust-lang.org/stable/std/primitive.slice.html",
+      "note": "Safe chunking and remainders"
+    }
   ],
-  "checks": ["Scalar row-col-inner, scalar row-inner-col, and blocked row-inner-col kernels agree with an f64 reference", "The correctness fixture uses m=3, k=5, n=7 and blocks 1, 4, 16, and usize::MAX", "Zero dimensions, mismatched storage, and a zero block return errors", "Each timed kernel reuses one caller-owned output allocation and reports median, range, and GFLOP/s", "Starter run produces the prior unchecked scalar result while its new loop-order test reaches the TODO"],
-  "limitations": ["The project omits packed panels, register microkernels, and multilevel tiling", "Block size 32 is an experiment rather than a portable optimum", "The benchmark does not establish that one traversal wins for every matrix shape"]
+  "checks": [
+    "Hand result and varied nonsquare shapes agree with f64",
+    "Block 1,4,16,usize::MAX visit correct clipped tiles; repeated calls preserve bias and clear prior output",
+    "Zero block is an error; transfer block 2 visits 24 tiles on 3×5×7",
+    "Prepared B-layout timings are distinct from dense wrapper allocation and transpose"
+  ],
+  "limitations": [
+    "The project omits packed panels, register microkernels, and multilevel tiling",
+    "Block size 32 is an experiment rather than a portable optimum",
+    "The benchmark does not establish that one traversal wins for every matrix shape"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "formula",
+      "title": "Why can a different traversal compute the same answer?",
+      "session": 1,
+      "minutes": 9
+    },
+    {
+      "id": "ordering",
+      "title": "What changes when the column loop moves inside?",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "allocation",
+      "title": "Why does the second call need the same answer?",
+      "session": 1,
+      "minutes": 8
+    },
+    {
+      "id": "blocking",
+      "title": "How do small tiles cover an odd matrix?",
+      "session": 2,
+      "minutes": 11
+    },
+    {
+      "id": "practice",
+      "title": "Can you implement the complete blocked kernel?",
+      "session": 2,
+      "minutes": 20
+    },
+    {
+      "id": "review",
+      "title": "When is a locality improvement worth keeping?",
+      "session": 2,
+      "minutes": 6
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Change traversal and preserve storage",
+      "goal": "Implement row-inner-column accumulation with output reuse"
+    },
+    {
+      "id": 2,
+      "title": "Tile and measure the same product",
+      "goal": "Implement clipped tiles, verify unfamiliar shapes and report measured variants"
+    }
+  ],
+  "lab": {
+    "package": "s05-cpu",
+    "chapter": "26",
+    "entry": "labs/s05-cpu/src/ch26.rs",
+    "goal": "Implement clipped tiles, verify unfamiliar shapes and report measured variants",
+    "check": "just lab-check 26",
+    "manual_checks": [
+      "Inspect blocked: three clipped tile-origin loops contain row-inner-column traversal; the A scalar is reused across contiguous B/C columns.",
+      "Bias initializes each output exactly once before all inner tiles; repeat calls overwrite prior output. Tile counts and numerical parity do not prove locality.",
+      "Compare actual configured timings, including whether W-to-B layout preparation is excluded."
+    ]
+  },
+  "topic_coverage": {
+    "Loop ordering": "ordering",
+    "cache locality": "ordering",
+    "blocking": "blocking",
+    "allocation reuse": "allocation"
+  },
+  "interactives": []
 }

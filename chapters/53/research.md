@@ -1,3 +1,9 @@
+## Active redesign route (Section 09)
+
+The active learner route is `just lab 53` → edit `labs/s09-advanced/src/ch53.rs` → `just lab-check 53`. The lesson now contains 2 sessions and 6 ordered question-led steps. Goal: Verify train/serve artifact parity; implement explicit canary promotion and a bounded recent-input drift window. The separately explained solution is `labs/s09-advanced/src/solutions/ch53.rs`; supplied validation, fixtures, and I/O are in `src/common/ch53.rs`. Original `projects/ch53` implementations remain preserved reference evidence. Earlier workflow descriptions below are historical reference notes and do not replace this active route.
+
+Every session includes a concrete worked calculation, implementation checkpoint, graduated hints, an explained answer, and a changed-input transfer task. The browser illustration in chapter 48 executes only a fixed local arithmetic fixture; no browser control claims to run Rust. Executable goal checks and source-review limits are recorded in `guidance/redesign/section-09.md`.
+
 # Chapter 53 research notes
 
 ## Route and verification

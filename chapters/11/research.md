@@ -12,3 +12,10 @@ See [the per-chapter review and validation record](../../guidance/astra-review-0
 ## Consistency revision — 2026-09-08
 
 The Chapter 10 data and multiclass-loss contract now carries through directly: stored arrays are `images` and `labels`, the stable primitive is `cross_entropy_from_logits(logits, target)`, and batch loss and gradient both average over examples. Chapter 11 adds a hidden-activation forward cache, a named W1/b1/W2/b2 packing map, and stateful optimizer steps. These are local terminology and interface changes; no new external research, dataset, numerical formula, CLI mode, or checkpoint field was introduced.
+
+
+## Section redesign — 2026-09-09
+
+One GPT-6 Astra High owner authored Chapters 07–11 as a connected section. Read original lessons, metadata, research and both project variants before replacement. The existing source verification above grounds the mathematical claims; no new claim of MNIST performance is made. The new lab reuses the reference arithmetic and supplied parsing/checkpoint mechanisms, with an append-only scalar tape replacing Rc/RefCell infrastructure. Core exercises now call learner functions through explicit goal checks; normal tests validate functioning baselines and the separate completed solutions.
+
+The route uses the supplied foundations audit, learning-science synthesis and interactive design research: runnable baseline, collocated arithmetic and code, progressive help, a meaningful implementation and changed-input evidence. These are design inferences, not evidence that this complete course format is experimentally proven superior. Session times are planning estimates, not measured learner times. See `guidance/redesign/section-02.md` for topic/action/check mapping and actual validation.

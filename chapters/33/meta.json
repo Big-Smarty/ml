@@ -1,1 +1,141 @@
-{"outcomes":["Create byte and Unicode-character n-gram counts with explicit units","Derive and train an embedding next-byte classifier with stable cross-entropy","Distinguish byte class IDs, logits, probabilities, targets, and predictions","Trace gradients into both the selected embedding row and output matrix","Distinguish training fit from held-out language quality"],"lessons":["Code and terminology carried forward","Turn text into supervised examples","Counts are the first language model","Replace a token ID with learned coordinates","Train the Rust predictor","Practice and debug","Review and transfer"],"terms":{"language-model":{"name":"language model","definition":"A model that assigns probabilities to token sequences by predicting each next token from earlier tokens.","explanation":"A language model turns sequence modeling into repeated conditional prediction. For tokens x₁…xₜ, it estimates each probability p(xᵢ | x₁…xᵢ₋₁). Multiplying these conditional probabilities assigns a probability to the sequence; training usually minimizes their summed or averaged negative logarithms. The chapter's bigram embedding model uses only one earlier byte, while later decoder blocks use a longer causal context. Low loss on a tiny training fixture demonstrates fitting, not broad linguistic ability."},"n-gram":{"name":"n-gram","definition":"A contiguous sequence of n specified units, such as bytes, scalar values, or tokens.","explanation":"The unit must be named because byte, Unicode scalar, grapheme, and tokenizer-token n-grams differ. Counts of adjacent units form a simple conditional language model: a bigram table predicts the second unit from the first. Increasing n adds context but makes the number of possible histories grow rapidly, leaving many unseen. N-grams are useful baselines and diagnostics even when a neural model is used, because their counts expose tokenization, boundary, and data-leakage mistakes."}},"sources":[{"title":"A Neural Probabilistic Language Model","url":"https://www.jmlr.org/papers/v3/bengio03a.html","note":"Foundational learned distributed representations for next-token prediction."},{"title":"Enriching Word Vectors with Subword Information","url":"https://arxiv.org/abs/1607.04606","note":"Original character n-gram embedding paper."},{"title":"Official fastText source","url":"https://github.com/facebookresearch/fastText","note":"Primary implementation reference."},{"title":"Charagram","url":"https://arxiv.org/abs/1607.02789","note":"Character n-gram representation paper."},{"title":"Character-Aware Neural Language Models","url":"https://arxiv.org/abs/1508.06615","note":"Primary character-aware LM paper."}],"checks":["Reference tests confirm byte and character units differ","Model::loss, Model::step, and Model::predict retain their documented roles with explicit data and learning_rate arguments","Embedding and output parameters both change while mean next-byte cross-entropy falls","Tagged Rust excerpts match the reference source","Default project runs offline without arguments","Starter runs and its guided test fails at a literal TODO"],"limitations":["The trainable model uses one previous byte","The course-authored corpus is not evidence of real-world quality","Raw n-gram probabilities are unsmoothed"]}
+{
+  "outcomes": [
+    "Create byte and Unicode-character n-gram counts with explicit units",
+    "Derive and train an embedding next-byte classifier with stable cross-entropy",
+    "Distinguish byte class IDs, logits, probabilities, targets, and predictions",
+    "Trace gradients into both the selected embedding row and output matrix",
+    "Distinguish training fit from held-out language quality"
+  ],
+  "lessons": [
+    "What exactly follows the byte?",
+    "What can counts tell us before we train?",
+    "How can a learned row predict every byte?",
+    "How do the embedding and output weights learn together?",
+    "Did learning help the reserved text?"
+  ],
+  "terms": {
+    "language-model": {
+      "name": "language model",
+      "definition": "A model that assigns probabilities to token sequences by predicting each next token from earlier tokens.",
+      "explanation": "A language model turns sequence modeling into repeated conditional prediction. For tokens x₁…xₜ, it estimates each probability p(xᵢ | x₁…xᵢ₋₁). Multiplying these conditional probabilities assigns a probability to the sequence; training usually minimizes their summed or averaged negative logarithms. The chapter's bigram embedding model uses only one earlier byte, while later decoder blocks use a longer causal context. Low loss on a tiny training fixture demonstrates fitting, not broad linguistic ability."
+    },
+    "n-gram": {
+      "name": "n-gram",
+      "definition": "A contiguous sequence of n specified units, such as bytes, scalar values, or tokens.",
+      "explanation": "The unit must be named because byte, Unicode scalar, grapheme, and tokenizer-token n-grams differ. Counts of adjacent units form a simple conditional language model: a bigram table predicts the second unit from the first. Increasing n adds context but makes the number of possible histories grow rapidly, leaving many unseen. N-grams are useful baselines and diagnostics even when a neural model is used, because their counts expose tokenization, boundary, and data-leakage mistakes."
+    }
+  },
+  "sources": [
+    {
+      "title": "A Neural Probabilistic Language Model",
+      "url": "https://www.jmlr.org/papers/v3/bengio03a.html",
+      "note": "Foundational learned distributed representations for next-token prediction."
+    },
+    {
+      "title": "Enriching Word Vectors with Subword Information",
+      "url": "https://arxiv.org/abs/1607.04606",
+      "note": "Original character n-gram embedding paper."
+    },
+    {
+      "title": "Official fastText source",
+      "url": "https://github.com/facebookresearch/fastText",
+      "note": "Primary implementation reference."
+    },
+    {
+      "title": "Charagram",
+      "url": "https://arxiv.org/abs/1607.02789",
+      "note": "Character n-gram representation paper."
+    },
+    {
+      "title": "Character-Aware Neural Language Models",
+      "url": "https://arxiv.org/abs/1508.06615",
+      "note": "Primary character-aware LM paper."
+    }
+  ],
+  "checks": [
+    "just lab 33 runs the useful bounded learner baseline",
+    "just lab-check 33 calls the learner algorithms and fails until the full chapter goal is implemented",
+    "just lab 33 --solution --check checks the separate explained solution",
+    "Construct smoothed conditional successor counts and distinguish byte/scalar targets",
+    "Implement and gradient-check simultaneous embedding/output/bias learning",
+    "Compare fixed-budget widths on untouched text and interpret errors",
+    "Supplied package tests verify numerical and boundary behavior; learner-written explanations and independent experiment reports are self-assessed"
+  ],
+  "limitations": [
+    "One previous byte, fixed 256-class vocabulary; no long-context model",
+    "Tiny source-authored train/validation strings establish mechanisms only",
+    "Count comparison uses add-one smoothing; byte_model count fixture and embedding update are separate checks"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "prediction-task",
+      "title": "What exactly follows the byte?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "ngrams",
+      "title": "What can counts tell us before we train?",
+      "session": 1,
+      "minutes": 23
+    },
+    {
+      "id": "embeddings",
+      "title": "How can a learned row predict every byte?",
+      "session": 2,
+      "minutes": 15
+    },
+    {
+      "id": "run",
+      "title": "How do the embedding and output weights learn together?",
+      "session": 2,
+      "minutes": 25
+    },
+    {
+      "id": "compare",
+      "title": "Did learning help the reserved text?",
+      "session": 3,
+      "minutes": 35
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "What exactly follows the byte?",
+      "goal": "Construct smoothed conditional successor counts and distinguish byte/scalar targets"
+    },
+    {
+      "id": 2,
+      "title": "How can a learned row predict every byte?",
+      "goal": "Implement and gradient-check simultaneous embedding/output/bias learning"
+    },
+    {
+      "id": 3,
+      "title": "Did learning help the reserved text?",
+      "goal": "Compare fixed-budget widths on untouched text and interpret errors"
+    }
+  ],
+  "lab": {
+    "package": "s07-language-models",
+    "chapter": "33",
+    "entry": "labs/s07-language-models/src/ch33.rs",
+    "goal": "Construct smoothed conditional successor counts and distinguish byte/scalar targets; Implement and gradient-check simultaneous embedding/output/bias learning; Compare fixed-budget widths on untouched text and interpret errors",
+    "check": "just lab-check 33"
+  },
+  "topic_coverage": {
+    "Byte models": "prediction-task",
+    "n-grams": "ngrams",
+    "embeddings": "embeddings",
+    "next-token loss": "run"
+  },
+  "interactives": [
+    {
+      "id": "token-loss-lab",
+      "title": "Text units to next-token loss",
+      "file": "demo.js",
+      "anchor": "token-loss-lab",
+      "illustration": true
+    }
+  ]
+}

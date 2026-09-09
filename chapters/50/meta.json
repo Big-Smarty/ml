@@ -6,11 +6,15 @@
     "Resume minibatch training from validated state and explain the limits of equivalence"
   ],
   "lessons": [
-    "Why one worker stops being enough",
-    "Data-parallel gradients",
-    "Tensor and pipeline partitions",
-    "Recovery and equivalence",
-    "Run, debug, and transfer"
+    "Why can two correct worker means give the wrong update?",
+    "Which messages make replicas agree?",
+    "Will your reduction survive an uneven partition?",
+    "What must be summed when weights live on different workers?",
+    "Why does the first stage need a message in the reverse direction?",
+    "Can both parameter partitions learn the same step?",
+    "What does a checkpoint need to remember besides weights?",
+    "How do you prove that an interruption changed nothing essential?",
+    "Can you make a plausible checkpoint resume the wrong batch?"
   ],
   "terms": {
     "data-parallelism": {
@@ -35,23 +39,128 @@
     }
   },
   "sources": [
-    {"title": "PyTorch Distributed Data Parallel design note", "url": "https://docs.pytorch.org/docs/stable/notes/ddp.html", "note": "Replica synchronization and gradient reduction"},
-    {"title": "Writing Distributed Applications with PyTorch", "url": "https://docs.pytorch.org/tutorials/intermediate/dist_tuto.html", "note": "Collective reduction semantics"},
-    {"title": "Megatron-LM", "url": "https://arxiv.org/abs/1909.08053", "note": "Intra-layer tensor parallelism"},
-    {"title": "GPipe", "url": "https://arxiv.org/abs/1811.06965", "note": "Pipeline microbatches and bubbles"},
-    {"title": "PyTorch Saving and Loading Models", "url": "https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html", "note": "Resume-capable training state"}
+    {
+      "title": "PyTorch Distributed Data Parallel design note",
+      "url": "https://docs.pytorch.org/docs/stable/notes/ddp.html",
+      "note": "Replica synchronization and gradient reduction"
+    },
+    {
+      "title": "Writing Distributed Applications with PyTorch",
+      "url": "https://docs.pytorch.org/tutorials/intermediate/dist_tuto.html",
+      "note": "Collective reduction semantics"
+    },
+    {
+      "title": "Megatron-LM",
+      "url": "https://arxiv.org/abs/1909.08053",
+      "note": "Intra-layer tensor parallelism"
+    },
+    {
+      "title": "GPipe",
+      "url": "https://arxiv.org/abs/1811.06965",
+      "note": "Pipeline microbatches and bubbles"
+    },
+    {
+      "title": "PyTorch Saving and Loading Models",
+      "url": "https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html",
+      "note": "Resume-capable training state"
+    }
   ],
   "checks": [
-    "Data-parallel steps match serial steps within 1e-12 for batch sizes 1, 3, and 5",
-    "Tensor-parallel prediction and parameter update match the serial reference within 1e-12",
-    "Two-stage pipeline backward matches serial and finite-difference gradients for three- and four-example data slices",
-    "Empty or nonfinite pipeline data, invalid learning rates, and nonfinite updates are rejected",
-    "CH50v1 parameter order and cursor bytes remain stable, and a restored two-minibatch run equals the uninterrupted local run",
-    "Malformed and nonfinite checkpoints are rejected"
+    "Run the working learner baseline with just lab 50; implement the complete named algorithms and run just lab-check 50.",
+    "Run the separate solution goal checks and package tests; compare actual numerical intermediates described in each session.",
+    "Complete each session’s changed-input explanation; passing executable checks does not grade explanatory reasoning."
   ],
   "limitations": [
     "Threads and channels verify local CPU communication, not multi-GPU execution or network collectives",
     "The checkpoint demo round-trips a serialized string in one process; it does not persist to disk, relaunch, or implement automatic worker failure detection",
     "Floating-point equivalence is tolerance-based across different reduction orders and hardware"
-  ]
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "replicas",
+      "title": "Why can two correct worker means give the wrong update?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "collectives",
+      "title": "Which messages make replicas agree?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "data-parallel",
+      "title": "Will your reduction survive an uneven partition?",
+      "session": 1,
+      "minutes": 16
+    },
+    {
+      "id": "tensor",
+      "title": "What must be summed when weights live on different workers?",
+      "session": 2,
+      "minutes": 11
+    },
+    {
+      "id": "pipeline",
+      "title": "Why does the first stage need a message in the reverse direction?",
+      "session": 2,
+      "minutes": 11
+    },
+    {
+      "id": "model-parallel",
+      "title": "Can both parameter partitions learn the same step?",
+      "session": 2,
+      "minutes": 16
+    },
+    {
+      "id": "recovery",
+      "title": "What does a checkpoint need to remember besides weights?",
+      "session": 3,
+      "minutes": 12
+    },
+    {
+      "id": "equivalence",
+      "title": "How do you prove that an interruption changed nothing essential?",
+      "session": 3,
+      "minutes": 10
+    },
+    {
+      "id": "practice",
+      "title": "Can you make a plausible checkpoint resume the wrong batch?",
+      "session": 3,
+      "minutes": 16
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Give every example the same weight",
+      "goal": "Implement a communicating data-parallel update and verify uneven batches."
+    },
+    {
+      "id": 2,
+      "title": "Split a model and send gradients home",
+      "goal": "Trace tensor and pipeline partitions and update both stages."
+    },
+    {
+      "id": 3,
+      "title": "Continue the same training computation",
+      "goal": "Validate recovery state and explain local equivalence."
+    }
+  ],
+  "lab": {
+    "package": "s09-advanced",
+    "chapter": "50",
+    "entry": "labs/s09-advanced/src/ch50.rs",
+    "goal": "Implement example-weighted reduction and full pipeline updates; verify serial, finite-difference, and recovery equivalence.",
+    "check": "just lab-check 50"
+  },
+  "topic_coverage": {
+    "Data parallelism": "replicas",
+    "tensor parallelism": "tensor",
+    "pipeline stages": "pipeline",
+    "recovery": "recovery"
+  },
+  "interactives": []
 }

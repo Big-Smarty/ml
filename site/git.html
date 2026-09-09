@@ -13,36 +13,36 @@ git status --short</code></pre>
 <pre><code class="language-bash">git config --local user.name "YOUR NAME"
 git config --local user.email "YOUR COMMIT EMAIL"</code></pre>
 <p>The supplied <code>.gitignore</code> excludes build targets, downloaded datasets, generated pages, local tool binaries, and common model/checkpoint files. Keep those rules. Add patterns for any new model or data formats you introduce; an ignore rule does not remove a file already tracked. Keep small authored fixtures, source files, and reproducibility notes.</p>
-<p>For a newly initialized repository, stage the supplied course sources as a baseline before solving exercises. Inspect the staged list before committing:</p>
-<pre><code class="language-bash">git add -- .gitignore .helix README.md CHAPTERS.md course.json rust-toolchain.toml justfile chapters projects exercises site tools guidance datasets
+<p>For a newly initialized repository, stage the supplied course sources as a baseline before changing experiments. Inspect the staged list before committing:</p>
+<pre><code class="language-bash">git add -- .gitignore .helix README.md CHAPTERS.md course.json sections.json rust-toolchain.toml justfile chapters labs projects site tools guidance
 git diff --cached --stat
 git status --short
 git commit -m "Record the starting course workspace"</code></pre>
-<p>For an existing repository, inspect its current changes and latest commit instead; do not create a second baseline blindly. Browser completion checkboxes live in browser storage. Git does not capture them or turn a checked box into evidence that an exercise passed.</p>
+<p>For an existing repository, inspect its current changes and latest commit instead; do not create a second baseline blindly. Browser practice records live in browser storage. Git does not capture them or turn a checked box into evidence that your Rust checks passed.</p>
 </section>
 <section id="checkpoint"><h2>Commit one learning checkpoint</h2>
-<p>Work in <code>projects/ch01/starter/</code> and the matching Rustlings exercise. <code>projects/ch01/src/</code> is the complete reference; <code>exercises/cpu/solutions/</code> contains answers. Keep your learner changes identifiable so you can compare them with the reference later.</p>
-<pre><code class="language-bash">cargo test --manifest-path projects/ch01/starter/Cargo.toml
-cargo test --manifest-path projects/ch01/Cargo.toml
+<p>Work in <code>labs/s01-foundations/src/ch01.rs</code>. The complete explained implementation is in <code>labs/s01-foundations/src/solutions/ch01.rs</code>. Keep your source and observations together so you can see what changed.</p>
+<pre><code class="language-bash">just lab-check 01
+just lab-test 01
 git status --short
-git diff -- projects/ch01/starter/src/main.rs exercises/cpu/exercises/ch01_01.rs</code></pre>
-<p>If you use the course’s <code>just</code> shortcuts, the two checks above are <code>just starter-test 1</code> and <code>just test 1</code>; <code>just exercises</code> opens Rustlings. The unfinished starter initially fails on purpose. After solving it, create <code>notes/ch01.md</code> in your editor. Record the date, your explanation, a mistake you corrected, the actual check result, and one question to revisit. A note such as “held-out prediction passes; still need to explain the loss derivative” is more useful than “finished ML.”</p>
-<pre><code class="language-bash">git add -- projects/ch01/starter/src/main.rs exercises/cpu/exercises/ch01_01.rs notes/ch01.md
+git diff -- labs/s01-foundations/src/ch01.rs</code></pre>
+<p>The learning-goal check tests your implementation; the package test checks the supplied baseline and supporting code. Record their actual results. Create <code>notes/ch01.md</code> in your editor with the date, your explanation, a corrected mistake and a question to revisit. An unfinished experiment is a useful checkpoint if you identify what remains unresolved.</p>
+<pre><code class="language-bash">git add -- labs/s01-foundations/src/ch01.rs notes/ch01.md
 git diff --cached
 git commit</code></pre>
 <p>Staging selects the exact snapshot for this commit. Changes made afterward require staging again. In the editor Git opens, write a short subject, a blank line, and useful evidence; save and close the editor to finish:</p>
-<pre><code class="language-none">feat(ch01): implement the affine predictor
+<pre><code class="language-none">feat(ch01): implement numerical-gradient training
 
 Learned: weight scales the input; bias shifts the prediction.
 Corrected: the held-out input must use the same prediction rule.
-Checked: starter and reference tests pass.
+Checked: learner goal checks pass on both calibration lines.
 Next: derive the loss gradient without the reference.</code></pre>
 <p>Use this message only when those statements match your work. Prefixes such as <code>feat(ch01)</code> or <code>docs(ch01)</code> are optional; “Explain the Chapter 1 gradient” is also a useful subject. Commit a coherent checkpoint rather than everything changed during a long session. An unfinished experiment can be committed too, provided the message records its failing check honestly.</p>
 </section>
 <section id="history"><h2>Find when and what changed</h2>
 <pre><code class="language-bash">git log --oneline --decorate -12
 git log --date=iso-strict --format='%h %ad %s' -- notes/
-git show HEAD -- notes/ch01.md projects/ch01/starter/src/main.rs</code></pre>
+git show HEAD -- notes/ch01.md labs/s01-foundations/src/ch01.rs</code></pre>
 <p>The first command lists recent checkpoints; the second follows your notes with author dates and timezone offsets; the third shows the latest commit’s patch. Replace <code>HEAD</code> with a displayed commit hash to inspect an older checkpoint. You can compare two saved versions with <code>git diff EARLIER_HASH LATER_HASH -- notes/ch01.md</code>.</p>
 <p>Commit timestamps record history metadata, not hours studied or proof of understanding. Author and committer dates can differ. If session duration matters, record it yourself in the note. Optional annotated tags give milestones a memorable name:</p>
 <pre><code class="language-bash">git tag -a ch01-complete -m "Predictor checked; gradient review next"
@@ -53,8 +53,8 @@ git show ch01-complete</code></pre>
 <pre><code class="language-bash">git switch -c experiment/ch01-learning-rate</code></pre>
 <p>Commit its results there. Return with <code>git switch main</code> if your starting branch is named <code>main</code>; otherwise use its actual name. A branch keeps an experiment’s history reachable even when its result is unsuccessful.</p>
 <p>Staged the wrong file? Unstage it without discarding your edits:</p>
-<pre><code class="language-bash">git restore --staged -- projects/ch01/starter/src/main.rs</code></pre>
-<details><summary>Deliberately discard an uncommitted edit</summary><p>First inspect <code>git diff -- projects/ch01/starter/src/main.rs</code> and save any useful work elsewhere. After unstaging, <code>git restore -- projects/ch01/starter/src/main.rs</code> replaces that file’s working contents with the committed version. Those discarded edits are not a saved checkpoint.</p></details>
+<pre><code class="language-bash">git restore --staged -- labs/s01-foundations/src/ch01.rs</code></pre>
+<details><summary>Deliberately discard an uncommitted edit</summary><p>First inspect <code>git diff -- labs/s01-foundations/src/ch01.rs</code> and save any useful work elsewhere. After unstaging, <code>git restore -- labs/s01-foundations/src/ch01.rs</code> replaces that file’s working contents with the committed version. Those discarded edits are not a saved checkpoint.</p></details>
 <p>To undo a committed change while preserving shared history, first commit or stash current edits so the working tree is clean. Inspect its hash with <code>git show COMMIT_HASH</code>, then use <code>git revert COMMIT_HASH</code>. Revert creates a new inverse commit and may require conflict resolution. This is a useful default for history already pushed to GitHub.</p>
 </section>
 <section id="github"><h2>Put your learning history on GitHub</h2>

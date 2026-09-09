@@ -1,17 +1,17 @@
 {
   "outcomes": [
-    "Map an affine model between scratch [out,in] storage and framework matrix multiplication",
-    "Check predictions, mean loss, gradients, both SGD updates, and restored inference",
-    "Export actual scratch weights and biases and import them into the optional Burn CPU runtime",
-    "Distinguish numerical parity, backend records, graph interchange, and training resume"
+    "Preserve a non-square affine function across [out,in] scratch and [in,out] runtime layouts",
+    "Implement coordinate-wise forward, full gradient, and SGD-update diagnostics",
+    "Export and import a validated 72-byte custom affine artifact across invocations",
+    "Explain the separate optional Burn fixture and limits of general graph interchange"
   ],
   "lessons": [
-    "Specify the computation contract",
-    "Work the affine update by hand",
-    "Separate autodiff from optimization",
-    "Export and restore inference state",
-    "Run and debug an optional integration",
-    "Retrieve the parity contract"
+    "Why does a tensor with the right number of values still fail?",
+    "Can two wrong outputs cancel in a passing check?",
+    "Can you implement the whole inference comparison?",
+    "Which loss convention determines the gradient?",
+    "What does a file prove about another runtime?",
+    "Does one training step survive export and adaptation?"
   ],
   "terms": {
     "framework-parity": {
@@ -27,7 +27,7 @@
     "runtime-interchange": {
       "name": "Runtime interchange",
       "definition": "Moving a specified computation and its state between execution implementations.",
-      "explanation": "Weights alone do not describe a portable model. An interchange contract must identify architecture, tensor names, shapes, layout, dtype, preprocessing, and supported operations. The course exports a fixed affine layer as an eleven-byte marker followed by six little-endian floats. Burn imports those actual bytes and checks several inputs against a scalar oracle. Burn records provide a separate within-framework mechanism. Neither file is an ONNX graph or a general training-resume checkpoint."
+      "explanation": "Weights alone do not describe a portable model. An interchange contract identifies architecture, shapes, layout, dtype, preprocessing, and supported operations. The active lab uses an eight-byte S09AFF01 marker followed by eight little-endian f64 values for a non-square affine layer, totaling 72 bytes. An independent runtime adapts the layout and checks forward, gradient, and update parity. The optional preserved Burn program has its own 2×2 fixture and format; it does not import this new file. Neither format is an ONNX graph or a general training-resume checkpoint."
     }
   },
   "sources": [
@@ -63,12 +63,9 @@
     }
   ],
   "checks": [
-    "Scratch predicts [1.15,0.65] with MSE 0.6725 within f32 tolerance",
-    "Framework test executes real forward, MSE, gradient, weight and bias update, record and restored-output assertions",
-    "Both updated biases match [0.035,-0.315] and updated output matches [1.04125,-0.18375]",
-    "Scratch export is imported and compared on three input probes in Burn",
-    "Wrong headers, length, and nonfinite artifact values are rejected",
-    "Starter launches successfully and its derivative TODO fails the intended test"
+    "Run the working learner baseline with just lab 55; implement the complete named algorithms and run just lab-check 55.",
+    "Run the separate solution goal checks and package tests; compare actual numerical intermediates described in each session.",
+    "Complete each session’s changed-input explanation; passing executable checks does not grade explanatory reasoning."
   ],
   "limitations": [
     "Standard-library default and optional Burn package are independent",
@@ -76,5 +73,70 @@
     "The model is one affine layer; no GPU, speedup, full Module trainer, or complex-model parity is claimed",
     "The course artifact and Burn record are not ONNX; neither stores optimizer resume state",
     "Optional integration can need dependency download access and compilation time"
-  ]
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "framework",
+      "title": "Why does a tensor with the right number of values still fail?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "parity",
+      "title": "Can two wrong outputs cancel in a passing check?",
+      "session": 1,
+      "minutes": 11
+    },
+    {
+      "id": "forward-port",
+      "title": "Can you implement the whole inference comparison?",
+      "session": 1,
+      "minutes": 16
+    },
+    {
+      "id": "training-parity",
+      "title": "Which loss convention determines the gradient?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "interchange",
+      "title": "What does a file prove about another runtime?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "practice",
+      "title": "Does one training step survive export and adaptation?",
+      "session": 2,
+      "minutes": 16
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Preserve the same affine function across layouts",
+      "goal": "Implement a non-square runtime adapter and coordinate-wise forward diagnostics."
+    },
+    {
+      "id": 2,
+      "title": "Preserve training semantics and the artifact boundary",
+      "goal": "Implement independent gradients and updates, then test file interchange."
+    }
+  ],
+  "lab": {
+    "package": "s09-advanced",
+    "chapter": "55",
+    "entry": "labs/s09-advanced/src/ch55.rs",
+    "goal": "Build independent runtime conversion, coordinate diagnostics, gradient and update parity, and validated file interchange.",
+    "check": "just lab-check 55"
+  },
+  "topic_coverage": {
+    "Framework concepts": "framework",
+    "runtime interchange": "interchange",
+    "parity checks": "parity",
+    "optional integration": "interchange"
+  },
+  "interactives": []
 }

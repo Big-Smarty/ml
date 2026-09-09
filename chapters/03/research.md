@@ -1,17 +1,26 @@
-# Chapter 3 research
+# Chapter 03 redesign provenance
 
-Model route: GPT-5.6 Sol High author with bounded GPT-5.6 Luna High primary-source research. Numerical claims were checked with the chapter's Rust tests and demonstration.
+Author route: one GPT-6 Astra High owner for the complete First principles section, under the approved September2026 redesign. The owner read each original lesson, metadata, research note and preserved reference implementation before creating the new labs. Original reference projects remain untouched.
 
-- MIT OpenCourseWare 18.06 supports the vector and dot-product foundations: https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/
-- Google ML Crash Course's official linear-regression module supports the multi-feature affine model and gradient-descent framing: https://developers.google.com/machine-learning/crash-course/linear-regression
-- scikit-learn's official `LinearRegression` reference supports ordinary least squares and coefficient/intercept conventions: https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html
-- scikit-learn's official `StandardScaler` reference supports centering, variance scaling, and storing training-set statistics: https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html
+## Source-grounded content
 
-The synthetic housing-like measurements are invented teaching data, not market evidence. All prose and implementation are original.
+- [MIT 18.06 Linear Algebra](https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/): Vectors and dot products.
+- [Google linear regression](https://developers.google.com/machine-learning/crash-course/linear-regression): Multi-feature linear models.
+- [scikit-learn LinearRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html): Ordinary least-squares conventions.
+- [scikit-learn StandardScaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html): Training-set centering and scaling.
 
+The prior foundations source audit verified these primary-source roles. No course-popularity, ratings or enrollment claim is used as evidence of learning.
 
-## Astra High review — 2026-09-08
+## Original contribution and numerical evidence
 
-GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (01–07). Clarified that interaction coefficients [2,3,4] describe raw features; standardized coefficients and the intercept transform with training scales and means. Added an independent finite-difference check for all three weights and bias.
+The sensor fixtures, worked arithmetic, lesson prose, experiment tasks, CLI, code and three browser illustrations are course-authored. New labs reuse narrow mathematical patterns from preserved references, not their old exercise workflow. The section report records executed checks and measured outputs. Baseline runs and ordinary tests pass; explicit learner-goal comparisons truthfully report remaining work. Checks call the learner implementations on inspectable data, including independent variations. They cannot establish that a particular derivation was authored or grade a free-text explanation.
 
-See [the per-chapter review and validation record](../../guidance/astra-review-01-14.md) for evidence, gate results, and limitations.
+## Learning-design basis and limits
+
+Worked examples precede substantial algorithm changes; learners predict a result, compare a working baseline, implement, inspect discrepancies and transfer to changed inputs. This applies the verified research synthesis on worked examples, retrieval and guided active tasks. It is a design inference for everyday Rust programmers who are new to ML, not a controlled result for this complete curriculum. Short sessions are planning estimates; no navigation or mastery gate is inferred from clicks or baseline success.
+
+## Chapter-specific limits
+
+- Fixed arrays check dimensions but not semantic feature order.
+- Scaling improves coordinates without creating missing information.
+- Linear coefficients do not establish causation and an additive model misses interactions.

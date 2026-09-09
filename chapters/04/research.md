@@ -1,22 +1,27 @@
-# Chapter 4 research
+# Chapter 04 redesign provenance
 
-Model route: GPT-5.6 Sol High author with bounded GPT-5.6 Luna High primary-source research. Stable-loss behavior was verified at logits ±1000 in the Rust project.
+Author route: one GPT-6 Astra High owner for the complete First principles section, under the approved September2026 redesign. The owner read each original lesson, metadata, research note and preserved reference implementation before creating the new labs. Original reference projects remain untouched.
 
-- Berkson's 1944 paper provides historical grounding for applying the logistic function: https://doi.org/10.1080/01621459.1944.10500699
-- Penn State STAT 504 gives the Bernoulli likelihood and logistic-regression derivation used to check the exposition: https://online.stat.psu.edu/stat504/Lesson06
-- SciPy's official `expit` documentation confirms the sigmoid definition: https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.expit.html
-- PyTorch's official `BCEWithLogitsLoss` documentation supports combining logits with binary cross-entropy for numerical stability: https://docs.pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html
-- scikit-learn's official logistic-regression guide supports probability and classification framing: https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression
+## Source-grounded content
 
-The two-class points and implementation are original course fixtures.
+- [Berkson: Application of the Logistic Function](https://doi.org/10.1080/01621459.1944.10500699): Historical logistic-function source.
+- [Penn State Binary Logistic Regression](https://online.stat.psu.edu/stat504/Lesson06): Bernoulli likelihood and logit model.
+- [SciPy expit](https://docs.scipy.org/doc/scipy/reference/generated/scipy.special.expit.html): Official sigmoid definition.
+- [PyTorch BCEWithLogitsLoss](https://docs.pytorch.org/docs/stable/generated/torch.nn.BCEWithLogitsLoss.html): Stable cross-entropy from logits.
+- [scikit-learn logistic regression](https://scikit-learn.org/stable/modules/linear_model.html#logistic-regression): Probability and classifier framing.
 
-## Consistency revision — 2026-09-08
+The prior foundations source audit verified these primary-source roles. No course-popularity, ratings or enrollment claim is used as evidence of learning.
 
-No new external claims were needed. The revision was checked against Chapters 1–3 and the local course contract. It preserves the affine weights-and-bias calculation while making the task change explicit: `logit` is an unbounded score, `probability` is sigmoid of that score, and `predict` is the class decision. Mean BCE replaces regression MSE, but `loss`, `gradient`, `loss_and_gradient`, `numerical_gradient`, `step`, and `train` keep the established argument order and ownership conventions. Parameter derivatives now use a separate `Gradient` rather than pretending to be a trained `LogisticModel`.
+## Original contribution and numerical evidence
 
+The sensor fixtures, worked arithmetic, lesson prose, experiment tasks, CLI, code and three browser illustrations are course-authored. New labs reuse narrow mathematical patterns from preserved references, not their old exercise workflow. The section report records executed checks and measured outputs. Baseline runs and ordinary tests pass; explicit learner-goal comparisons truthfully report remaining work. Checks call the learner implementations on inspectable data, including independent variations. They cannot establish that a particular derivation was authored or grade a free-text explanation.
 
-## Astra High review — 2026-09-08
+## Learning-design basis and limits
 
-GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (01–07). Broadened the shared logit glossary entry to distinguish binary log-odds from multiclass relative scores. Strengthened sigmoid and stable-BCE learner checks with known probabilities, ln 2, and confident wrong labels.
+Worked examples precede substantial algorithm changes; learners predict a result, compare a working baseline, implement, inspect discrepancies and transfer to changed inputs. This applies the verified research synthesis on worked examples, retrieval and guided active tasks. It is a design inference for everyday Rust programmers who are new to ML, not a controlled result for this complete curriculum. Short sessions are planning estimates; no navigation or mastery gate is inferred from clicks or baseline success.
 
-See [the per-chapter review and validation record](../../guidance/astra-review-01-14.md) for evidence, gate results, and limitations.
+## Chapter-specific limits
+
+- Perfect training classes do not establish probability calibration.
+- Separable unregularized BCE may keep reducing as weight magnitudes grow.
+- Tiny two-feature binary fixtures omit multiclass and real-world label quality.

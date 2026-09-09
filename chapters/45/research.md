@@ -1,3 +1,13 @@
+# Chapter 45: September 2026 redesign verification
+
+Route: one GPT-6 Astra High section owner read the complete original lesson, metadata, research and reference implementations, plus the supplied advanced/interactive/learning-science evidence synthesis. No chapter subauthors or new research delegation. The original source verification below is retained as historical provenance; this current record supersedes old starter/exercise and implementation-scope statements.
+
+Full bandit/Q-learning/REINFORCE mechanisms are retained. Required PPO now actually collects 32-action batches and reuses each for four clipped-surrogate epochs with frozen collection probabilities. Known expected reward supplies an action-independent baseline; there is no learned critic, GAE or decoder RLHF. Five seeds report expected cumulative bandit regret. arXiv 1707.06347 is PPO, not reward-gaming evidence.
+
+The author rechecked the primary PPO and InstructGPT records for the added algorithm/pipeline attribution. New numeric claims come from executable course fixtures, not borrowed benchmark outcomes. See `guidance/redesign/section-08.md` for actual commands, values, prerequisite audit and limits.
+
+## Preserved source-verification history
+
 # Chapter 45 research record
 
 ## Route and verification

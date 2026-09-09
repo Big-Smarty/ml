@@ -1,16 +1,136 @@
 {
-  "outcomes": ["Represent scalar calculations as a directed acyclic graph", "Distinguish node adjoints from parameter gradients", "Accumulate adjoint contributions through shared nodes", "Implement and numerically check scalar autodiff"],
-  "lessons": ["Computation graphs", "Reverse accumulation", "Topological ordering", "The Rust engine", "Graph practice", "Review and transfer"],
+  "outcomes": [
+    "Represent scalar calculations as a directed acyclic graph",
+    "Distinguish node adjoints from parameter gradients",
+    "Accumulate adjoint contributions through shared nodes",
+    "Implement and numerically check scalar autodiff",
+    "Assemble and train a tanh-neuron computation graph and check changed-input derivatives"
+  ],
+  "lessons": [
+    "Can the program remember how it obtained 12?",
+    "Why do three paths into x give a derivative of seven?",
+    "Can your reverse sweep compose every local rule?",
+    "What makes the supplied order safe for shared nodes?",
+    "Can the graph differentiate a small neuron you assemble?",
+    "When is automatic differentiation the right tool?"
+  ],
   "terms": {
-    "computation-graph": {"name":"Computation graph","definition":"A graph whose nodes are values or operations and whose edges record dependencies.","explanation":"Evaluating an expression creates values in dependency order. Keeping those dependencies produces a directed acyclic graph that can later be traversed for differentiation. A graph may share one node among several operations, so it is not necessarily a tree. Dynamic graphs are built as ordinary program control flow runs; static systems may construct a graph before data evaluation. The graph is a representation of computation, not a picture required at runtime."},
-    "adjoint": {"name":"Adjoint","definition":"The derivative of a selected scalar output with respect to a graph value.","explanation":"Reverse-mode automatic differentiation associates each reachable value with an adjoint. The selected output starts at one, and operations propagate contributions toward their inputs through local derivatives. If a value influences the output along several paths, those contributions sum in its adjoint. When the selected output is a loss and the value is a learned weight or bias, its adjoint is the parameter gradient an optimizer uses. Input and intermediate adjoints are derivatives, but they are not parameter gradients."},
-    "reverse-mode": {"name":"Reverse-mode automatic differentiation","definition":"A differentiation method that propagates one scalar output’s sensitivity backward through recorded operations.","explanation":"The method runs the original computation forward to obtain values, then visits operations in reverse topological order. One reverse sweep computes derivatives of a scalar output with respect to many inputs, matching the common training case of one loss and many parameters. It differs from symbolic algebra because it executes local derivative rules on actual operations, and from finite differences because it does not perturb every input separately."}
+    "computation-graph": {
+      "name": "Computation graph",
+      "definition": "A graph whose nodes are values or operations and whose edges record dependencies.",
+      "explanation": "Evaluating an expression creates values in dependency order. Keeping those dependencies produces a directed acyclic graph that can later be traversed for differentiation. A graph may share one node among several operations, so it is not necessarily a tree. Dynamic graphs are built as ordinary program control flow runs; static systems may construct a graph before data evaluation. The graph is a representation of computation, not a picture required at runtime."
+    },
+    "adjoint": {
+      "name": "Adjoint",
+      "definition": "The derivative of a selected scalar output with respect to a graph value.",
+      "explanation": "Reverse-mode automatic differentiation associates each reachable value with an adjoint. The selected output starts at one, and operations propagate contributions toward their inputs through local derivatives. If a value influences the output along several paths, those contributions sum in its adjoint. When the selected output is a loss and the value is a learned weight or bias, its adjoint is the parameter gradient an optimizer uses. Input and intermediate adjoints are derivatives, but they are not parameter gradients."
+    },
+    "reverse-mode": {
+      "name": "Reverse-mode automatic differentiation",
+      "definition": "A differentiation method that propagates one scalar output’s sensitivity backward through recorded operations.",
+      "explanation": "The method runs the original computation forward to obtain values, then visits operations in reverse topological order. One reverse sweep computes derivatives of a scalar output with respect to many inputs, matching the common training case of one loss and many parameters. It differs from symbolic algebra because it executes local derivative rules on actual operations, and from finite differences because it does not perturb every input separately."
+    }
   },
   "sources": [
-    {"title":"Automatic Differentiation in Machine Learning: a Survey","url":"https://jmlr.org/papers/volume18/17-468/17-468.pdf","note":"Forward and reverse accumulation"},
-    {"title":"micrograd","url":"https://github.com/karpathy/micrograd","note":"Original minimal scalar DAG engine"},
-    {"title":"PyTorch autograd.backward","url":"https://docs.pytorch.org/docs/main/generated/torch.autograd.backward.html","note":"Chain rule and leaf-gradient accumulation"}
+    {
+      "title": "Automatic Differentiation in Machine Learning: a Survey",
+      "url": "https://jmlr.org/papers/volume18/17-468/17-468.pdf",
+      "note": "Forward and reverse accumulation"
+    },
+    {
+      "title": "micrograd",
+      "url": "https://github.com/karpathy/micrograd",
+      "note": "Original minimal scalar DAG engine"
+    },
+    {
+      "title": "PyTorch autograd.backward",
+      "url": "https://docs.pytorch.org/docs/main/generated/torch.autograd.backward.html",
+      "note": "Chain rule and leaf-gradient accumulation"
+    }
   ],
-  "checks": ["x*x+x at x=3 produces value 12 and adjoint 7 for x", "A tanh chain matches central differences", "Repeated backward calls clear reachable adjoints", "Shared nodes are traversed once but receive every operand contribution through add_gradient", "Nonfinite intermediates and overflowing adjoints return errors even with a finite root"],
-  "limitations": ["Scalar heap nodes are educational rather than efficient", "Rc and RefCell make the engine single-threaded", "Only addition, multiplication, and tanh are implemented"]
+  "checks": [
+    "Shared tanh chains agree with central differences at three inputs",
+    "Repeated backward calls clear state, unrelated branches remain zero",
+    "Separate equal-valued leaves have separate derivatives",
+    "Normal baseline differentiates immediate root operands correctly",
+    "Assembled tanh-neuron parameter derivatives match central differences on two changed states",
+    "Twenty rebuilt-graph updates lower the actual neuron objective"
+  ],
+  "limitations": [
+    "Append-only scalar tape is educational and stores every intermediate",
+    "Only addition, multiplication and tanh are supported",
+    "The executed graph describes one control-flow path"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "graph",
+      "title": "Can the program remember how it obtained 12?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "reverse",
+      "title": "Why do three paths into x give a derivative of seven?",
+      "session": 1,
+      "minutes": 13
+    },
+    {
+      "id": "build",
+      "title": "Can your reverse sweep compose every local rule?",
+      "session": 1,
+      "minutes": 17
+    },
+    {
+      "id": "ordering",
+      "title": "What makes the supplied order safe for shared nodes?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "compose",
+      "title": "Can the graph differentiate a small neuron you assemble?",
+      "session": 2,
+      "minutes": 17
+    },
+    {
+      "id": "review",
+      "title": "When is automatic differentiation the right tool?",
+      "session": 2,
+      "minutes": 10
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Implement reverse accumulation",
+      "goal": "Compose local derivative rules through every reachable node"
+    },
+    {
+      "id": 2,
+      "title": "Use the engine",
+      "goal": "Assemble and train a small tanh neuron, then check changed inputs"
+    }
+  ],
+  "lab": {
+    "package": "s02-neural-networks",
+    "chapter": "08",
+    "entry": "labs/s02-neural-networks/src/ch08.rs",
+    "goal": "Implement scalar reverse mode with shared dependencies and numerical transfer checks",
+    "check": "just lab-check 08"
+  },
+  "topic_coverage": {
+    "Computation graphs": "graph",
+    "reverse mode": "reverse",
+    "accumulated gradients": "build"
+  },
+  "interactives": [
+    {
+      "id": "autodiff-tape",
+      "title": "Scalar autodiff tape",
+      "file": "demo.js",
+      "anchor": "autodiff-tape",
+      "illustration": true
+    }
+  ]
 }

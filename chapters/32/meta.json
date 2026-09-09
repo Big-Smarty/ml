@@ -7,12 +7,15 @@
     "Relate wgpu's f16 feature to concrete Vulkan capability extensions"
   ],
   "lessons": [
-    "Performance begins with a well-defined clock",
-    "Understand asynchronous submission",
-    "Fuse adjacent elementwise kernels",
-    "Choose mixed precision by capability and range",
-    "Connect wgpu to Vulkan extensions",
-    "Measure, debug, and transfer"
+    "Do two execution plans compute the same values?",
+    "Which clock answers the performance question?",
+    "Make the comparison repeatable",
+    "Where does asynchronous work become complete?",
+    "Build a warmed repeated experiment",
+    "Remove one intermediate without changing the answer",
+    "Select precision by capability and numerical range",
+    "Integrate and measure the completed kernels",
+    "Separate capability, correctness, and speed"
   ],
   "terms": {
     "gpu-timestamp": {
@@ -42,23 +45,132 @@
     }
   },
   "sources": [
-    {"title": "wgpu 29 timestamp query example", "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/features/src/timestamp_queries/mod.rs", "note": "First-party timestamp creation, resolve, and period conversion."},
-    {"title": "wgpu 29 feature definitions", "url": "https://github.com/gfx-rs/wgpu/blob/v29/wgpu-types/src/features.rs", "note": "First-party TIMESTAMP_QUERY and SHADER_F16 capability definitions."},
-    {"title": "VK_KHR_shader_float16_int8", "url": "https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_shader_float16_int8.html", "note": "Khronos extension for 16-bit arithmetic."},
-    {"title": "VK_KHR_16bit_storage", "url": "https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_16bit_storage.html", "note": "Khronos extension for 16-bit storage."},
-    {"title": "VK_KHR_cooperative_matrix", "url": "https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_cooperative_matrix.html", "note": "Khronos cooperative matrix extension."}
+    {
+      "title": "wgpu 29 timestamp query example",
+      "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/features/src/timestamp_queries/mod.rs",
+      "note": "First-party timestamp creation, resolve, and period conversion."
+    },
+    {
+      "title": "wgpu 29 feature definitions",
+      "url": "https://github.com/gfx-rs/wgpu/blob/v29/wgpu-types/src/features.rs",
+      "note": "First-party TIMESTAMP_QUERY and SHADER_F16 capability definitions."
+    },
+    {
+      "title": "VK_KHR_shader_float16_int8",
+      "url": "https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_shader_float16_int8.html",
+      "note": "Khronos extension for 16-bit arithmetic."
+    },
+    {
+      "title": "VK_KHR_16bit_storage",
+      "url": "https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_16bit_storage.html",
+      "note": "Khronos extension for 16-bit storage."
+    },
+    {
+      "title": "VK_KHR_cooperative_matrix",
+      "url": "https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_cooperative_matrix.html",
+      "note": "Khronos cooperative matrix extension."
+    }
   ],
   "checks": [
-    "Separate and fused f32 outputs from affine_relu_with_gpu match affine_relu_scalar for an odd invocation count",
-    "The default run uses warmups and reports repeated CPU wall-clock median and range",
-    "Device pass timestamps are reported only when TIMESTAMP_QUERY is supported",
-    "The f16 shader is created only when SHADER_F16 is supported",
-    "Inputs outside the safe teaching range use the f32 fallback"
+    "CPU baseline prints affine/ReLU output and a one-sample schedule without hardware timing",
+    "Actual learner schedule is checked for three warmups and seven alternating measured samples per plan",
+    "Every GPU warmup and measured result is checked against CPU affine/ReLU",
+    "TIMESTAMP_QUERY and SHADER_F16 are queried and only supported features are requested",
+    "The half shader is gated by feature/range and the50,000 boundary fixture explicitly selects f32"
   ],
   "limitations": [
-    "The timing experiment is a microbenchmark of one elementwise chain, not an application benchmark",
-    "Device pass timestamp sums omit time between passes and differ from the CPU wall-clock boundary",
-    "The f16 path demonstrates arithmetic conversion but retains f32 storage",
-    "Measured results depend on adapter, driver, clocks, background work, build mode, and workload size"
-  ]
+    "The learner baseline is one separate-pass sample, not a completed comparison",
+    "CPU schedule checks do not establish WGSL correctness or measured speed",
+    "Device pass sums, encoding-to-map wall time and whole-call latency enclose different work",
+    "Half arithmetic uses f32 storage, and the range guard is not a universal accuracy guarantee",
+    "This microbenchmark does not establish application or training throughput"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "question",
+      "title": "Do two execution plans compute the same values?",
+      "session": 1,
+      "minutes": 6
+    },
+    {
+      "id": "timing",
+      "title": "Which clock answers the performance question?",
+      "session": 1,
+      "minutes": 8
+    },
+    {
+      "id": "measurement-design",
+      "title": "Make the comparison repeatable",
+      "session": 1,
+      "minutes": 8
+    },
+    {
+      "id": "async",
+      "title": "Where does asynchronous work become complete?",
+      "session": 1,
+      "minutes": 5
+    },
+    {
+      "id": "experiment-build",
+      "title": "Build a warmed repeated experiment",
+      "session": 1,
+      "minutes": 14
+    },
+    {
+      "id": "fusion",
+      "title": "Remove one intermediate without changing the answer",
+      "session": 2,
+      "minutes": 9
+    },
+    {
+      "id": "precision",
+      "title": "Select precision by capability and numerical range",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "fused-build",
+      "title": "Integrate and measure the completed kernels",
+      "session": 2,
+      "minutes": 17
+    },
+    {
+      "id": "review",
+      "title": "Separate capability, correctness, and speed",
+      "session": 2,
+      "minutes": 5
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Design an honest GPU measurement",
+      "goal": "Implement a warmed repeated schedule and explain clock boundaries"
+    },
+    {
+      "id": 2,
+      "title": "Fuse and evaluate precision choices",
+      "goal": "Implement a fused shader, compare actual results, and interpret measured distributions"
+    }
+  ],
+  "lab": {
+    "package": "s06-gpu",
+    "chapter": "32",
+    "entry": "labs/s06-gpu/src/ch32.rs",
+    "goal": "Implement a fused WGSL kernel and a warmed, alternating, correctness-backed hardware experiment",
+    "check": "just lab-check 32",
+    "manual_checks": [
+      "Review actual ch32.rs fused WGSL for bounded affine/ReLU computation with one output store and no storage intermediate.",
+      "Require actual --check --gpu for shader parity, optional-feature/range reporting and warmed distributions; CPU schedule checks alone do not establish execution or speed."
+    ]
+  },
+  "interactives": [],
+  "topic_coverage": {
+    "Asynchronous execution": "async",
+    "timing": "timing",
+    "fusion": "fusion",
+    "mixed precision": "precision",
+    "Vulkan extension": "precision"
+  }
 }

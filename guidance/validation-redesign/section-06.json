@@ -1,0 +1,257 @@
+{
+  "section": "06",
+  "package": "s06-gpu",
+  "chapters": [
+    "29",
+    "30",
+    "31",
+    "32"
+  ],
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.04,
+      "output": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "seconds": 0.08,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml"
+      ],
+      "returncode": 0,
+      "seconds": 0.076,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s\n     Running unittests src/lib.rs (labs/s06-gpu/target/debug/deps/s06_gpu-7eb1c7e5a7830739)\n\nrunning 3 tests\ntest tests::real_hardware_agreement_and_training ... ignored, requires a hardware Vulkan adapter; unsupported is an error, not a pass\ntest tests::boundaries_and_known_values ... ok\ntest tests::baselines_and_completed_cpu_goals ... ok\n\ntest result: ok. 2 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n     Running unittests src/main.rs (labs/s06-gpu/target/debug/deps/s06_gpu-a6a20f5e8fa66e15)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n   Doc-tests s06_gpu\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "29"
+      ],
+      "returncode": 0,
+      "seconds": 0.596,
+      "output": "   Compiling s06-gpu v0.1.0 (/home/bigsmarty/.codex/worktrees/15f2/ml/labs/s06-gpu)\n    Finished `release` profile [optimized] target(s) in 0.58s\n     Running `labs/s06-gpu/target/release/s06-gpu 29`\nchapter 29: learner baseline / CPU only; hardware not verified\nleft=[1.0, -2.0, 3.5, 8.0, 0.25], right=[2.0, 5.0, -0.5, 1.0, 0.75], scale=0.5 -> [3.0, 3.0, 3.0, 9.0, 1.0]\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "29",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.034,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 29 --solution --check`\nchapter 29: solution / CPU only; hardware not verified\nleft=[1.0, -2.0, 3.5, 8.0, 0.25], right=[2.0, 5.0, -0.5, 1.0, 0.75], scale=0.5 -> [2.5, 4.0, 1.25, 5.0, 0.875]\nrequested automatic checks passed; consult lab.manual_checks for source/trace criteria. CPU-only runs do not verify GPU execution\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "29",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.035,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 29 --check`\nchapter 29: learner baseline / CPU only; hardware not verified\nleft=[1.0, -2.0, 3.5, 8.0, 0.25], right=[2.0, 5.0, -0.5, 1.0, 0.75], scale=0.5 -> [3.0, 3.0, 3.0, 9.0, 1.0]\nGOAL_NOT_MET: index 0: actual=2, expected=3.5, tolerance=0.0000045 ; inspect learner arithmetic/indices\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "30"
+      ],
+      "returncode": 0,
+      "seconds": 0.035,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 30`\nchapter 30: learner baseline / CPU only; hardware not verified\nA=[[1,2,3],[4,5,6]], B=[[7,8],[9,10],[11,12]], C=[58.0, 64.0, 139.0, 154.0]\nsum([3,1,4,1,5,9,2,6])=31\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "30",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.034,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 30 --solution --check`\nchapter 30: solution / CPU only; hardware not verified\nA=[[1,2,3],[4,5,6]], B=[[7,8],[9,10],[11,12]], C=[58.0, 64.0, 139.0, 154.0]\nsum([3,1,4,1,5,9,2,6])=31\nNumerical parity only. Inspect cooperative loads, two uniform tile barriers, tree reduction and no early edge return to establish the implementation goal.\nrequested automatic checks passed; consult lab.manual_checks for source/trace criteria. CPU-only runs do not verify GPU execution\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "30",
+        "--check"
+      ],
+      "returncode": 3,
+      "seconds": 0.034,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 30 --check`\nchapter 30: learner baseline / CPU only; hardware not verified\nA=[[1,2,3],[4,5,6]], B=[[7,8],[9,10],[11,12]], C=[58.0, 64.0, 139.0, 154.0]\nsum([3,1,4,1,5,9,2,6])=31\nNumerical parity only. Inspect cooperative loads, two uniform tile barriers, tree reduction and no early edge return to establish the implementation goal.\nGOAL_REVIEW_REQUIRED: numeric parity passed; review ch30.rs for shared tile loads, a halving reduction tree, uniform barriers, edge-lane participation and distinct output ownership. Attach the 600\u21922\u21921 and 17x19x33 traces.\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": true
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "31"
+      ],
+      "returncode": 0,
+      "seconds": 0.033,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 31`\nchapter 31: learner baseline / CPU only; hardware not verified\n2-4-1 tanh, 8 examples, 800 full-batch steps, rate=0.3: BCE 0.730554 -> 0.684010\nunseen [-0.6, -0.9]: p=0.5140, target=0\nunseen [-0.9, 0.7]: p=0.5644, target=1\nunseen [0.7, -0.9]: p=0.4486, target=1\nunseen [0.9, 0.6]: p=0.4615, target=0\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "31",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.033,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 31 --solution --check`\nchapter 31: solution / CPU only; hardware not verified\n2-4-1 tanh, 8 examples, 800 full-batch steps, rate=0.3: BCE 0.730554 -> 0.013002\nunseen [-0.6, -0.9]: p=0.0588, target=0\nunseen [-0.9, 0.7]: p=0.9941, target=1\nunseen [0.7, -0.9]: p=0.9901, target=1\nunseen [0.9, 0.6]: p=0.0295, target=0\n17 gradient probes: max error=7.993e-9 against f64 central differences\nrequested automatic checks passed; consult lab.manual_checks for source/trace criteria. CPU-only runs do not verify GPU execution\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "31",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.034,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 31 --check`\nchapter 31: learner baseline / CPU only; hardware not verified\n2-4-1 tanh, 8 examples, 800 full-batch steps, rate=0.3: BCE 0.730554 -> 0.684010\nunseen [-0.6, -0.9]: p=0.5140, target=0\nunseen [-0.9, 0.7]: p=0.5644, target=1\nunseen [0.7, -0.9]: p=0.4486, target=1\nunseen [0.9, 0.6]: p=0.4615, target=0\nGOAL_NOT_MET: gradient[0]=0 but central difference=0.0518540; implement hidden/input chain rule in ch31.rs\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "32"
+      ],
+      "returncode": 0,
+      "seconds": 0.034,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 32`\nchapter 32: learner baseline / CPU only; hardware not verified\naffine + ReLU, N=65537, small fixture [-1,0,2] -> [0.0, 0.25, 3.25]; planned runs=1\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "32",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.032,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 32 --solution --check`\nchapter 32: solution / CPU only; hardware not verified\naffine + ReLU, N=65537, small fixture [-1,0,2] -> [0.0, 0.25, 3.25]; planned runs=30\nSchedule evidence passed; speed and shader correctness require --gpu. No speed threshold is a learning goal.\nrequested automatic checks passed; consult lab.manual_checks for source/trace criteria. CPU-only runs do not verify GPU execution\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s06-gpu/Cargo.toml",
+        "--",
+        "32",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.034,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 32 --check`\nchapter 32: learner baseline / CPU only; hardware not verified\naffine + ReLU, N=65537, small fixture [-1,0,2] -> [0.0, 0.25, 3.25]; planned runs=1\nGOAL_NOT_MET: Separate: 0 warmups/1 samples; design at least 3/7 per plan and implement the fused WGSL before selecting it\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    }
+  ]
+}

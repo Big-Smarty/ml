@@ -36,3 +36,12 @@ GPT-6 Astra High independently read the full lesson, metadata, research, referen
 Corrected the margin glossary: absolute score divided by weight norm is distance. Added finite parameter/objective checks and a regression rejecting finite but divergent training settings. The nonlinear model remains explicitly a kernel perceptron, not a kernel SVM.
 
 Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+
+
+## September 2026 section redesign
+
+The original lesson, metadata, and `projects/ch16` reference were read before replacement; the original source-tagged excerpt and reference project remain available. The new section route connects a disclosed maintenance dataset through uncertainty, preprocessing, classical learning, projection, clustering and a frozen evaluation capstone. Existing source claims above support the mathematical exposition; dataset-specific numbers come from the actual new Rust implementation, not from those papers.
+
+Learner goal: Implement regularized hinge updates and kernel-perceptron coefficient fitting. The chapter has 3 sessions of approximately40 minutes. Topic coverage is recorded verbatim in meta.json. Each session includes implementation and an unfamiliar or controlled transfer, with native hints and explained completed-source checkpoints. Browser calculations are explicitly illustrations and never claim to execute Rust.
+
+Checks: Active/inactive hinge branches include the intended regularization update; Linear SVM learns separated signed-label inputs; Kernel coefficients classify inward-moved XOR queries. Limitations: Nonlinear branch is a kernel perceptron, not a maximum-margin kernel SVM; Hard0/1 outputs are not calibrated SVM probabilities; Fixed epochs and full support scans limit scale and convergence claims. Full execution evidence, algorithm scope and prerequisite audit are in guidance/redesign/section-03.md. The original reference may use a simpler fixture or a different algorithm variant; its preserved results are labelled separately from the shared lab.

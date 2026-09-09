@@ -1,35 +1,104 @@
-# Research basis and curriculum decisions
+# V2 research and source discipline
 
-Initial research used six independently scoped GPT-5.6 Luna High agents: tutorial formats, learning design, ML foundations, Rust CPU systems, GPU systems, and language models. The lead synthesized their findings. Sol High authors produced the initial chapter drafts with Luna High research. The user subsequently assigned Chapters 42–56 and all-chapter review/correction to Astra High, retaining Luna High or Max for bounded research and technical verification. Chapter research records and Astra review reports preserve that provenance.
+This is the active research contract for the September 2026 redesign. The full learning-science synthesis, counterevidence, curriculum comparison, transfer analysis, and assessment-validity rationale are in [LEARNING_DESIGN_RESEARCH.md](LEARNING_DESIGN_RESEARCH.md). Current implementation ownership is in [ASSIGNMENTS.md](ASSIGNMENTS.md), and chapter-level technical research belongs in the nine `guidance/redesign/section-NN.md` reports.
 
-## Learning design
+The earlier course's research, tooling, hardware, and authorship record is preserved in [archive/2026-09-08-research-basis.md](archive/2026-09-08-research-basis.md). It is historical provenance, not an active Rustlings, authoring, or validation instruction.
 
-- Rustlings supports community exercises, ordinary Rust tests, hints, solutions and watch mode: https://rustlings.rust-lang.org/community-exercises/ and https://rustlings.rust-lang.org/usage/ . Reuse that runner rather than invent another.
-- Ziglings: https://github.com/ratfactor/ziglings (official migration notice points to Codeberg). Tiny repairs provide fast feedback but do not replace larger projects.
-- Haskellings: https://github.com/MondayMorningHaskell/haskellings . Distinguishes compile, test and executable exercises.
-- Vulkan Guide: https://vkguide.dev/ and https://vkguide.dev/docs/new_chapter_0/building_project/ . Cumulative projects and reference checkpoints; it assumes graphics prerequisites, unlike this course.
-- Vulkan Tutorial: https://vulkan-tutorial.com/ . Its own introduction now warns implementation guidance is outdated. Borrow pedagogical structure, use current Khronos documents for technical claims.
-- LearnOpenGL: https://learnopengl.com/Introduction . Readable nested navigation and linked technical references. Write original prose and visuals rather than copying licensed material.
-- Roediger & Karpicke (2006), retrieval practice: https://pubmed.ncbi.nlm.nih.gov/16507066/ . Delayed recall motivates closed-book questions before answer reveals.
-- Cepeda et al. (2006), distributed practice: https://pubmed.ncbi.nlm.nih.gov/16719566/ . Spacing depends on desired retention; suggested 1/3/7/14-day reviews are a practical default, not a universally optimal schedule.
-- Renkl et al. (2004), fading worked examples: https://doi.org/10.1023/B:TRUC.0000021815.74806.f6 . Move from full example to completion to independent work.
-- Rohrer & Taylor (2007), interleaving mathematics: https://digitalcommons.usf.edu/psy_facpub/1767/ . Mix old and new problem types after initial focused practice.
-- These studies do not directly validate a Rust ML course; curriculum choices are evidence-informed extrapolations.
+## Evidence categories
 
-## Coverage and systems
+Keep these categories explicit in research notes and learner-facing copy:
 
-Stanford CS229 https://cs229.stanford.edu/ and Google's ML Crash Course https://developers.google.com/machine-learning/crash-course/ establish the need for statistics, classical models, data discipline and production thinking alongside networks. MIT 18.06 https://ocw.mit.edu/courses/18-06sc-linear-algebra-fall-2011/ supports just-in-time linear algebra. Nielsen https://neuralnetworksanddeeplearning.com/ and micrograd https://github.com/karpathy/micrograd provide useful conceptual comparisons, not dependencies.
+1. **Empirical learning evidence:** reports what participants learned under a studied intervention, with method, sample, comparison, outcome, and limits.
+2. **Technical primary evidence:** establishes an algorithm, implementation, standard, measured result, or known failure mode. It does not establish pedagogy.
+3. **Curriculum or project precedent:** shows that an instructional or engineering pattern is feasible. Popularity, ratings, stars, and testimonials do not establish effectiveness.
+4. **Local course evidence:** comes from a named deterministic fixture, test, benchmark, hardware run, or learner artifact in this repository.
+5. **Design judgment or user requirement:** records a choice made for this learner and product. It must not be phrased as an experimental result.
 
-Stable SIMD uses std::arch and runtime detection: https://doc.rust-lang.org/stable/std/arch/ . Portable std::simd is currently nightly-only: https://doc.rust-lang.org/nightly/std/simd/ . Benchmark principles: https://llvm.org/docs/Benchmarking.html . GPU path: https://docs.rs/wgpu/latest/wgpu/ and https://docs.vulkan.org/guide/latest/compute_shaders.html . Query actual features rather than assuming capabilities from a GPU marketing name.
+No study reviewed directly validates this complete adult self-study Rust ML course. Transfer strength and counterevidence must remain visible when a learning-science source comes from mathematics, physics, school classrooms, prose retrieval, or collaborative instruction.
 
-LLM spine: https://cs336.stanford.edu/ , https://github.com/karpathy/llm.c and https://github.com/karpathy/llama2.c . Attention https://arxiv.org/abs/1706.03762 ; FlashAttention https://arxiv.org/abs/2205.14135 ; LoRA https://arxiv.org/abs/2106.09685 ; Switch Transformers https://arxiv.org/abs/2101.03961 ; Mamba https://arxiv.org/abs/2312.00752 . Learn each mechanism on a tiny model before discussing scale.
+## Source priority
 
-## Compute boundary
+Prefer, in order:
 
-Target: Ryzen 9 9900X, about 30 GiB host RAM, Radeon RX 6950 XT. The initial sandbox could not expose `/dev/dri`; an approved host-level probe resolved device access and actual kernels passed on RADV/Mesa 26.2.2, Vulkan 1.4.354. The decoder's GPU logits, gradients, and updates match its CPU reference. The exact 14,442,496-parameter configuration completed bounded CPU and GPU updates, including CPU checkpoint resume. See `VALIDATION.md` for evidence and measurement limits.
+- original peer-reviewed papers and official standards;
+- official documentation and original project repositories;
+- author or institutional preprints when the final article is unavailable;
+- high-quality systematic reviews and meta-analyses for aggregate claims;
+- secondary explanations only for orientation, never as the sole support for a contested technical claim.
 
-A roughly 15M-parameter model is an educational training target, not a promise of general-purpose assistant quality. Estimate time only after measuring effective throughput. Small deterministic verification runs are separate from extended training, which was not performed during course generation.
+Verify that a URL resolves to the named source and that the source actually supports the adjacent claim. Use final versions where available. Pin mutable code or documentation versions when API behavior matters. Preserve licenses and attribution for any bundled or adapted assets.
 
-## Offline syntax highlighting
+Search snippets, unsourced summaries, generated prose, citation counts, course enrollment, stars, and marketing claims are not evidence.
 
-The reader bundles PrismJS 1.30.0 under its MIT license. `site/assets/prism.js` concatenates the official minified components in this order: core, clike, rust, wgsl, bash, toml, python, javascript. All were retrieved from `https://raw.githubusercontent.com/PrismJS/prism/v1.30.0/components/prism-NAME.min.js`; the release's `LICENSE` is preserved as `site/assets/prism-LICENSE.txt`. Reference: https://github.com/PrismJS/prism/releases/tag/v1.30.0 . Luna High verified the official Rust/WGSL component support; the lead checked text preservation and browser integration. No CDN or network fetch is used for highlighting. Explicit language labels avoid guessing that terminal output is code. Token colors are in the course stylesheet and preserve the dark code surface in either theme.
+## Chapter and section research record
+
+Each section owner records in `guidance/redesign/section-NN.md` for every assigned chapter:
+
+- the original technical sources supporting the implemented algorithms;
+- official API, language, shader, file-format, or hardware documentation where relevant;
+- the exact local fixture or experiment used to demonstrate the claim;
+- known failure modes, assumptions, and boundary conditions;
+- whether a quantitative statement is externally reported, analytically modeled, or locally measured;
+- the learner-owned seam and why its assessment matches the stated outcome;
+- any cross-section interface whose source or numerical convention needs verification.
+
+Chapter `meta.json` sources contain concise learner-facing notes. Chapter `research.md` may preserve deeper claim verification and author reasoning when the section report would become unwieldy. Neither is a substitute for teaching the concept in `lesson.html`.
+
+Use enough primary sources to support the actual claims. Do not pad a bibliography or cite a famous paper for a detail it does not contain.
+
+## Learning-design basis
+
+The active design uses these evidence-informed decisions, with the detailed methods and limitations in [LEARNING_DESIGN_RESEARCH.md](LEARNING_DESIGN_RESEARCH.md):
+
+- intact examples and substantial completion before independent work;
+- conditional fading that is evaluated rather than assumed effective in programming;
+- retrieval with feedback and later dependency-based reuse;
+- bounded prediction followed by explicit reconciliation;
+- just-in-time math with mapped concrete, visual, symbolic, and Rust representations;
+- interleaving after initial practice when alternatives are genuinely confusable;
+- immediate compiler/test/numerical feedback and progressive explanatory hints;
+- section projects that integrate already taught material;
+- assessment of implementation, diagnosis, experimental judgment, explanation, and later transfer as distinct outcomes.
+
+Counterevidence remains part of the basis: programming fading studies include null results; rushed exploration can reduce conceptual learning and curiosity; visualizations have produced concept-specific or null transfer effects; concrete-first ordering is not universally superior; spaced-retrieval classroom effects are heterogeneous; and project-based-learning reviews have serious methodological limits.
+
+## Curriculum precedents
+
+Google ML Crash Course, fast.ai, the scikit-learn MOOC, MIT 6.036/6.390, CMU 10-301/601, MIT 6.S191, Berkeley Data 8, DeepLearning.AI, Dive into Deep Learning, Stanford CS336, GPU MODE Triton Puzzles, and llm.c provide structural comparisons. The primary URLs and limitations are tabulated in [LEARNING_DESIGN_RESEARCH.md](LEARNING_DESIGN_RESEARCH.md).
+
+They support feasibility of short concept-practice cycles, working artifacts before exhaustive internals, cumulative projects, supplied setup, CPU reference oracles, and aligned exercises. Their prerequisites, languages, classroom support, libraries, and workloads differ. Do not claim that their reach proves their sequence or that their pace fits this learner.
+
+## Technical-claim rules
+
+- State shapes, reductions, precision, data, seeds, model size, and measurement conditions.
+- Separate training objective, validation selection, final evaluation, and qualitative output.
+- Ask whether every feature and preprocessing statistic is available at prediction time.
+- Keep CPU/reference parity separate from optimized or GPU performance.
+- Report analytical bytes/operations as models, not measured time.
+- Bind speed or quality numbers to the source hardware, software, model, and dataset.
+- Label toy SFT, LoRA, DPO, RL, retrieval, quantization, distributed, fairness, robustness, or MoE experiments as mechanism demonstrations at their actual scale.
+- Preserve negative results and cases where an expected improvement did not occur.
+- Do not infer general-purpose language ability, production safety, convergence, fairness, robustness, or deployment readiness from a tiny fixture.
+
+Model Cards, Datasheets, and HELM are useful artifact frameworks, not teaching-effectiveness studies. Technical papers for attention, FlashAttention, quantization, LoRA, DPO, Switch Transformers, state-space models, distributed training, generation, evaluation, and deployment define mechanisms and claims; their learner-facing use still follows the evidence limits above.
+
+## Local measurement and hardware evidence
+
+Current v2 validation status is recorded only in [REDESIGN_VALIDATION.md](REDESIGN_VALIDATION.md). Do not carry pre-v2 Radeon, MNIST, language-model, framework, server, or browser pass claims forward without rerunning the relevant v2 path.
+
+For new local evidence, record:
+
+- exact command and source revision;
+- dataset or fixture identity and split;
+- seed and configuration;
+- toolchain, dependency, operating-system, and hardware details when relevant;
+- warmup, samples, statistic, and dispersion for performance;
+- oracle, tolerances, and boundary cases for correctness;
+- unsupported or unrun paths;
+- what the result does and does not establish.
+
+A real GPU milestone requires adapter acquisition, dispatch, readback, and parity. A GPU performance claim additionally requires actual timing and device metadata. A browser illustration, analytical model, CPU fallback, shader compilation, or old hardware record cannot satisfy it.
+
+## Research handoff
+
+Before declaring a section research-complete, verify source URLs, reconcile source terminology with [CONSISTENCY.md](CONSISTENCY.md), map claims to actual lesson steps and local checks, and list unresolved technical or evidentiary questions. Review uses [REVIEW.md](REVIEW.md). Observed results go to [REDESIGN_VALIDATION.md](REDESIGN_VALIDATION.md); research files do not certify completion.

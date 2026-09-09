@@ -6,11 +6,15 @@
     "Distinguish each model's training objective from generated-sample quality"
   ],
   "lessons": [
-    "Three ways to model a distribution",
-    "Variational autoencoders",
-    "Adversarial training",
-    "Diffusion and reverse denoising",
-    "Run, diagnose, and transfer"
+    "What does a generator owe six observations?",
+    "How does an encoder output a distribution rather than a code?",
+    "Can you recover reconstruction and regularization separately?",
+    "Which model is being optimized in this step?",
+    "Can low loss certify that both modes were learned?",
+    "Can a stable objective distinguish the two generator games?",
+    "How do you manufacture a target for denoising?",
+    "Which check can isolate the sampler from a weak predictor?",
+    "Can your chain remove known noise and explain unfamiliar samples?"
   ],
   "terms": {
     "latent-variable": {
@@ -40,18 +44,31 @@
     }
   },
   "sources": [
-    {"title": "Auto-Encoding Variational Bayes", "url": "https://arxiv.org/abs/1312.6114", "note": "ELBO and Gaussian reparameterization"},
-    {"title": "Generative Adversarial Nets", "url": "https://arxiv.org/abs/1406.2661", "note": "Minimax game and non-saturating generator update"},
-    {"title": "Denoising Diffusion Probabilistic Models", "url": "https://arxiv.org/abs/2006.11239", "note": "Forward noising and noise-prediction objective"},
-    {"title": "Denoising Diffusion Implicit Models", "url": "https://arxiv.org/abs/2010.02502", "note": "Deterministic reverse sampling path"}
+    {
+      "title": "Auto-Encoding Variational Bayes",
+      "url": "https://arxiv.org/abs/1312.6114",
+      "note": "ELBO and Gaussian reparameterization"
+    },
+    {
+      "title": "Generative Adversarial Nets",
+      "url": "https://arxiv.org/abs/1406.2661",
+      "note": "Minimax game and non-saturating generator update"
+    },
+    {
+      "title": "Denoising Diffusion Probabilistic Models",
+      "url": "https://arxiv.org/abs/2006.11239",
+      "note": "Forward noising and noise-prediction objective"
+    },
+    {
+      "title": "Denoising Diffusion Implicit Models",
+      "url": "https://arxiv.org/abs/2010.02502",
+      "note": "Deterministic reverse sampling path"
+    }
   ],
   "checks": [
-    "The beta-VAE objective falls by at least 30 percent",
-    "GAN training changes both generator and discriminator parameters and yields finite samples",
-    "Diffusion noise MSE falls by at least 20 percent",
-    "A perfect supplied noise value maps each diffusion state to the exact previous deterministic state",
-    "Explicit alternate data changes the VAE objective, and invalid empty, nonfinite, mismatched, or diffusion-schedule inputs are rejected",
-    "Default execution trains all three models and reports 512-sample distribution summaries, distinguishing VAE means from full observations"
+    "Run the working learner baseline with just lab 51; implement the complete named algorithms and run just lab-check 51.",
+    "Run the separate solution goal checks and package tests; compare actual numerical intermediates described in each session.",
+    "Complete each session’s changed-input explanation; passing executable checks does not grade explanatory reasoning."
   ],
   "limitations": [
     "Scalar affine networks and six synthetic values are mechanism checks, not image generators",
@@ -59,5 +76,94 @@
     "The beta-VAE, GAN, and diffusion losses have different meanings and are not directly comparable",
     "The deterministic four-step sampler is a DDIM-style teaching path rather than the stochastic DDPM sampler",
     "The affine Gaussian GAN, linear VAE decoder, and affine diffusion reverse chain cannot represent the target distribution's two separated modes"
-  ]
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "distribution",
+      "title": "What does a generator owe six observations?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "vae",
+      "title": "How does an encoder output a distribution rather than a code?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "latent-check",
+      "title": "Can you recover reconstruction and regularization separately?",
+      "session": 1,
+      "minutes": 16
+    },
+    {
+      "id": "gan",
+      "title": "Which model is being optimized in this step?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "coverage",
+      "title": "Can low loss certify that both modes were learned?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "adversarial-check",
+      "title": "Can a stable objective distinguish the two generator games?",
+      "session": 2,
+      "minutes": 16
+    },
+    {
+      "id": "diffusion",
+      "title": "How do you manufacture a target for denoising?",
+      "session": 3,
+      "minutes": 12
+    },
+    {
+      "id": "reverse",
+      "title": "Which check can isolate the sampler from a weak predictor?",
+      "session": 3,
+      "minutes": 10
+    },
+    {
+      "id": "practice",
+      "title": "Can your chain remove known noise and explain unfamiliar samples?",
+      "session": 3,
+      "minutes": 16
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Sample a latent variable without losing its gradient",
+      "goal": "Implement the complete beta-VAE objective and explain its probabilistic assumptions."
+    },
+    {
+      "id": 2,
+      "title": "Train two changing opponents",
+      "goal": "Implement stable GAN objectives and diagnose what their losses cannot show."
+    },
+    {
+      "id": 3,
+      "title": "Learn noise and remove it in order",
+      "goal": "Implement a full reverse chain and test it with known noise."
+    }
+  ],
+  "lab": {
+    "package": "s09-advanced",
+    "chapter": "51",
+    "entry": "labs/s09-advanced/src/ch51.rs",
+    "goal": "Implement beta-VAE and GAN objectives and a complete tested deterministic reverse diffusion chain.",
+    "check": "just lab-check 51"
+  },
+  "topic_coverage": {
+    "VAE": "vae",
+    "GAN": "gan",
+    "diffusion": "diffusion",
+    "sampling": "reverse",
+    "objectives": "distribution"
+  },
+  "interactives": []
 }

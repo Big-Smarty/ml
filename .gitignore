@@ -8,3 +8,7 @@ datasets/downloads/
 site/generated/
 .tools/
 exercises/cpu/.rustlings-state.txt
+
+# Generated course output and local execution state.
+dist/
+.codex/

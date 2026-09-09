@@ -1,35 +1,33 @@
 {
   "outcomes": [
-    "Read training and validation learning curves together",
-    "Explain learning-rate failure modes",
-    "Apply deterministic minibatch updates",
-    "Distinguish optimizer steps from epochs",
-    "Derive and implement L2 regularization",
-    "Distinguish optimization from generalization"
+    "Diagnose learning curves using the data and update definitions",
+    "Implement uneven minibatches and weight-only regularization",
+    "Return the saved best model and explain validation-guided choices"
   ],
   "lessons": [
-    "When a correct gradient still fails",
-    "Learning rates and curves",
-    "Minibatches",
-    "Regularization and generalization",
-    "Run the comparison",
-    "Practice and transfer"
+    "How can correct training still go wrong?",
+    "Why is a bigger step not just faster learning?",
+    "Can a partial view of the data produce a useful update?",
+    "What does it mean to prefer a smaller weight?",
+    "Does a better training objective imply better future predictions?",
+    "Which model should be kept when validation stops improving?",
+    "What evidence would justify your next training choice?"
   ],
   "terms": {
     "learning-curve": {
       "name": "Learning curve",
       "definition": "A plot of model performance against a stated measure of learning progress, such as update count or training-set size.",
-      "explanation": "A training curve calls Neuron::loss on all supplied training examples at each epoch boundary. A validation curve calls the same unregularized mean-squared-error loss on held-out examples. Reading them together separates optimization trouble from generalization trouble: both remaining high suggests poor optimization or an inadequate model, while training improving as validation worsens suggests overfitting. Curves depend on the measurement interval and reduction convention. They are evidence from one run, not a guarantee about every random seed or dataset. In this chapter the horizontal axis is epoch count: each point follows a full pass over the fixed training set. Other learning curves vary training-set size instead; check the axis before comparing them."
+      "explanation": "This chapter records ordinary MSE on the complete training and validation partitions after each epoch. The optimized objective may include L2, but the two displayed curves omit that penalty so they share a definition. Curves help distinguish instability from possible overfitting, but their interpretation also depends on sample noise, distribution and measurement interval. Other learning curves vary training-set size; always inspect the horizontal axis."
     },
     "minibatch": {
       "name": "Minibatch",
       "definition": "A subset of training examples used to estimate one optimizer step.",
-      "explanation": "Neuron::step receives one batch and averages the data-loss gradient over that batch, including a shorter final batch. A minibatch uses fewer examples than a full-batch step, reducing work per update and introducing variation because batches produce different estimates. One epoch is a complete pass through train_data and can contain several steps. This chapter uses fixed ordered chunks for a deterministic trace. Production stochastic training typically shuffles examples between epochs so order patterns do not bias consecutive updates."
+      "explanation": "A minibatch is one subset whose mean gradient produces an optimizer step. This lab shuffles only training rows with supplied deterministic RNG state, then uses chunks of the requested size. Each chunk averages by its actual length, including a short final chunk. An epoch visits the complete training set and can contain several steps, so comparisons should state both epochs and update counts."
     },
     "regularization": {
       "name": "Regularization",
       "definition": "A modification intended to favor models that transfer better to unseen data.",
-      "explanation": "L2 regularization adds λ times weight squared to each minibatch training objective; the Rust argument l2 represents λ. Its derivative adds 2λw to the weight gradient, pulling large weights toward zero. The bias is unpenalized. Neuron::loss remains ordinary unregularized mean squared error on the explicitly supplied data, so training and validation curves stay comparable. The l2 value is a hyperparameter selected with validation evidence. A regularizer does not repair leakage, unrepresentative data, or an incorrectly defined target."
+      "explanation": "The lab adds lambda times weight squared to each batch-mean training objective. Its derivative is2lambda times the old weight; bias is unpenalized. Data-loss curves omit the penalty so training and validation share a metric definition. Lambda is selected using validation evidence. Regularization cannot repair unavailable features, leakage or a distribution mismatch."
     },
     "generalization": {
       "name": "Generalization",
@@ -52,23 +50,93 @@
       "title": "Hoerl and Kennard: Ridge Regression",
       "url": "https://doi.org/10.1080/00401706.1970.10488634",
       "note": "Original L2/ridge regularization"
-    },
-    {
-      "title": "Dropout",
-      "url": "https://jmlr.org/papers/v15/srivastava14a.html",
-      "note": "Primary source for a later neural-network regularizer"
     }
   ],
   "checks": [
-    "A reliable learning_rate lowers validation loss below 0.2",
-    "The learned weight is within 0.15 of two",
-    "L2 produces a smaller absolute weight than the unregularized run",
-    "A batch of four examples gives three optimizer steps per epoch",
-    "Invalid batch sizes and hyperparameters are rejected"
+    "Batch5 on12 rows makes240 updates in80 epochs",
+    "Shuffled SGD validation MSE stays below0.2 on this noisy fixture",
+    "L2 shrinks the learned weight; bias remains unpenalized; penalty derivative agrees with finite differences",
+    "Three-row short-batch fixture yields bias0.36 after two steps, even with weight regularization",
+    "Early stopping returns the model at minimum recorded validation loss",
+    "Multiple seeds and short batches are checked; invalid batch size is rejected even for a zero-epoch diagnostic"
   ],
   "limitations": [
-    "Fixed ordered minibatches favor determinism over realistic shuffling",
-    "The small linear fixture cannot display every form of overfitting",
-    "Only constant learning rates and L2 regularization are implemented"
-  ]
+    "Noisy linear fixtures cannot display every overfitting pattern",
+    "Equal epochs do not imply equal update counts or runtime",
+    "Validation-guided stopping and regularization selection still need independent final evaluation"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "curves",
+      "title": "How can correct training still go wrong?",
+      "session": 1,
+      "minutes": 8
+    },
+    {
+      "id": "rates",
+      "title": "Why is a bigger step not just faster learning?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "minibatches",
+      "title": "Can a partial view of the data produce a useful update?",
+      "session": 1,
+      "minutes": 20
+    },
+    {
+      "id": "regularization",
+      "title": "What does it mean to prefer a smaller weight?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "generalization",
+      "title": "Does a better training objective imply better future predictions?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "early-stopping",
+      "title": "Which model should be kept when validation stops improving?",
+      "session": 2,
+      "minutes": 15
+    },
+    {
+      "id": "section-result",
+      "title": "What evidence would justify your next training choice?",
+      "session": 2,
+      "minutes": 8
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Make update size and batches explicit",
+      "goal": "Implement shuffled minibatches and compare rates and work counts"
+    },
+    {
+      "id": 2,
+      "title": "Compare regularization and saved models",
+      "goal": "Implement L2 and validation-based early stopping with a preserved best model"
+    }
+  ],
+  "lab": {
+    "package": "s01-foundations",
+    "chapter": "06",
+    "entry": "labs/s01-foundations/src/ch06.rs",
+    "goal": "Extend full-batch SGD with shuffled minibatches, L2 and saved-best early stopping",
+    "check": "just lab-check 06",
+    "manual_checks": [
+      "Explain the prediction and independent variation in your own words; numeric checks do not grade prose."
+    ]
+  },
+  "interactives": [],
+  "topic_coverage": {
+    "Learning rates": "rates",
+    "minibatches": "minibatches",
+    "regularization": "regularization",
+    "generalization": "generalization"
+  }
 }

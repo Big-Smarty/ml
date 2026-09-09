@@ -3,15 +3,23 @@
     "Estimate action values with epsilon-greedy bandit interaction",
     "Derive and implement the tabular Q-learning control update",
     "Train a categorical policy with an actual REINFORCE gradient",
-    "Distinguish sampled evidence from convergence guarantees"
+    "Distinguish sampled evidence from convergence guarantees",
+    "Implement clipped PPO on a frozen collected batch",
+    "Compare expected cumulative bandit regret across five seeds"
   ],
   "lessons": [
-    "Learning from consequences",
-    "Bandits and exploration",
-    "Tabular control",
-    "Policy gradients",
-    "Rust experiment",
-    "Practice and transfer"
+    "What can a learner infer from one observed reward?",
+    "What changes when actions collect the data?",
+    "How can exploration correct a lucky first estimate?",
+    "Can exploration outperform a fixed sampling schedule?",
+    "How does delayed reward reach an earlier state?",
+    "Can a table learn the value of an entire path?",
+    "How can reward change action probabilities directly?",
+    "Why freeze the policy that collected a PPO batch?",
+    "Which result belongs to which learner?",
+    "Can you diagnose a policy that improves the wrong quantity?",
+    "Can you trace all four learning rules?",
+    "Sources and further reading"
   ],
   "terms": {
     "reinforcement-learning": {
@@ -43,12 +51,17 @@
       "name": "Policy gradient",
       "definition": "A gradient of expected return with respect to logits or other parameters that directly define an action policy.",
       "explanation": "REINFORCE estimates this gradient with sampled returns multiplied by the gradient of the chosen action's log probability. The logits are unrestricted learned scores; softmax converts them to normalized action probabilities. They are distinct from Q-values, which estimate expected return. The log-probability derivative raises probability for actions with positive advantage and lowers it for negative advantage. A baseline can reduce variance without changing the expected gradient when it does not depend on the sampled action. Finite stochastic training remains noisy, so a deterministic seed is a reproducibility aid rather than a proof."
+    },
+    "proximal-policy-optimization": {
+      "name": "Proximal Policy Optimization",
+      "definition": "Policy optimization that can reuse a collected batch through a clipped probability-ratio objective.",
+      "explanation": "PPO compares the current probability of a collected action with its frozen collection-policy probability. Its clipped surrogate stops rewarding excessive favorable ratio changes while retaining corrective gradients for unfavorable changes. This chapter implements the clipped two-action objective and batch reuse with an action-independent known baseline; it has no learned critic or decoder RLHF, and clipping does not impose a hard bound on every probability."
     }
   },
   "sources": [
     {
       "title": "Reinforcement Learning: An Introduction, second edition",
-      "url": "https://incompleteideas.net/book/bookdraft2018mar21.pdf",
+      "url": "http://incompleteideas.net/book/the-book-2nd.html",
       "note": "Bandits, tabular control, and policy-gradient foundations"
     },
     {
@@ -65,6 +78,11 @@
       "title": "Policy Gradient Methods for Reinforcement Learning with Function Approximation",
       "url": "https://papers.nips.cc/paper/1713-policy-gradient-methods-for-reinforcement-learning-with-function-approximation",
       "note": "Policy-gradient theorem"
+    },
+    {
+      "title": "Proximal Policy Optimization Algorithms",
+      "url": "https://arxiv.org/abs/1707.06347",
+      "note": "Clipped surrogate and frozen collection-policy batch reuse; implemented in the tiny simulator"
     }
   ],
   "checks": [
@@ -72,11 +90,119 @@
     "Q-learning makes right the greedy action in all four nonterminal states and matches exact path returns",
     "Terminal transitions ignore sentinel continuation values and cannot restart the episode",
     "Five thousand seeded REINFORCE episodes assign action 1 probability above 0.9",
-    "Invalid epsilon and empty bandit runs are rejected"
+    "Invalid epsilon and empty bandit runs are rejected",
+    "Both advantage signs activate clipping correctly",
+    "PPO actually trains with fixed old probabilities across four epochs"
   ],
   "limitations": [
     "Tiny stationary simulations do not establish performance in a real environment",
     "Constant learning rates and finite visits do not satisfy the published tabular convergence conditions",
-    "The policy-gradient experiment has one decision and does not test delayed credit assignment"
-  ]
+    "The policy-gradient experiment has one decision and does not test delayed credit assignment",
+    "PPO is a two-action one-step simulator with a known expected-reward baseline; no learned critic, GAE or decoder RLHF"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "continuity",
+      "title": "What can a learner infer from one observed reward?",
+      "session": 1,
+      "minutes": 5
+    },
+    {
+      "id": "interaction",
+      "title": "What changes when actions collect the data?",
+      "session": 1,
+      "minutes": 6
+    },
+    {
+      "id": "bandits",
+      "title": "How can exploration correct a lucky first estimate?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "bandit-build",
+      "title": "Can exploration outperform a fixed sampling schedule?",
+      "session": 1,
+      "minutes": 19
+    },
+    {
+      "id": "q-learning",
+      "title": "How does delayed reward reach an earlier state?",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "control-build",
+      "title": "Can a table learn the value of an entire path?",
+      "session": 2,
+      "minutes": 22
+    },
+    {
+      "id": "policy-gradient",
+      "title": "How can reward change action probabilities directly?",
+      "session": 3,
+      "minutes": 13
+    },
+    {
+      "id": "ppo",
+      "title": "Why freeze the policy that collected a PPO batch?",
+      "session": 3,
+      "minutes": 15
+    },
+    {
+      "id": "run",
+      "title": "Which result belongs to which learner?",
+      "session": 3,
+      "minutes": 3
+    },
+    {
+      "id": "practice",
+      "title": "Can you diagnose a policy that improves the wrong quantity?",
+      "session": 3,
+      "minutes": 9
+    },
+    {
+      "id": "review",
+      "title": "Can you trace all four learning rules?",
+      "session": 3,
+      "minutes": 3
+    },
+    {
+      "id": "sources",
+      "title": "Sources and further reading",
+      "session": 3,
+      "minutes": 1
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Collect useful bandit evidence",
+      "goal": "Implement epsilon-greedy interaction and compare five-seed regret"
+    },
+    {
+      "id": 2,
+      "title": "Propagate delayed reward",
+      "goal": "Implement full Q-learning and check exact path values"
+    },
+    {
+      "id": 3,
+      "title": "Optimize a policy",
+      "goal": "Trace REINFORCE and implement frozen-batch clipped PPO"
+    }
+  ],
+  "lab": {
+    "package": "s08-adaptation",
+    "chapter": "45",
+    "entry": "labs/s08-adaptation/src/ch45.rs",
+    "goal": "Implement epsilon-greedy interaction and compare five-seed regret; Implement full Q-learning and check exact path values; Trace REINFORCE and implement frozen-batch clipped PPO",
+    "check": "just lab-check 45"
+  },
+  "topic_coverage": {
+    "Bandits": "bandits",
+    "tabular control": "q-learning",
+    "policy gradients": "ppo"
+  },
+  "interactives": []
 }

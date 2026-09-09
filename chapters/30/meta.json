@@ -7,12 +7,13 @@
     "Use Gpu::matmul and Gpu::reduce_sum with their named scalar oracles"
   ],
   "lessons": [
-    "Why neighboring invocations must cooperate",
-    "Reduce values inside one workgroup",
-    "Tile matrix multiplication",
-    "Handle edge dimensions and device limits",
-    "Run, debug, and extend the GPU library",
-    "Review and transfer"
+    "Which neighboring values must one result use?",
+    "Combine values with a shared reduction tree",
+    "Build and trace the staged reduction",
+    "Reuse one loaded tile across output owners",
+    "Which addresses remain valid at an edge?",
+    "Build tiled GEMM and challenge its edges",
+    "Defend both synchronization boundaries"
   ],
   "terms": {
     "reduction": {
@@ -42,23 +43,114 @@
     }
   },
   "sources": [
-    {"title": "WGSL specification", "url": "https://www.w3.org/TR/WGSL/", "note": "Normative workgroup memory, barrier, and uniformity rules."},
-    {"title": "WebGPU specification", "url": "https://www.w3.org/TR/webgpu/", "note": "Normative compute dispatch and resource validation model."},
-    {"title": "wgpu workgroups example", "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/features/src/hello_workgroups/README.md", "note": "First-party workgroup explanation for v29."},
-    {"title": "wgpu synchronization example", "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/features/src/hello_synchronization/README.md", "note": "First-party synchronization guidance."}
+    {
+      "title": "WGSL specification",
+      "url": "https://www.w3.org/TR/WGSL/",
+      "note": "Normative workgroup memory, barrier, and uniformity rules."
+    },
+    {
+      "title": "WebGPU specification",
+      "url": "https://www.w3.org/TR/webgpu/",
+      "note": "Normative compute dispatch and resource validation model."
+    },
+    {
+      "title": "wgpu workgroups example",
+      "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/features/src/hello_workgroups/README.md",
+      "note": "First-party workgroup explanation for v29."
+    },
+    {
+      "title": "wgpu synchronization example",
+      "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/features/src/hello_synchronization/README.md",
+      "note": "First-party synchronization guidance."
+    }
   ],
   "checks": [
-    "matmul_scalar handles a nonsquare 3×17 by 17×5 product",
-    "The ignored hardware test matches that odd-tile product within absolute-plus-relative tolerance",
-    "reduce_sum_scalar validates finite nonempty input, and a 777-value staged reduction matches it",
-    "Zero, overflowing, malformed, nonfinite, or device-exceeding shapes return errors",
-    "Gpu stores a persistent device, queue, matmul pipeline, and reduction pipeline",
-    "The lesson distinguishes per-workgroup dimensions from the padded global dispatch grid"
+    "Direct CPU baseline and completed blocked CPU path agree on nonsquare odd shapes",
+    "Staged reduction checks include N=1,600,777",
+    "Actual --gpu dispatch verifies odd K, multiple output groups and partial tiles",
+    "Numerical checks explicitly do not prove a tree/tiled implementation; learner supplies ownership and uniform-barrier traces",
+    "Malformed, zero, overflowing, nonfinite and hardware-limit violations return errors"
   ],
   "limitations": [
-    "Each reduction workgroup handles up to 512 inputs; larger arrays require multiple dispatch stages",
-    "The fixed 16×16 matmul tile is educational and is not tuned per adapter",
-    "Each matmul call uploads inputs and reads output, so later integration includes transfer overhead",
-    "Floating-point accumulation order prevents bitwise CPU/GPU reproducibility"
-  ]
+    "The correct naive baseline passes parity; a code/trace explanation is needed to establish cooperation",
+    "The fixed16×16 tile is educational rather than adapter-tuned",
+    "Each matmul call uploads inputs and maps output; only the chapter31 training loop is resident",
+    "Floating-point operation order prevents a universal bitwise CPU/GPU guarantee"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "question",
+      "title": "Which neighboring values must one result use?",
+      "session": 1,
+      "minutes": 6
+    },
+    {
+      "id": "reduction",
+      "title": "Combine values with a shared reduction tree",
+      "session": 1,
+      "minutes": 13
+    },
+    {
+      "id": "reduce-build",
+      "title": "Build and trace the staged reduction",
+      "session": 1,
+      "minutes": 21
+    },
+    {
+      "id": "matmul",
+      "title": "Reuse one loaded tile across output owners",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "edges",
+      "title": "Which addresses remain valid at an edge?",
+      "session": 2,
+      "minutes": 9
+    },
+    {
+      "id": "tile-build",
+      "title": "Build tiled GEMM and challenge its edges",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "review",
+      "title": "Defend both synchronization boundaries",
+      "session": 2,
+      "minutes": 5
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Cooperate on a staged sum",
+      "goal": "Implement and trace a real shared-memory reduction with CPU agreement"
+    },
+    {
+      "id": 2,
+      "title": "Cooperate on rectangular matrix tiles",
+      "goal": "Implement tiled WGSL, explain barriers, and verify multiple odd dimensions"
+    }
+  ],
+  "lab": {
+    "package": "s06-gpu",
+    "chapter": "30",
+    "entry": "labs/s06-gpu/src/ch30.rs",
+    "goal": "Build cooperative reduction and tiled GEMM; combine parity with a barrier/ownership explanation",
+    "check": "just lab-check 30",
+    "manual_checks": [
+      "Trace N=600 reduction as 600→2→1 and identify which invocation owns each scratch/subtotal write.",
+      "Review actual MATMUL/REDUCE source for cooperative shared loads, halving tree, uniform barriers, no early edge return, and distinct output stores.",
+      "Trace the 17×19 by19×33 grid:6 workgroups,2 K rounds, edge zero filling and both barriers; attach real CPU/GPU parity when hardware is supported."
+    ]
+  },
+  "interactives": [],
+  "topic_coverage": {
+    "Workgroups": "matmul",
+    "shared memory": "reduction",
+    "barriers": "reduction",
+    "edge dimensions": "edges"
+  }
 }

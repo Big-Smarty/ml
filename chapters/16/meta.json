@@ -1,17 +1,16 @@
 {
   "outcomes": [
-    "Convert binary class labels to -1 and +1, then compute signed margins and hinge loss",
-    "Train and evaluate a two-feature linear soft-margin SVM",
-    "Explain how an RBF kernel turns distances into nonlinear influence",
-    "Diagnose label-encoding and kernel-inference bugs"
+    "Calculate signed margins and implement active/inactive hinge updates",
+    "Train a regularized linear SVM and explain its weight penalty",
+    "Calculate RBF kernel similarity and fit a kernel perceptron while distinguishing it from a kernel SVM"
   ],
   "lessons": [
-    "From a correct boundary to a confident boundary",
-    "Hinge loss spends effort near the margin",
-    "Turn the objective into Rust updates",
-    "Curve the boundary with similarity",
-    "Run, inspect, and practice",
-    "Review and transfer"
+    "How far is a correct point from the boundary?",
+    "What does the corridor cost?",
+    "Implement the soft-margin updates",
+    "Which points are still asking for an update?",
+    "Can similarity make a boundary curve?",
+    "Learn and test the nonlinear coefficients"
   ],
   "terms": {
     "margin": {
@@ -36,21 +35,104 @@
     }
   },
   "sources": [
-    {"title": "Support-Vector Networks", "url": "https://doi.org/10.1007/BF00994018", "note": "Original soft-margin support-vector network paper."},
-    {"title": "A Training Algorithm for Optimal Margin Classifiers", "url": "https://doi.org/10.1145/130385.130401", "note": "Original kernelized optimal-margin formulation."},
-    {"title": "Sequential Minimal Optimization", "url": "https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/", "note": "Primary source for a full dual optimizer beyond this project."},
-    {"title": "Stanford Statistics 202: Support Vector Machines", "url": "https://web.stanford.edu/class/stats202/slides/Support-vector-machines.html", "note": "University teaching source for margin, hinge loss, and kernels."}
+    {
+      "title": "Support-Vector Networks",
+      "url": "https://doi.org/10.1007/BF00994018",
+      "note": "Original soft-margin support-vector network paper."
+    },
+    {
+      "title": "A Training Algorithm for Optimal Margin Classifiers",
+      "url": "https://doi.org/10.1145/130385.130401",
+      "note": "Original kernelized optimal-margin formulation."
+    },
+    {
+      "title": "Sequential Minimal Optimization",
+      "url": "https://www.microsoft.com/en-us/research/publication/sequential-minimal-optimization-a-fast-algorithm-for-training-support-vector-machines/",
+      "note": "Primary source for a full dual optimizer beyond this project."
+    },
+    {
+      "title": "Stanford Statistics 202: Support Vector Machines",
+      "url": "https://web.stanford.edu/class/stats202/slides/Support-vector-machines.html",
+      "note": "University teaching source for margin, hinge loss, and kernels."
+    }
   ],
   "checks": [
-    "The zero model has regularized objective 1 on the linear fixture because its mean hinge loss is 1 and its L2 penalty is 0",
-    "The trained linear SVM classifies all eight linearly separated fixture points",
-    "The linear model reaches at most 75% on XOR while the RBF classifier reaches 100%",
-    "Empty data and invalid gamma are rejected"
+    "Active/inactive hinge branches include the intended regularization update",
+    "Linear SVM learns separated signed-label inputs",
+    "Kernel coefficients classify inward-moved XOR queries"
   ],
   "limitations": [
-    "The nonlinear model is a kernel perceptron, not a maximum-margin kernel SVM",
-    "Training uses a fixed order and learning rate rather than a production optimizer",
-    "Kernel prediction and storage scale with retained training points",
-    "Synthetic training accuracy does not estimate real-world generalization"
-  ]
+    "Nonlinear branch is a kernel perceptron, not a maximum-margin kernel SVM",
+    "Hard0/1 outputs are not calibrated SVM probabilities",
+    "Fixed epochs and full support scans limit scale and convergence claims"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "boundary",
+      "title": "How far is a correct point from the boundary?",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "hinge",
+      "title": "What does the corridor cost?",
+      "session": 1,
+      "minutes": 22
+    },
+    {
+      "id": "linear-training",
+      "title": "Implement the soft-margin updates",
+      "session": 2,
+      "minutes": 22
+    },
+    {
+      "id": "margin-audit",
+      "title": "Which points are still asking for an update?",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "kernels",
+      "title": "Can similarity make a boundary curve?",
+      "session": 3,
+      "minutes": 18
+    },
+    {
+      "id": "experiment",
+      "title": "Learn and test the nonlinear coefficients",
+      "session": 3,
+      "minutes": 22
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "How far is a correct point from the boundary?",
+      "goal": "Implement hinge loss/update branches and distinguish a correct low-margin case from an inactive update"
+    },
+    {
+      "id": 2,
+      "title": "Implement the soft-margin updates",
+      "goal": "Fit the regularized linear SVM and compare weight norm and decisions at changed regularization"
+    },
+    {
+      "id": 3,
+      "title": "Can similarity make a boundary curve?",
+      "goal": "Fit kernel-perceptron coefficients and test inward-moved XOR queries at varied gamma"
+    }
+  ],
+  "lab": {
+    "package": "s03-tabular",
+    "chapter": "16",
+    "entry": "labs/s03-tabular/src/ch16.rs",
+    "goal": "Implement regularized hinge updates and kernel-perceptron coefficient fitting",
+    "check": "just lab-check 16"
+  },
+  "topic_coverage": {
+    "Hinge loss": "hinge",
+    "linear SVM": "linear-training",
+    "kernel similarity": "kernels"
+  },
+  "interactives": []
 }

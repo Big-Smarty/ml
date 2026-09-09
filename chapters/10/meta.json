@@ -1,16 +1,130 @@
 {
-  "outcomes": ["Validate and parse big-endian IDX image and label files", "Compute stable softmax probabilities and cross-entropy from logits", "Map a dense layer's weights and bias to a ten-class linear model", "Train with mean minibatch gradients", "Separate validation choices from final test evaluation"],
-  "lessons": ["IDX files", "Softmax cross-entropy", "Linear classifier training", "Fixture and MNIST modes", "Stable-classification practice", "Review and transfer"],
+  "outcomes": [
+    "Validate and parse big-endian IDX image and label files",
+    "Compute stable softmax probabilities and cross-entropy from logits",
+    "Map a dense layer's weights and bias to a ten-class linear model",
+    "Train with mean minibatch gradients",
+    "Separate validation choices from final test evaluation",
+    "Compute per-class recall from returned confusion counts and distinguish absent classes"
+  ],
+  "lessons": [
+    "What does one digit look like before it becomes a prediction?",
+    "How can ten competing scores express one target?",
+    "Can you fit pixel weights with one complete minibatch gradient?",
+    "What do the remaining mistakes tell us?",
+    "How does the same program read actual MNIST files?",
+    "When has the linear model taught us enough to add a hidden layer?"
+  ],
   "terms": {
-    "idx-format": {"name":"IDX format","definition":"A binary array format with magic, dimension sizes, and a contiguous payload.","explanation":"MNIST image IDX files begin with magic number 2051, a count, rows, and columns; label files begin with 2049 and a count. Header integers are 32-bit big-endian values. Payload bytes follow in row-major order. A safe reader validates magic, positive dimensions, matching counts, checked size arithmetic, and exact byte length before interpreting data. The format supplies structure, while dataset meaning and split policy come from MNIST documentation."},
-    "softmax": {"name":"Softmax","definition":"A function that converts a vector of logits into positive probabilities summing to one.","explanation":"Softmax exponentiates shifted logits and divides each exponential by their sum. Subtracting the maximum logit prevents overflow without changing the ratio. With cross-entropy and a class-index target, the logit gradient is probability minus the one-hot target. Softmax probabilities express competition among the listed classes; they do not guarantee calibrated uncertainty or account for classes absent from the model. Temperature scaling can change confidence while preserving the same basic normalization."}
+    "idx-format": {
+      "name": "IDX format",
+      "definition": "A binary array format with magic, dimension sizes, and a contiguous payload.",
+      "explanation": "MNIST image IDX files begin with magic number 2051, a count, rows, and columns; label files begin with 2049 and a count. Header integers are 32-bit big-endian values. Payload bytes follow in row-major order. A safe reader validates magic, positive dimensions, matching counts, checked size arithmetic, and exact byte length before interpreting data. The format supplies structure, while dataset meaning and split policy come from MNIST documentation."
+    },
+    "softmax": {
+      "name": "Softmax",
+      "definition": "A function that converts a vector of logits into positive probabilities summing to one.",
+      "explanation": "Softmax exponentiates shifted logits and divides each exponential by their sum. Subtracting the maximum logit prevents overflow without changing the ratio. With cross-entropy and a class-index target, the logit gradient is probability minus the one-hot target. Softmax probabilities express competition among the listed classes; they do not guarantee calibrated uncertainty or account for classes absent from the model. Temperature scaling can change confidence while preserving the same basic normalization."
+    }
   },
   "sources": [
-    {"title":"The MNIST database","url":"https://yann.lecun.org/exdb/mnist/","note":"Official counts and IDX byte layout"},
-    {"title":"torchvision MNIST loader","url":"https://github.com/pytorch/vision/blob/main/torchvision/datasets/mnist.py","note":"Verified archive source names and checksums used by the preparation tool"},
-    {"title":"PyTorch CrossEntropyLoss","url":"https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html","note":"Logits and log-softmax plus NLL"},
-    {"title":"Gradient-Based Learning Applied to Document Recognition","url":"https://doi.org/10.1109/5.726791","note":"Foundational handwritten recognition paper"}
+    {
+      "title": "The MNIST database",
+      "url": "https://yann.lecun.org/exdb/mnist/",
+      "note": "Official counts and IDX byte layout"
+    },
+    {
+      "title": "torchvision MNIST loader",
+      "url": "https://github.com/pytorch/vision/blob/main/torchvision/datasets/mnist.py",
+      "note": "Verified archive source names and checksums used by the preparation tool"
+    },
+    {
+      "title": "PyTorch CrossEntropyLoss",
+      "url": "https://docs.pytorch.org/docs/stable/generated/torch.nn.CrossEntropyLoss.html",
+      "note": "Logits and log-softmax plus NLL"
+    },
+    {
+      "title": "Gradient-Based Learning Applied to Document Recognition",
+      "url": "https://doi.org/10.1109/5.726791",
+      "note": "Foundational handwritten recognition paper"
+    }
   ],
-  "checks": ["Generated bytes parse through the real IDX loader", "Malformed magic and payload sizes are rejected", "Fixture mean cross-entropy falls by at least 80 percent", "Fixture held-out accuracy reaches 100 percent", "Explicit MNIST mode requires readable paths", "cross_entropy_from_logits retains ln 10 for ten equal logits at a common offset of 1e16"],
-  "limitations": ["The generated fixture covers only three labels and is not a quality benchmark", "The model is linear", "The reference uses deterministic sequential minibatches and no shuffling"]
+  "checks": [
+    "Selected pixel and bias gradients agree with independent central differences",
+    "Original and rotated labels learn with a short final minibatch",
+    "Common-offset cross-entropy retains ln 10 at 1e16",
+    "Real IDX header and payload validation is tested",
+    "Learner per-class recall reports class-1 recall 0.5, class-7 recall 1.0 and absent classes as None"
+  ],
+  "limitations": [
+    "Default data is synthetic block glyphs, not MNIST handwriting",
+    "Conflicting blank labels intentionally prevent perfect held-out decisions",
+    "The model is linear and uses fixed-order minibatches",
+    "No MNIST quality measurement was run for this redesign"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "idx",
+      "title": "What does one digit look like before it becomes a prediction?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "softmax",
+      "title": "How can ten competing scores express one target?",
+      "session": 1,
+      "minutes": 11
+    },
+    {
+      "id": "training",
+      "title": "Can you fit pixel weights with one complete minibatch gradient?",
+      "session": 1,
+      "minutes": 19
+    },
+    {
+      "id": "evaluation",
+      "title": "What do the remaining mistakes tell us?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "run",
+      "title": "How does the same program read actual MNIST files?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "review",
+      "title": "When has the linear model taught us enough to add a hidden layer?",
+      "session": 2,
+      "minutes": 12
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Train pixel-to-class weights",
+      "goal": "Implement the complete mean multiclass gradient"
+    },
+    {
+      "id": 2,
+      "title": "Evaluate and transfer",
+      "goal": "Report per-class errors and test a brightness change; understand explicit MNIST mode"
+    }
+  ],
+  "lab": {
+    "package": "s02-neural-networks",
+    "chapter": "10",
+    "entry": "labs/s02-neural-networks/src/ch10.rs",
+    "goal": "Train a real ten-class linear classifier and inspect ambiguous held-out errors",
+    "check": "just lab-check 10"
+  },
+  "topic_coverage": {
+    "IDX format": "idx",
+    "MNIST": "idx",
+    "softmax": "softmax",
+    "multiclass evaluation": "evaluation"
+  },
+  "interactives": []
 }

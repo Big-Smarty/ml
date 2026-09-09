@@ -1,18 +1,17 @@
 {
   "outcomes": [
-    "Separate training, validation, and test decisions",
-    "Detect entity overlap and preprocessing leakage",
-    "Compute confusion counts and derived metrics from probabilities and targets",
-    "Choose a threshold on validation and compare a baseline"
+    "Keep repeated machines together across splits",
+    "Choose a threshold on validation under stated costs",
+    "Report confusion counts, baseline and residual errors on the frozen test partition"
   ],
   "lessons": [
-    "Code and terminology carried forward",
-    "What training performance cannot tell you",
-    "Splits and leakage",
-    "Confusion counts and metrics",
-    "Thresholds and baselines",
-    "Run the audit",
-    "Practice and transfer"
+    "Does the detector work on a machine it has never seen?",
+    "Which examples may influence each decision?",
+    "Can your splitter preserve a whole machine?",
+    "Can a perfect feature still be forbidden?",
+    "What errors disappear inside accuracy?",
+    "Which threshold best serves the stated cost?",
+    "What can you responsibly conclude from this evaluation?"
   ],
   "terms": {
     "data-split": {
@@ -84,14 +83,90 @@
     }
   ],
   "checks": [
-    "At threshold 0.5 the test confusion counts are TP 1, FP 1, TN 7, FN 1",
-    "Accuracy equals 0.8 while precision and recall equal 0.5",
-    "Validation selects threshold 0.6 from the documented candidates",
-    "Duplicate entity identifiers across splits are detected"
+    "Every generated row appears exactly once and machine IDs are disjoint across all three splits",
+    "Row reordering preserves group assignment",
+    "Several unfamiliar score sets check minimum-cost selection and first-candidate tie handling",
+    "Confusion counts and invalid probability boundaries are checked"
   ],
   "limitations": [
-    "The fixture probabilities are supplied rather than learned or calibrated",
-    "Eight validation examples make threshold selection noisy",
-    "Metrics do not encode application-specific harms or subgroup behavior"
-  ]
+    "Synthetic generator and costs do not represent industrial frequencies or harms",
+    "Two visits from one machine are correlated, not independent samples",
+    "Modulo-ID partitioning is transparent here but needs a representativeness audit on real IDs",
+    "The after-inspection field is deliberately forbidden at prediction time"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "new-machines",
+      "title": "Does the detector work on a machine it has never seen?",
+      "session": 1,
+      "minutes": 8
+    },
+    {
+      "id": "split-roles",
+      "title": "Which examples may influence each decision?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "group-boundary",
+      "title": "Can your splitter preserve a whole machine?",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "leakage",
+      "title": "Can a perfect feature still be forbidden?",
+      "session": 2,
+      "minutes": 7
+    },
+    {
+      "id": "counts",
+      "title": "What errors disappear inside accuracy?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "choose-policy",
+      "title": "Which threshold best serves the stated cost?",
+      "session": 2,
+      "minutes": 15
+    },
+    {
+      "id": "audit-report",
+      "title": "What can you responsibly conclude from this evaluation?",
+      "session": 2,
+      "minutes": 8
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Define a trustworthy partition",
+      "goal": "Implement grouping and verify whole-machine membership under row changes"
+    },
+    {
+      "id": 2,
+      "title": "Choose and audit a decision policy",
+      "goal": "Select validation cost and report test residuals against a majority baseline"
+    }
+  ],
+  "lab": {
+    "package": "s01-foundations",
+    "chapter": "05",
+    "entry": "labs/s01-foundations/src/ch05.rs",
+    "goal": "Replace a contaminated row split and fixed cutoff with grouped validation selection",
+    "check": "just lab-check 05",
+    "manual_checks": [
+      "Explain the prediction and independent variation in your own words; numeric checks do not grade prose."
+    ]
+  },
+  "interactives": [],
+  "topic_coverage": {
+    "Splits": "split-roles",
+    "leakage": "leakage",
+    "metrics": "counts",
+    "thresholds": "choose-policy",
+    "baselines": "counts"
+  }
 }

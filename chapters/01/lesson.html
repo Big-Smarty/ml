@@ -1,176 +1,47 @@
-<p class="lead">A program usually follows rules you write. A learning program adjusts a few numbers so that its predictions fit examples. In this chapter, you will write that adjustment yourself—and watch one artificial neuron learn a rule you never put into its training function.</p>
-<div class="callout"><strong>Your first milestone</strong><p>By the end, a small Rust program will learn a straight line from five examples, then predict an answer for an input it did not train on. You need functions, loops, and basic arithmetic. You do not need calculus or an ML library.</p></div>
-<section id="continuity"><h2>Code and terminology carried forward</h2>
-<p>This is the first chapter, so there is no earlier model API to rename. It establishes the small interface that <a href="/chapters/02.html">Chapter 2</a> carries forward. The course-wide meanings and argument order are recorded on the <a href="/conventions.html">conventions page</a>: every data tuple is <code>(input, target)</code>, the model variable is <code>model</code>, and the learning-rate setting is named <code>learning_rate</code>. Each operation is introduced below when its purpose becomes clear.</p>
-
-
-
-</section>
-<section id="examples"><h2>1. Start with examples, not machinery</h2>
-<p>Imagine a sensor whose raw reading needs to be converted to a calibrated measurement. You could write a conversion formula if you knew it. Suppose instead that someone gives you five pairs of raw readings and trusted measurements. Your job is to infer a useful conversion from these pairs.</p>
-<div class="table-wrap"><table><caption>Our complete training dataset</caption><thead><tr><th>Input x</th><th>Target y</th></tr></thead><tbody><tr><td>−2</td><td>−3</td></tr><tr><td>−1</td><td>−1</td></tr><tr><td>0</td><td>1</td></tr><tr><td>1</td><td>3</td></tr><tr><td>2</td><td>5</td></tr></tbody></table></div>
-<p>A <a class="term" data-term="dataset" href="/glossary/dataset.html">dataset</a> is a collection of examples. Each example here has one input, x, and one desired answer, y. The desired answer is called a <a class="term" data-term="target" href="/glossary/target.html">target</a>. Because the examples include answers, this is <a class="term" data-term="supervised-learning" href="/glossary/supervised-learning.html">supervised learning</a>. “Supervised” describes the available labels; it does not mean a person must adjust the model after every prediction.</p>
-<p>You may already see the pattern: double x and add one. That is intentional. A problem with a known answer lets us check the learning procedure before trusting it on anything complicated. Our training code will receive the pairs above, not a special instruction to choose two and one.</p>
-<p>Real sensor data contains noise and may not follow a straight line. We will study those complications later. The first task is narrower: establish exactly what “learn from examples” means. Do not confuse a useful teaching fixture with evidence that a model will work on a real sensor.</p>
-<pre><code class="language-rust" data-source="projects/ch01/src/main.rs">const TRAIN: [(f64, f64); 5] = [
-    (-2.0, -3.0),
-    (-1.0, -1.0),
-    (0.0, 1.0),
-    (1.0, 3.0),
-    (2.0, 5.0),
-];</code></pre>
-<p>Each tuple stores an input and target. We use <code>f64</code>, Rust's double-precision floating-point type, so tiny numerical changes are easier to observe. Floating-point arithmetic approximates real arithmetic; later chapters will explain why precision and rounding matter.</p></section>
-<section id="prediction"><h2>2. A neuron is a small computation</h2>
-<p>Our <a class="term" data-term="model" href="/glossary/model.html">model</a> makes a prediction by multiplying the input by a <a class="term" data-term="weight" href="/glossary/weight.html">weight</a> and adding a <a class="term" data-term="bias" href="/glossary/bias.html">bias</a>:</p>
-<div class="equation" aria-label="predicted y equals weight times x plus bias">ŷ = wx + b</div>
-<p>The hat in ŷ means “predicted,” distinguishing our guess from the target y. The weight w controls how much the prediction changes when x changes. The bias b shifts every prediction by the same amount. These two adjustable values are the model's <a class="term" data-term="parameter" href="/glossary/parameter.html">parameters</a>.</p>
-<p>This is a scalar artificial neuron with an identity activation: its weighted sum is returned unchanged. Other neurons apply an extra function to that sum. We will add those functions when a straight-line predictor is no longer expressive enough. An artificial neuron is a mathematical building block; it is not a detailed simulation of a biological cell.</p>
-<div class="worked-example"><h3>Trace one prediction</h3><p>Set w = 0.5 and b = 1. For x = 2, the prediction is 0.5 × 2 + 1 = 2. The target is 5, so the prediction is too low by 3. If we change the weight to 2 while keeping b = 1, the prediction becomes 5.</p><p>Check a second point before declaring success. At x = −1, that same model predicts 2 × (−1) + 1 = −1, also matching the target. A model is one shared rule applied to every example, not a separate answer stored for each row.</p></div>
-<p>A Rust <code>struct</code> groups values that belong together. Here <code>Neuron</code> stores the two parameters:</p>
-<pre><code class="language-rust" data-source="projects/ch01/src/main.rs">#[derive(Clone, Copy, Debug)]
-struct Neuron {
-    weight: f64,
-    bias: f64,
+<section class="learning-step" id="sensor"><h2>What is the sensor getting wrong?</h2><span id="run"></span><span id="examples"></span><span id="continuity"></span>
+<p class="lead">A raw sensor reading of 2 should correspond to a trusted measurement of 5. A starting rule always answers 0. The supplied program already improves on it by comparing conversion rules: multiply a reading by one number, then add another. You will turn a small, working comparison program into a trainer that discovers the conversion from examples.</p>
+<p>This section's project begins with calibration and grows into fault classification. The five pairs below are deliberately exact, course-authored data. A <strong>target</strong> is the answer we want; a <strong>prediction</strong> is the answer the model currently gives. Supplying targets makes this supervised learning. We know the hidden rule here so that mistakes in the learning procedure are visible. Real instruments will not be this tidy.</p>
+<table><caption>Raw input x and trusted target y</caption><thead><tr><th>x</th><th>−2</th><th>−1</th><th>0</th><th>1</th><th>2</th></tr></thead><tbody><tr><th>y</th><td>−3</td><td>−1</td><td>1</td><td>3</td><td>5</td></tr></tbody></table>
+<p>Run <code>just lab 01</code>. The supplied baseline compares three candidate conversion rules and chooses one. The multiplier is called a weight, the added offset a bias, and together they are the model parameters. It ranks rules by mean squared error (MSE): subtract each target from its prediction, square the difference, then average across rows. It already works: it reports parameters [1.5, 0.5], training MSE 0.75, and prediction 1.25 for an unseen input of 0.5. Its limitation is that it can only choose a rule somebody listed. Your goal is to let the data guide the changes instead.</p><table><caption>Visible candidate comparison on the calibration data</caption><thead><tr><th>Multiply by (weight)</th><th>Add (bias)</th><th>MSE</th></tr></thead><tbody><tr><td>1</td><td>0</td><td>3</td></tr><tr><td>1</td><td>1</td><td>2</td></tr><tr><td>1.5</td><td>0.5</td><td>0.75</td></tr></tbody></table>
+<pre><code class="language-bash">just lab 01
+# Equivalent, with only Cargo installed:
+cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01</code></pre>
+<p>Before reading on, predict what happens if every input is ignored and every answer is 1. What information does ignoring the raw input throw away?</p><details><summary>Reason it through</summary><p>One is the mean target. Errors are 4, 2, 0, −2, −4; squared errors average to 8. It is a legitimate constant baseline, but it throws away the visible relationship with the input. The listed candidate's 0.75 is better on these examples.</p></details></section>
+<section class="learning-step" id="line"><h2 id="prediction">Which number tilts the line, and which shifts it?</h2><span id="neuron-lab"></span>
+<p>Take raw input 2, multiply it by 0.5, then add 1. The result is 2. The multiplier controls how strongly the raw input affects the prediction; the added number accounts for an offset. We call them the <strong><a class="term" data-term="weight" href="/glossary/weight.html">weight</a></strong> w and <strong><a class="term" data-term="bias" href="/glossary/bias.html">bias</a></strong> b. For any input x, this rule becomes:</p>
+<div class="equation">ŷ = wx + b</div><p>The hat on ŷ means predicted y. All four quantities are single numbers, or scalars. The same two parameters w and b serve every row. This straight-line rule is the course’s simplest neuron: a mathematical building block, not a biological simulation.</p>
+<p>At w = 1.5 and b = 0.5, input 2 produces 3.5, while input −2 produces −2.5. Adding 0.5 to the bias adds 0.5 to both predictions. Adding 0.5 to the weight adds 1 to the first and subtracts 1 from the second. A weight changes sensitivity; a bias changes the common offset.</p>
+<p>In the source, <code>Model</code> is a type alias for <code>[f64; 2]</code>: an array storing [weight, bias]. The alias names the pair without introducing new behavior.</p><pre><code class="language-rust" data-source="labs/s01-foundations/src/scalar.rs">pub fn predict(model: Model, x: f64) -&gt; f64 {
+    model[0] * x + model[1]
 }</code></pre>
-<p>An <code>impl Neuron</code> block attaches operations to this type. In an inspecting method, <code>&amp;self</code> borrows the current neuron so the method can read its parameters without taking ownership or changing them:</p>
-<pre><code class="language-rust" data-source="projects/ch01/src/main.rs">fn predict(&amp;self, input: f64) -&gt; f64 {
-    self.weight * input + self.bias
+<div id="neuron-fit" class="neuron-lab"><h3>Predict, then move one parameter</h3><p>Predict the effect of moving only the bias from 0 to 1. Keep weight fixed, observe the residuals, then Reset and move only the weight. Dots are targets; the solid line is the prediction; dashed segments are errors. Horizontal axis: raw input. Vertical axis: target or prediction.</p><svg viewBox="0 0 640 340" role="img" aria-labelledby="fit-title fit-desc"><title id="fit-title">Sensor calibration</title><desc id="fit-desc">Targets follow y equals two x plus one; the starting model predicts zero everywhere.</desc></svg><div class="lab-controls"><label>Weight <input data-w type="range" min="-3" max="3" step="0.1" value="0"></label><label>Bias <input data-b type="range" min="-3" max="3" step="0.1" value="0"></label></div><button data-reset type="button">Reset</button><p data-readout aria-live="polite">w = 0; b = 0; MSE = 9; prediction at x = 0.5 is 0.</p><div data-table></div><p class="caption">This deterministic browser calculation illustrates the fixture; it does not execute or check your Rust. Without JavaScript, use the worked calculations above and below.</p></div>
+<p>Try a negative weight. Explain why the left and right ends move in opposite directions. On paper, calculate the prediction at x = −3 when w = −0.5 and b = 3.</p><details><summary>Transfer answer</summary><p>It is (−0.5) × (−3) + 3 = 4.5. Increasing x by one now reduces the prediction by 0.5. The multiplier's sign determines the direction of that response.</p></details></section>
+<section class="learning-step" id="errors"><h2 id="loss">How can we compare two imperfect rules?</h2>
+<p>For input 2 and target 5, the zero model's error is 0 − 5 = −5. Squaring gives 25. We square before adding because signed errors can cancel: errors of +3 and −3 have mean zero but neither prediction is right. The <strong><a class="term" data-term="mean-squared-error" href="/glossary/mean-squared-error.html">mean squared error</a></strong>, MSE, averages those squared errors over the dataset.</p>
+<table><caption>Zero model, all arithmetic visible</caption><thead><tr><th>Input</th><th>Target</th><th>Prediction − target</th><th>Squared error</th></tr></thead><tbody><tr><td>−2</td><td>−3</td><td>3</td><td>9</td></tr><tr><td>−1</td><td>−1</td><td>1</td><td>1</td></tr><tr><td>0</td><td>1</td><td>−1</td><td>1</td></tr><tr><td>1</td><td>3</td><td>−3</td><td>9</td></tr><tr><td>2</td><td>5</td><td>−5</td><td>25</td></tr></tbody></table>
+<p>The sum is 45; dividing by five gives 9. For the baseline's w = 1.5, b = 0.5, the errors are 0.5, 0, −0.5, −1, −1.5. Their squares sum to 3.75, giving 0.75. A lower number means a better fit under this chosen score, or <strong>loss</strong>.</p><div class="equation">L(w,b) = (1/N) Σᵢ (wxᵢ + b − yᵢ)²</div><p>L names the loss function. N is the number of rows, and Σᵢ means add the expression once for each row i. Inputs and targets stay fixed while w and b change. MSE has squared target units; an error twice as large contributes four times as much. One bad target can therefore pull the fitted line strongly.</p>
+<p>Open <a href="/code/labs/s01-foundations/src/ch01.rs">the learner file</a>. The separate <code>candidate_search(data, candidates)</code> function compares a supplied list and returns its best rule; it has no training-step or rate arguments. Keep it as a permanent comparison checkpoint. In <code>report</code>, add a nested loop over weights [0, 1, 2] and biases [0, 1] to construct all six candidates, then call <code>candidate_search</code> and print the winner. This implements a complete finite-grid comparison without overwriting your later trainer. Its direct test already checks that a better candidate in the middle of a list is found; extend that test with your generated grid.</p><details><summary>Hint 1</summary><p>For each weight, visit each bias. Build [weight, bias], evaluate all five examples through supplied <code>loss</code>, and compare the result with the best model's loss.</p></details><details><summary>Explanation and expected result</summary><p>The six-rule search includes [2, 1], whose MSE is zero. This succeeds because we placed the exact answer in the list. Change targets to y = −0.5x + 3: the same grid cannot represent the answer. A broader grid helps but grows rapidly with parameter count. The next session replaces candidate enumeration with local improvement.</p></details></section>
+<section class="learning-step" id="slopes"><h2>Can two nearby guesses reveal a direction?</h2>
+<p>Recall why a fixed grid could miss the changed line. We now ask a smaller question: holding the bias still, does a slightly larger weight improve the loss? At w = 0, b = 0, try w = +0.01 and w = −0.01. Their losses are 8.9202 and 9.0802. The change is −0.16 across a weight interval of 0.02, so the slope is −8. Increasing the weight lowers loss locally.</p>
+<div class="equation">g<sub>w</sub> ≈ [L(w+h,b) − L(w−h,b)] / (2h)</div><p>h is a small positive probe distance, not the learning rate. The lab uses h = 0.00001 and <code>f64</code>. Repeat with b+h and b−h while w stays fixed to estimate g<sub>b</sub>. The pair of slopes is the <strong><a class="term" data-term="gradient" href="/glossary/gradient.html">gradient</a></strong>. At the starting model it is approximately [−8, −2]. A positive component asks us to decrease its parameter; a negative component asks us to increase it.</p>
+<p>Four loss evaluations estimate two slopes. Each evaluation runs the same prediction-and-error calculation over every example. Tiny h does not mean perfect accuracy: subtracting almost equal floating-point values eventually loses precision. We use a sensible fixed value here and study the tradeoff in Chapter 02.</p>
+<p>Predict the sign of both slopes for w = 3, b = 2. Then compare the losses on either side, using the browser to choose models or the Rust <code>loss</code> function.</p><details><summary>Worked answer</summary><p>For these symmetric inputs, L = 2(w−2)² + (b−1)². At (3,2), increasing either parameter raises loss; both slopes are positive, approximately 4 and 2. This shortcut describes this dataset only. The trainer must compute from its data argument so a different line works too.</p></details></section>
+<section class="learning-step" id="train"><h2 id="training">Can your program turn slopes into learning?</h2><span id="practice"></span>
+<p>A gradient gives a direction; the <strong><a class="term" data-term="learning-rate" href="/glossary/learning-rate.html">learning rate</a></strong> η chooses how far to move. Starting from [0, 0], subtract 0.1 times [−8, −2]: the new model is [0.8, 0.2]. Its MSE is 3.52. This single step has made a substantial improvement without being told the correct parameters.</p><div class="equation">w<sub>new</sub> = w − ηg<sub>w</sub>; b<sub>new</sub> = b − ηg<sub>b</sub></div>
+<p>Replace <code>train</code>’s call to the fixed candidate search with a numerical-gradient training loop. Preserve the separate candidate comparison. The <code>steps</code> argument is the requested number of updates; <code>rate</code> is the positive multiplier η. They are validated/reserved in the supplied baseline but only your numerical replacement uses them to change parameters. Start at [0, 0]. For each requested step, calculate all four losses, store both slopes, update both parameters from that same old state, and validate the new loss. Keep the supplied data/rate validation. Do not insert the known answer or call the solution module.</p><pre><code class="language-rust">// After both slopes have been computed from the old model:
+for (parameter, slope) in model.iter_mut().zip(gradient) {
+    *parameter -= rate * slope;
 }</code></pre>
-<p>This definition appears inside <code>impl Neuron</code>. A call therefore reads <code>model.predict(input)</code>: the receiver before the dot supplies <code>&amp;self</code>, and the scalar in parentheses supplies <code>input</code>.</p>
-<p>Running this calculation with fixed parameters is <a class="term" data-term="inference" href="/glossary/inference.html">inference</a>. Inference does not change the model. <a class="term" data-term="training" href="/glossary/training.html">Training</a> is the separate procedure that changes its parameters using examples. Keeping those two operations distinct will matter when models get large.</p>
-<div class="neuron-lab" id="neuron-lab"><div class="lab-heading"><span class="eyebrow">Interactive notebook</span><h3>Move the line. See the error.</h3><p>The dots are the five targets. The line is your current model. Adjust its parameters, then let training make the adjustments.</p></div><svg id="neuron-plot" viewBox="0 0 640 340" role="img" aria-label="Training points and current prediction line"></svg><div class="lab-controls"><label>Weight <output id="weight-value">0.00</output><input id="weight" type="range" min="-3" max="3" step="0.01" value="0"></label><label>Bias <output id="bias-value">0.00</output><input id="bias" type="range" min="-3" max="3" step="0.01" value="0"></label><label>Learning rate<select id="learning-rate"><option value="0.01">0.01 — small steps</option><option value="0.1" selected>0.1 — moderate steps</option><option value="0.6">0.6 — overshoot</option></select></label></div><div class="lab-actions"><button id="step-neuron">Take one training step</button><button id="train-neuron">Train 20 steps</button><button id="reset-neuron" class="secondary">Reset</button></div><p id="neuron-readout" class="lab-readout" aria-live="polite"></p><p class="caption">This browser illustration mirrors the numerical-gradient algorithm. The downloadable Rust program is the executable course project. Axes: input x horizontally; predicted/target y vertically. Large divergent values may leave the plot.</p></div>
-</section>
-<section id="loss"><h2>3. Give a wrong answer a number</h2>
-<p>To choose better parameters, we need a way to compare guesses. A <a class="term" data-term="loss" href="/glossary/loss.html">loss</a> assigns a number to the model's errors. Smaller is better. For one example, subtract the target from the prediction and square the result. Squaring prevents positive and negative errors from cancelling.</p>
-<p>For a dataset of N examples, we average the squared errors. This is the <a class="term" data-term="mean-squared-error" href="/glossary/mean-squared-error.html">mean squared error</a>, often abbreviated MSE:</p>
-<div class="equation">L(w, b) = (1/N) Σᵢ (wxᵢ + b − yᵢ)²</div>
-<p>The symbol Σ means “sum these terms.” The index i visits each example. Here N = 5. L is a function of the parameters because changing w or b changes the predictions and therefore changes the loss. The inputs and targets remain fixed during this calculation.</p>
-<div class="worked-example"><h3>Calculate the starting loss</h3><p>Start with w = 0 and b = 0. Every prediction is zero. The squared errors are 9, 1, 1, 9, and 25. Their sum is 45; dividing by five gives a loss of <strong>9</strong>.</p><p>Now try w = 1 and b = 0. The predictions are −2, −1, 0, 1, 2. Their errors are 1, 0, −1, −2, −3; the squared errors sum to 15. The new loss is 3. This change improved the model even though it did not solve the task.</p></div>
-<p>Fallible methods return <code>Result&lt;value, error&gt;</code>. <code>Ok(value)</code> means the calculation succeeded; <code>Err(message)</code> explains invalid or nonfinite data. The <code>?</code> operator unwraps an <code>Ok</code> value and immediately returns an <code>Err</code> to the caller. This keeps error handling visible without repeating a <code>match</code> after every loss calculation.</p>
-<pre><code class="language-rust" data-source="projects/ch01/src/main.rs">fn loss(&amp;self, data: &amp;[(f64, f64)]) -&gt; Result&lt;f64, &amp;&#x27;static str&gt; {
-    if data.is_empty() {
-        return Err(&quot;loss requires at least one example&quot;);
-    }
-    if !self.weight.is_finite()
-        || !self.bias.is_finite()
-        || data.iter().any(|(input, target)| !input.is_finite() || !target.is_finite())
-    {
-        return Err(&quot;model and examples must contain finite numbers&quot;);
-    }
-    let loss = data
-        .iter()
-        .map(|&amp;(input, target)| (self.predict(input) - target).powi(2))
-        .sum::&lt;f64&gt;()
-        / data.len() as f64;
-    if !loss.is_finite() {
-        return Err(&quot;loss overflowed; reduce input scale or learning rate&quot;);
-    }
-    Ok(loss)
-}</code></pre>
-<p>The complete project checks that the dataset is not empty before dividing by its length. It also rejects nonfinite inputs and overflowing loss values. Those checks are practical parts of numerical programming: a NaN, meaning “not a number,” can otherwise travel through every later calculation.</p>
-<p>MSE is not the only loss. It is useful here because our target is a number and we want predictions close to it. Choosing a loss expresses what errors the training procedure should care about. Classification and language modeling will require different choices.</p></section>
-<section id="training"><h2>4. Let the computer find a better direction</h2>
-<p>We could try many pairs of weights and biases, but an exhaustive search becomes expensive as the number of parameters grows. A more useful question is local: if I change this parameter a tiny amount, does the loss rise or fall?</p>
-<p>Hold b fixed and calculate the loss once at w + h and once at w − h, where h is a small positive number. The difference in loss divided by the distance between these two weights estimates the slope:</p>
-<div class="equation">g<sub>w</sub> ≈ [L(w + h, b) − L(w − h, b)] / (2h)</div>
-<p>Do the same for b while holding w fixed. Together, these slopes form a <a class="term" data-term="gradient" href="/glossary/gradient.html">gradient</a>: one slope for each adjustable parameter. A positive slope says the loss rises when that parameter increases; a negative slope says it falls. This central-difference calculation is a numerical estimate, not an exact symbolic derivative.</p>
-<p>A separate <code>Gradient</code> struct stores these two slopes. Its fields correspond to the neuron’s parameters, but contain derivatives rather than learned values:</p>
-<pre><code class="language-rust" data-source="projects/ch01/src/main.rs">#[derive(Clone, Copy, Debug)]
-struct Gradient {
-    weight: f64,
-    bias: f64,
-}</code></pre>
-<pre><code class="language-rust" data-source="projects/ch01/src/main.rs">fn numerical_gradient(&amp;self, data: &amp;[(f64, f64)]) -&gt; Result&lt;Gradient, &amp;'static str&gt; {
-    const H: f64 = 1e-5;
-    let weight = (Self {
-        weight: self.weight + H,
-        ..*self
-    }
-    .loss(data)?
-        - Self {
-            weight: self.weight - H,
-            ..*self
-        }
-        .loss(data)?)
-        / (2.0 * H);
-    let bias = (Self {
-        bias: self.bias + H,
-        ..*self
-    }
-    .loss(data)?
-        - Self {
-            bias: self.bias - H,
-            ..*self
-        }
-        .loss(data)?)
-        / (2.0 * H);
-    if !weight.is_finite() || !bias.is_finite() {
-        return Err("numerical gradient overflowed; reduce input scale");
-    }
-    Ok(Gradient { weight, bias })
-}</code></pre>
-<p>The returned <code>Gradient</code> names each slope after its parameter. Each temporary <code>Self</code> changes exactly one field by <code>H</code>; <code>..*self</code> copies the other field from the unchanged borrowed model. The four <code>loss(data)?</code> calls all use the same examples and propagate any validation error.</p>
-<p>We move against the slopes to reduce the loss. A positive <a class="term" data-term="learning-rate" href="/glossary/learning-rate.html">learning rate</a> η controls the size of that move:</p>
-<div class="equation">w<sub>new</sub> = w − ηg<sub>w</sub> &nbsp;&nbsp; b<sub>new</sub> = b − ηg<sub>b</sub></div>
-<p>This procedure is called gradient descent. “Descent” describes movement toward smaller loss. A step that is too large can jump over a useful region and make the loss worse. There is no guarantee that an arbitrary learning rate works just because the slope calculation is correct.</p>
-<div class="worked-example"><h3>The first complete training step</h3><p>For this symmetric dataset, expanding the squared errors gives L(w,b) = 2(w−2)² + (b−1)². You do not need to derive that expression yet; use it to check the numbers.</p><p>At w = 0, b = 0, the numerical slopes are approximately −8 and −2. With η = 0.1, the new weight is 0 − 0.1 × (−8) = 0.8 and the new bias is 0.2. The new loss is 2 × (0.8−2)² + (0.2−1)² = <strong>3.52</strong>. One step reduced the loss from 9 to 3.52.</p></div>
-<p>Compute both slopes from the <em>same old model</em>, then update both parameters. If you update w before estimating the slope for b, you have changed the algorithm. Our reference code makes the distinction explicit by calculating a new model from an unchanged copy.</p>
-<p>This update method takes <code>self</code> and returns <code>Self</code>, the same type <code>Neuron</code>. It constructs a new model from the old parameters and the complete gradient:</p>
-<pre><code class="language-rust" data-source="projects/ch01/src/main.rs">fn step(
-    self,
-    data: &amp;[(f64, f64)],
-    learning_rate: f64
-) -&gt; Result&lt;Self, &amp;'static str&gt; {
-    if !learning_rate.is_finite() || learning_rate &lt;= 0.0 {
-        return Err("learning rate must be finite and positive");
-    }
-    let gradient = self.numerical_gradient(data)?;
-    let next = Self {
-        weight: self.weight - learning_rate * gradient.weight,
-        bias: self.bias - learning_rate * gradient.bias,
-    };
-    next.loss(data)?;
-    Ok(next)
-}</code></pre>
-<p><code>self</code> is still available after <code>numerical_gradient</code> because that method only borrows it. Both fields of <code>next</code> therefore use the same old parameters and the same <code>Gradient</code>. The final <code>next.loss(data)?</code> rejects an update that produced a nonfinite result before returning <code>Ok(next)</code>.</p>
-<p>We use h = 0.00001. Smaller is not always better: subtracting nearly equal floating-point numbers can lose useful precision. Central differences are excellent for understanding and checking gradients, but they require separate loss evaluations for each parameter. Chapter 2 derives a cheaper analytical update; later, backpropagation makes gradients practical for millions of parameters.</p>
-<p>Use the interactive experiment above to compare learning rates. At 0.01 the line moves cautiously. At 0.1 it approaches the data rapidly. At 0.6 the weight oscillates and diverges on this dataset. Observe the numerical loss as well as the picture: a line leaving the plotting area is a symptom, not an explanation.</p></section>
-<section id="run"><h2>5. Run your first training program</h2>
-<div class="table-wrap"><table><caption>The Chapter 1 interface</caption><thead><tr><th>Operation</th><th>Input → output</th><th>Meaning</th></tr></thead><tbody><tr><td><code>predict</code></td><td>one scalar <code>f64</code> → one scalar <code>f64</code></td><td>Compute one regression prediction.</td></tr><tr><td><code>loss</code></td><td><code>&amp;[(f64, f64)]</code> → <code>Result&lt;f64, _&gt;</code></td><td>Average squared error over all examples; no factor of one half.</td></tr><tr><td><code>numerical_gradient</code></td><td>the same data → <code>Result&lt;Gradient, _&gt;</code></td><td>Estimate one loss slope for each parameter.</td></tr><tr><td><code>step</code></td><td>data and learning rate → <code>Result&lt;Neuron, _&gt;</code></td><td>Apply one simultaneous parameter update.</td></tr><tr><td><code>train</code></td><td>data, step count, learning rate → <code>Result&lt;Neuron, _&gt;</code></td><td>Repeat <code>step</code>.</td></tr></tbody></table></div>
-<p>Open a terminal in the course folder. Install a stable Rust toolchain if necessary using the <a href="https://www.rust-lang.org/tools/install">official installation instructions</a>. No extra crate is needed for this chapter. Cargo, Rust's build tool, compiles the program and runs its tests:</p>
-<pre><code class="language-bash">cargo test --manifest-path projects/ch01/Cargo.toml
-cargo run --manifest-path projects/ch01/Cargo.toml</code></pre>
-<p>Read the <a href="/code/projects/ch01/src/main.rs">complete reference implementation</a> alongside the earlier snippets. Its <code>Neuron</code> stores two numbers. <code>predict</code> performs inference, <code>loss</code> evaluates the dataset, <code>numerical_gradient</code> returns a separate <code>Gradient</code>, and <code>step</code> returns one updated model. The <code>train</code> method receives the actual dataset and repeats that step 100 times:</p>
-<pre><code class="language-rust" data-source="projects/ch01/src/main.rs">fn train(
-    self,
-    data: &amp;[(f64, f64)],
-    steps: usize,
-    learning_rate: f64,
-) -&gt; Result&lt;Self, &amp;'static str&gt; {
-    if !learning_rate.is_finite() || learning_rate &lt;= 0.0 {
-        return Err("learning rate must be finite and positive");
-    }
-    self.loss(data)?;
-    let mut model = self;
-    for _ in 0..steps {
-        model = model.step(data, learning_rate)?;
-    }
-    Ok(model)
-}</code></pre>
-<pre><code class="language-none">initial training MSE: 9.000000
-weight: 2.000000, bias: 1.000000
-final training MSE: 0.0000000000
-unseen input -1.5 -&gt; prediction -2.000000
-unseen input 0.5 -&gt; prediction 2.000000
-unseen input 3.0 -&gt; prediction 7.000000</code></pre>
-<p>This output was measured from the bundled reference. Displayed zeros are rounded; the test uses a tolerance rather than requiring an exactly zero loss. Small final-digit differences on another platform are not by themselves a bug.</p>
-<p>The three final inputs were not in the training array. Predicting at 0.5 is interpolation: it lies within the range we trained on. Predicting at 3 is extrapolation: it lies outside that range. A perfect straight-line fixture makes both easy. Real extrapolation is often unreliable because the relationship may change outside the observed range.</p>
-<div class="warning"><strong>A falling training loss is not the whole goal.</strong><p>These checks show that the implementation can fit a known simple relationship. They do not prove that every new dataset will follow it. Chapter 5 develops separate training, validation and test sets so that evaluation can answer a stronger question.</p></div></section>
-<section id="practice"><h2>6. Make the idea yours</h2>
-<div class="exercise"><h3>Exercise A · Complete the prediction method</h3><p>Edit <a href="/code/exercises/cpu/exercises/ch01_01.rs">ch01_01.rs</a>. Complete the expression inside <code>impl Neuron</code>. From the course root, run <code>cd exercises/cpu</code>, then <code>rustlings</code>. The check must pass for two models, including one with a negative weight. If you already completed this exercise, keep that solution; a passing check is the intended result.</p><details><summary>Hint 1 · Identify the roles</summary><p><code>input</code> changes for each example. The fields are available as <code>self.weight</code> and <code>self.bias</code>.</p></details><details><summary>Hint 2 · Write the arithmetic</summary><p>Translate ŷ = wx + b directly, using the borrowed model fields and the method argument.</p></details><details><summary>Solution and reasoning</summary><pre><code class="language-rust">self.weight * input + self.bias</code></pre><p>Multiplying the bias by the input would give a different model. Substituting the fixture's known rule <code>2.0 * input + 1.0</code> would ignore the model fields and fail the second check.</p></details></div>
-<div class="exercise"><h3>Exercise B · Build a checkpoint</h3><p>Open <code>projects/ch01/starter/src/main.rs</code> and run <code>cargo test --manifest-path projects/ch01/starter/Cargo.toml</code>. The starter begins with the same method interface as the reference. If you have already extended it through numerical training, preserve that experiment and map its operations to <code>loss</code>, <code>numerical_gradient</code>, <code>step</code>, and <code>train</code>. Otherwise, add those methods one observable result at a time.</p><details><summary>Hint · Add one observable result at a time</summary><p>First reproduce the loss of 9. Then print the first update, expecting approximately weight = 0.8 and bias = 0.2. Only after these checks pass should you repeat the update. Keep the dataset as a method argument rather than hiding <code>TRAIN</code> inside <code>train</code>.</p></details><details><summary>Reference checkpoint</summary><p>The complete implementation is <a href="/code/projects/ch01/src/main.rs">projects/ch01/src/main.rs</a>. Compare the <code>Gradient</code> value, the simultaneous old-model/new-model update, and the division by the number of examples.</p></details></div>
-<div class="exercise"><h3>Debugging · The loss gets larger</h3><p>A learner writes <code>weight += learning_rate * slope</code>. The model starts at zero and the first weight becomes −0.8. Explain the bug before changing the code.</p><details><summary>Answer</summary><p>The estimated slope at zero is negative, so increasing the weight would lower the loss. Adding the negative slope instead decreases the weight: this climbs uphill. Subtract the slope. Still check the learning rate, because a correct sign does not prevent overshooting.</p></details></div>
-<div class="exercise"><h3>Independent variation · Learn a different line</h3><p>Create examples with targets from y = −0.5x + 3, keeping the same five input values. Without changing the training algorithm, learn new parameters and predict at x = 0.5. Write your expected answer before running.</p><details><summary>Worked answer</summary><p>The targets become 4, 3.5, 3, 2.5, 2. The learned weight should approach −0.5 and the bias 3. The held-out prediction should approach −0.5 × 0.5 + 3 = 2.75. If your implementation still returns the old line, look for hard-coded targets or parameters.</p></details></div>
-</section>
-<section id="review"><h2>Before you move on</h2><p>Close the code and answer these questions from memory. Revisit them tomorrow and again after several days; the point is to retrieve the reasoning, not to memorize this page's wording.</p><ol><li>Which numbers change during training, and which stay fixed?</li><li>Why square errors before averaging them?</li><li>What does a negative numerical slope tell you?</li><li>How does inference differ from training?</li><li>Why can a loss that looks like zero still be nonzero?</li></ol><details><summary>Check your explanations</summary><p>The weight and bias change; the supplied training pairs stay fixed. Squaring stops signed errors cancelling and gives larger errors more influence. A negative slope means a small increase in that parameter lowers the loss locally. Inference applies fixed parameters, whereas training changes them using a loss. Printed output rounds floating-point values, so a displayed zero is not exact mathematical equality.</p></details><p>You now have the complete learning loop: predict, measure, estimate a direction, update, repeat. In <a href="/chapters/02.html">Chapter 2</a>, we open up the slope calculation and derive the exact update. That will replace repeated numerical probing with a much cheaper calculation.</p></section>
-<section id="sources"><h2>Sources and further reading</h2><ul><li><a href="https://developers.google.com/machine-learning/crash-course/linear-regression">Google: linear regression</a> — a complementary explanation of weights, bias and loss.</li><li><a href="https://doc.rust-lang.org/book/">The Rust Book</a> — look up a language concept when it interrupts your ML work.</li><li><a href="https://rustlings.rust-lang.org/usage/">Rustlings usage</a> — exercise navigation, hints and watch mode.</li></ul><p>All data, prose, diagrams and reference code in this chapter were created for this course.</p></section>
+<pre><code class="language-bash">just lab 01
+just lab-check 01
+cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01 --solution --check</code></pre>
+<p>The explicit learning-goal check can fail while the useful baseline and regular tests pass. It requires training MSE below 10⁻⁸, unseen error below 10⁻⁴, a different line, and a one-step asymmetric example. These tolerances distinguish an accurate fitted rule from the coarse baseline without demanding exact floating-point equality.</p><details><summary>Hint 1 · Separate probing from mutation</summary><p>For parameter index j, copy the model into plus and minus. Change only position j by ±h. After both gradient components are stored, mutate the model. Repeat for the requested number of steps.</p></details><details><summary>Hint 2 · Diagnose the first step first</summary><p>Print [0.8, 0.2] and loss 3.52 before trying 100 steps. A weight of −0.8 indicates addition instead of subtraction. A much larger gradient often means you summed the loss instead of averaging.</p></details><details><summary>Explained solution</summary><p><a href="/code/labs/s01-foundations/src/solutions/ch01.rs">The separate solution</a> implements the four probes in <code>numerical_gradient</code> and repeats simultaneous updates in <code>train</code>. It reuses the supplied loss, so both probing and reporting use ordinary MSE. Neither function knows that the example line is 2x+1. On asymmetric data, changing w before measuring b changes b's slope; the extra one-step check catches that error.</p></details>
+<p>Use the supplied CLI to vary only the learning rate to 0.01, then 0.6. Predict which needs more steps and which can move uphill. Record initial, first-step, and final MSE. A correct slope cannot rescue an oversized step.</p><pre><code class="language-bash">cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01 --rate 0.01 --steps 100
+cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01 --rate 0.6 --steps 100</code></pre></section>
+<section class="learning-step" id="unseen"><h2>What did the successful run establish?</h2><span id="sources"></span><span id="review"></span>
+<p>With 100 moderate updates, parameters approach [2, 1]. Inference at x = 0.5 computes 2 × 0.5 + 1 = 2. No targets or gradient are needed, and model parameters stay fixed. <strong><a class="term" data-term="training" href="/glossary/training.html">Training</a></strong> changes parameters using examples; <strong><a class="term" data-term="inference" href="/glossary/inference.html">inference</a></strong> uses the resulting rule. The predicted value at 3 is 7, although 3 was outside the training range.</p>
+<p>Within-range prediction is interpolation; outside-range prediction is extrapolation. This exact line makes both succeed. A sensor that saturates above 2 would violate the model assumption outside the observed range. A low training loss would not reveal that failure. Chapter 05 will make separate evaluation data part of the procedure.</p>
+<p>Finish by training on targets [4, 3.5, 3, 2.5, 2] with the same inputs. Before running, write the expected parameters and prediction at 1.5. Keep the algorithm unchanged. The <code>alternate</code> variant supplies those targets. The separate <code>outlier</code> variant starts from the original calibration line and adds 3 to its final target; compare that fit with the original. These flags call your actual trainer and leave the source fixture intact.</p><pre><code class="language-bash">cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01 --variant alternate
+cargo run --manifest-path labs/s01-foundations/Cargo.toml -- 01 --variant outlier</code></pre><details><summary>Transfer and limitation</summary><p>The alternate rule is −0.5x+3, so its unseen prediction at1.5 is2.25. Both uncorrupted datasets fit exactly; the original-line outlier variant makes a perfect straight line impossible. MSE training compromises across all rows and gives the corrupted row substantial influence. More training cannot turn an inconsistent straight-line dataset into an exact straight line.</p></details>
+<p>Close the source and explain why errors are squared, why slopes use an unchanged model, and why a passing numerical check is evidence about these examples rather than a guarantee for real instruments. Retrieve those explanations again tomorrow. The stop condition is a passing goal check plus your own explanation of the corrupted-target result; the browser cannot assess that explanation.</p>
+<p><a href="https://developers.google.com/machine-learning/crash-course/linear-regression">Google's linear regression material</a> offers complementary explanations of weights, bias and loss. All fixture arithmetic, experiments and diagrams here are course-authored. Continue to <a href="/chapters/02.html">Chapter 02</a> to replace repeated loss probes with a derived gradient.</p></section>

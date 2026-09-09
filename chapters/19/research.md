@@ -34,3 +34,12 @@ Final scoped formatting, offline strict Clippy, reference tests, and small relea
 ## Consistency revision, 2026-09-08
 
 No new online research was needed. The local consistency contract and frozen Chapters 4, 14, and 15 establish `LogisticModel`, `Row.features`, discrete `Row.label`, `Scaler::fit(train_data)`, `Scaler::transform(features)`, `predict(features)`, and `learning_rate`. Chapter 19 keeps the same mathematics while storing fold-fitted scaler statistics beside the learned weights and bias, so `probability` and `predict` accept raw features. Cross-validation pools correct predictions and held-out row counts; it does not take an unweighted mean of fold percentages. The Chapter 5 glossary entry remains the sole owner of `data-leakage`.
+
+
+## September 2026 section redesign
+
+The original lesson, metadata, and `projects/ch19` reference were read before replacement; the original source-tagged excerpt and reference project remain available. The new section route connects a disclosed maintenance dataset through uncertainty, preprocessing, classical learning, projection, clustering and a frozen evaluation capstone. Existing source claims above support the mathematical exposition; dataset-specific numbers come from the actual new Rust implementation, not from those papers.
+
+Learner goal: Implement frozen group/time cross-validation and six-candidate pooled-cost selection. The chapter has 3 sessions of approximately40 minutes. Topic coverage is recorded verbatim in meta.json. Each session includes implementation and an unfamiliar or controlled transfer, with native hints and explained completed-source checkpoints. Browser calculations are explicitly illustrations and never claim to execute Rust.
+
+Checks: Three group/time folds have48/18 rows and54 distinct validation IDs; All six candidates are evaluated; minimum pooled cost and stable ordering; Reordered source rows return the same sorted partition IDs; checks do not open final outcomes. Limitations: Controlled288-row dataset with only18 final rows and six final machines; The development winner fails to lead on shifted final data; final results do not authorize reselection; Nested CV and causal diagnosis are explained, not implemented; final slices are descriptive. Full execution evidence, algorithm scope and prerequisite audit are in guidance/redesign/section-03.md. The original reference may use a simpler fixture or a different algorithm variant; its preserved results are labelled separately from the shared lab.

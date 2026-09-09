@@ -1,17 +1,160 @@
 {
-  "outcomes": ["Train a one-hidden-layer ReLU classifier with mean cross-entropy gradients", "Map packed parameters to W1, b1, W2, and b2 offsets", "Implement momentum and Adam optimizer steps", "Save and validate complete resumable optimizer checkpoints"],
-  "lessons": ["A nonlinear digit model", "Initialization", "Momentum and Adam", "Complete checkpoints", "Train and practice", "Review and transfer"],
+  "outcomes": [
+    "Train a one-hidden-layer ReLU classifier with mean cross-entropy gradients",
+    "Map packed parameters to W1, b1, W2, and b2 offsets",
+    "Implement momentum and Adam optimizer steps",
+    "Save and validate complete resumable optimizer checkpoints"
+  ],
+  "lessons": [
+    "Can the classifier learn its own intermediate pixel features?",
+    "Why should hidden units begin different but not enormous?",
+    "Can you send the ten-class loss through both dense layers?",
+    "What does a previous gradient contribute to the next step?",
+    "Can you keep a velocity for every parameter?",
+    "How does Adam scale a step using two kinds of memory?",
+    "Which observation points to a useful debugging experiment?",
+    "What must survive if the next update is to stay the same?",
+    "Can you report a reproducible comparison without promising a winner?"
+  ],
   "terms": {
-    "momentum": {"name":"Momentum","definition":"An optimizer method that updates a running velocity from current and past gradients.","explanation":"In this chapter, velocity equals beta times the previous velocity plus the current gradient, and parameters subtract learning_rate times velocity. Optimizer::step applies that rule to every packed parameter once. The memory can smooth noisy directions and carry movement through small gradients. Different libraries use related but differently scaled conventions, so checkpoint state and documentation must match the implementation. Momentum adds one state value per parameter and that state is required for an exact training resume."},
-    "adam": {"name":"Adam","definition":"An optimizer using bias-corrected moving averages of gradients and squared gradients.","explanation":"Adam tracks a first moment resembling momentum and a second raw moment that scales updates by recent gradient magnitude. Because both buffers start at zero, the algorithm corrects their initial bias using step_count, the number of completed optimizer updates. Its epsilon prevents division by zero. An Adam checkpoint needs parameters, both moment arrays, step_count, learning_rate, beta coefficients, and epsilon. Adam often trains conveniently, but it does not guarantee generalization or eliminate hyperparameter selection."},
-    "checkpoint": {"name":"Checkpoint","definition":"A saved snapshot of model state and, when training must resume, the state needed to continue its updates.","explanation":"Inference may need only architecture and parameter values. Exact training resume additionally needs optimizer buffers, progress counters, and hyperparameters, plus scheduler, random-generator, and data-order state when those affect the next update. A model-only snapshot does not promise exact training resume. A safe loader validates version, dimensions, lengths, finite numbers, and optimizer constraints before using values. The course checkpoints contain structured binary data, not executable code. Writing through a temporary file reduces partial-target risk."}
+    "momentum": {
+      "name": "Momentum",
+      "definition": "An optimizer method that updates a running velocity from current and past gradients.",
+      "explanation": "In this chapter, velocity equals beta times the previous velocity plus the current gradient, and parameters subtract learning_rate times velocity. The update function applies that rule to every packed parameter once. The memory can smooth noisy directions and carry movement through small gradients. Different libraries use related but differently scaled conventions, so checkpoint state and documentation must match the implementation. Momentum adds one state value per parameter and that state is required for an exact training resume."
+    },
+    "adam": {
+      "name": "Adam",
+      "definition": "An optimizer using bias-corrected moving averages of gradients and squared gradients.",
+      "explanation": "Adam tracks a first moment resembling momentum and a second raw moment that scales updates by recent gradient magnitude. Because both buffers start at zero, the algorithm corrects their initial bias using step_count, the number of completed optimizer updates. Its epsilon prevents division by zero. An Adam checkpoint needs parameters, both moment arrays, step_count, learning_rate, beta coefficients, and epsilon. Adam often trains conveniently, but it does not guarantee generalization or eliminate hyperparameter selection."
+    },
+    "checkpoint": {
+      "name": "Checkpoint",
+      "definition": "A saved snapshot of model state and, when training must resume, the state needed to continue its updates.",
+      "explanation": "Inference may need only architecture and parameter values. Exact training resume additionally needs optimizer buffers, progress counters, and hyperparameters, plus scheduler, random-generator, and data-order state when those affect the next update. A model-only snapshot does not promise exact training resume. A safe loader validates version, dimensions, lengths, finite numbers, and optimizer constraints before using values. The course checkpoints contain structured binary data, not executable code. Writing through a temporary file reduces partial-target risk."
+    }
   },
   "sources": [
-    {"title":"Some Methods of Speeding Up the Convergence of Iteration Methods","url":"https://doi.org/10.1016/0041-5553(64)90137-5","note":"Original momentum method"},
-    {"title":"Adam: A Method for Stochastic Optimization","url":"https://arxiv.org/abs/1412.6980","note":"Moments, bias correction, and defaults"},
-    {"title":"PyTorch saving and loading models","url":"https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html","note":"Model and optimizer checkpoint state"},
-    {"title":"The MNIST database","url":"https://yann.lecun.org/exdb/mnist/","note":"Dataset and IDX format"}
+    {
+      "title": "Some Methods of Speeding Up the Convergence of Iteration Methods",
+      "url": "https://doi.org/10.1016/0041-5553(64)90137-5",
+      "note": "Original momentum method"
+    },
+    {
+      "title": "Adam: A Method for Stochastic Optimization",
+      "url": "https://arxiv.org/abs/1412.6980",
+      "note": "Moments, bias correction, and defaults"
+    },
+    {
+      "title": "PyTorch saving and loading models",
+      "url": "https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html",
+      "note": "Model and optimizer checkpoint state"
+    },
+    {
+      "title": "The MNIST database",
+      "url": "https://yann.lecun.org/exdb/mnist/",
+      "note": "Dataset and IDX format"
+    }
   ],
-  "checks": ["Both momentum and Adam reduce fixture loss", "Fixture accuracy exceeds two thirds", "Packed parameter offsets match W1, b1, W2, and b2 shapes", "A hidden parameter gradient matches central differences away from a ReLU kink", "Save/restore preserves the exact next Adam update", "Corrupt or unsafe checkpoint dimensions and values are rejected", "Zero-epoch evaluation requires an existing checkpoint and preserves its bytes", "Nonfinite loss, gradients, and optimizer moments are rejected"],
-  "limitations": ["The 16-unit MLP is an educational baseline", "Sequential minibatches are not shuffled", "The binary checkpoint format is course-specific and little-endian", "The safe-write path does not sync the parent directory"]
+  "checks": [
+    "All 66 gradients agree on unfamiliar signed inputs away from ReLU kinks",
+    "Momentum and Adam match independent two-step scalar calculations",
+    "Both optimizers reduce synthetic training loss and reach at least 9/12 held-out decisions",
+    "Both checkpoint round trips preserve exact next updates",
+    "Zero initialization and overflowing values have explicit diagnostics"
+  ],
+  "limitations": [
+    "Synthetic glyphs and ambiguous blanks are not evidence of MNIST quality",
+    "16 hidden units and deterministic sequential minibatches keep the lab small",
+    "Temporary checkpoints demonstrate continuation; persistent CLI remains in the preserved reference",
+    "No shuffle or schedule state is present, and parent-directory syncing is omitted"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "mlp",
+      "title": "Can the classifier learn its own intermediate pixel features?",
+      "session": 1,
+      "minutes": 11
+    },
+    {
+      "id": "initialization",
+      "title": "Why should hidden units begin different but not enormous?",
+      "session": 1,
+      "minutes": 11
+    },
+    {
+      "id": "practice",
+      "title": "Can you send the ten-class loss through both dense layers?",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "momentum",
+      "title": "What does a previous gradient contribute to the next step?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "optimizers",
+      "title": "Can you keep a velocity for every parameter?",
+      "session": 2,
+      "minutes": 15
+    },
+    {
+      "id": "adam",
+      "title": "How does Adam scale a step using two kinds of memory?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "debugging",
+      "title": "Which observation points to a useful debugging experiment?",
+      "session": 3,
+      "minutes": 10
+    },
+    {
+      "id": "checkpoint",
+      "title": "What must survive if the next update is to stay the same?",
+      "session": 3,
+      "minutes": 12
+    },
+    {
+      "id": "run",
+      "title": "Can you report a reproducible comparison without promising a winner?",
+      "session": 3,
+      "minutes": 14
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Learn hidden features",
+      "goal": "Implement full ReLU MLP backpropagation and compare initial states"
+    },
+    {
+      "id": 2,
+      "title": "Implement momentum and Adam",
+      "goal": "Verify stateful vector updates against independent scalar calculations"
+    },
+    {
+      "id": 3,
+      "title": "Diagnose and resume",
+      "goal": "Explain training evidence and verify complete checkpoint continuation"
+    }
+  ],
+  "lab": {
+    "package": "s02-neural-networks",
+    "chapter": "11",
+    "entry": "labs/s02-neural-networks/src/ch11.rs",
+    "goal": "Train a nonlinear digit MLP with momentum and Adam and verify exact next-update restore",
+    "check": "just lab-check 11"
+  },
+  "topic_coverage": {
+    "Initialization": "initialization",
+    "momentum": "momentum",
+    "Adam": "adam",
+    "debugging": "debugging",
+    "checkpoints": "checkpoint"
+  },
+  "interactives": []
 }

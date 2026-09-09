@@ -1,16 +1,134 @@
 {
-  "outcomes": ["Interpret contiguous row-major data using shapes", "Compute a batched dense forward pass with weights stored [out_features,in_features]", "Derive input, weight, and bias gradients from supplied output gradients", "Reject incompatible shapes and check a weight gradient numerically"],
-  "lessons": ["Shapes and contiguous layout", "Dense-layer gradients", "Reference kernels", "Run the matrix checkpoint", "Shape practice", "Review and transfer"],
+  "outcomes": [
+    "Interpret contiguous row-major data using shapes",
+    "Compute a batched dense forward pass with weights stored [out_features,in_features]",
+    "Derive input, weight, and bias gradients from supplied output gradients",
+    "Reject incompatible shapes and check a weight gradient numerically"
+  ],
+  "lessons": [
+    "What does a shape tell us that a Vec cannot?",
+    "Can you turn a dot product into a rectangular batch kernel?",
+    "Does changing a row affect the other rows?",
+    "Which axes must each derivative sum over?",
+    "Can you return input, weight and bias gradients together?",
+    "Can the same kernel serve a different batch and loss?"
+  ],
   "terms": {
-    "tensor": {"name":"Tensor","definition":"An array of values with a data type and an ordered list of dimensions.","explanation":"A scalar has rank zero, a vector rank one, and a matrix rank two; higher-rank tensors add more axes. Shape tells software how flat storage maps to logical coordinates. This chapter stores rank-two f64 matrices in contiguous row-major order, gives inputs shape [batch,in_features], and gives outputs shape [batch,out_features]. A tensor abstraction may also track strides, devices, and gradient metadata, but those capabilities are omitted until a concrete need appears."},
-    "row-major": {"name":"Row-major order","definition":"A contiguous layout in which all columns of one row precede the next row.","explanation":"For a matrix with C columns, coordinate (r,c) maps to flat offset r×C+c. This layout makes each example row contiguous when activations are [batch,features], supporting simple sequential traversal. A different layout can represent the same mathematical matrix, but indexing and performance change. Correct kernels must state their convention; a silent mismatch can produce plausible numbers while multiplying the wrong elements. Shape validation alone cannot detect a layout disagreement between producers and consumers."},
-    "vector-jacobian-product": {"name":"Vector-Jacobian product","definition":"A vector multiplied by a function’s Jacobian, computed without materializing the full Jacobian.","explanation":"A dense backward pass receives derivatives with respect to outputs and maps them to derivatives with respect to inputs and parameters. This is a vector-Jacobian product. Reverse-mode differentiation composes such products from the loss toward leaves. Avoiding the explicit Jacobian saves memory and work: the dense layer needs matrix-shaped gradient buffers and ordinary products, rather than a derivative entry for every output-input pair across the whole program."}
+    "tensor": {
+      "name": "Tensor",
+      "definition": "An array of values with a data type and an ordered list of dimensions.",
+      "explanation": "A scalar has rank zero, a vector rank one, and a matrix rank two; higher-rank tensors add more axes. Shape tells software how flat storage maps to logical coordinates. This chapter stores rank-two f64 matrices in contiguous row-major order, gives inputs shape [batch,in_features], and gives outputs shape [batch,out_features]. A tensor abstraction may also track strides, devices, and gradient metadata, but those capabilities are omitted until a concrete need appears."
+    },
+    "row-major": {
+      "name": "Row-major order",
+      "definition": "A contiguous layout in which all columns of one row precede the next row.",
+      "explanation": "For a matrix with C columns, coordinate (r,c) maps to flat offset r×C+c. This layout makes each example row contiguous when activations are [batch,features], supporting simple sequential traversal. A different layout can represent the same mathematical matrix, but indexing and performance change. Correct kernels must state their convention; a silent mismatch can produce plausible numbers while multiplying the wrong elements. Shape validation alone cannot detect a layout disagreement between producers and consumers."
+    },
+    "vector-jacobian-product": {
+      "name": "Vector-Jacobian product",
+      "definition": "A vector multiplied by a function’s Jacobian, computed without materializing the full Jacobian.",
+      "explanation": "A dense backward pass receives derivatives with respect to outputs and maps them to derivatives with respect to inputs and parameters. This is a vector-Jacobian product. Reverse-mode differentiation composes such products from the loss toward leaves. Avoiding the explicit Jacobian saves memory and work: the dense layer needs matrix-shaped gradient buffers and ordinary products, rather than a derivative entry for every output-input pair across the whole program."
+    }
   },
   "sources": [
-    {"title":"MIT Matrix Calculus for Machine Learning","url":"https://live.ocw.mit.edu/courses/18-s096-matrix-calculus-for-machine-learning-and-beyond-january-iap-2023/mit18_s096iap23_lec_full.pdf","note":"Product differential"},
-    {"title":"NumPy matmul","url":"https://numpy.org/doc/stable/reference/generated/numpy.matmul.html","note":"Core and batch matrix dimensions"},
-    {"title":"JAX Jacobian-vector products","url":"https://docs.jax.dev/en/latest/jacobian-vector-products.html","note":"Reverse-mode vector-Jacobian products"}
+    {
+      "title": "MIT Matrix Calculus for Machine Learning",
+      "url": "https://live.ocw.mit.edu/courses/18-s096-matrix-calculus-for-machine-learning-and-beyond-january-iap-2023/mit18_s096iap23_lec_full.pdf",
+      "note": "Product differential"
+    },
+    {
+      "title": "NumPy matmul",
+      "url": "https://numpy.org/doc/stable/reference/generated/numpy.matmul.html",
+      "note": "Core and batch matrix dimensions"
+    },
+    {
+      "title": "JAX Jacobian-vector products",
+      "url": "https://docs.jax.dev/en/latest/jacobian-vector-products.html",
+      "note": "Reverse-mode vector-Jacobian products"
+    }
   ],
-  "checks": ["Forward fixture equals [-1.5,3.5,-1.5,12.5]", "Input, weight, and bias gradients match hand calculations", "A weight gradient matches central differences", "Invalid matrix and backward shapes return errors"],
-  "limitations": ["Only rank-two matrices and one dense operation are implemented", "The scalar kernel is not optimized", "Backward preserves the reduction already encoded by the supplied output gradients and does not average again"]
+  "checks": [
+    "Complete worked forward, input, weight and bias values agree",
+    "All eighteen derivatives agree on a different rectangular fixture",
+    "Invalid dimensions, storage lengths and nonfinite matrices are rejected",
+    "Working baseline repeats biases and computes their correct derivatives"
+  ],
+  "limitations": [
+    "Only contiguous rank-two matrices are implemented",
+    "The kernel is scalar and unoptimized",
+    "The upstream objective owns averaging; dense backward only accumulates"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "shape",
+      "title": "What does a shape tell us that a Vec cannot?",
+      "session": 1,
+      "minutes": 11
+    },
+    {
+      "id": "kernel",
+      "title": "Can you turn a dot product into a rectangular batch kernel?",
+      "session": 1,
+      "minutes": 17
+    },
+    {
+      "id": "run",
+      "title": "Does changing a row affect the other rows?",
+      "session": 1,
+      "minutes": 11
+    },
+    {
+      "id": "backward",
+      "title": "Which axes must each derivative sum over?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "practice",
+      "title": "Can you return input, weight and bias gradients together?",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "review",
+      "title": "Can the same kernel serve a different batch and loss?",
+      "session": 2,
+      "minutes": 9
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Compute a batch",
+      "goal": "Implement a complete rectangular dense forward kernel"
+    },
+    {
+      "id": 2,
+      "title": "Differentiate a batch",
+      "goal": "Implement three backward buffers and explain their reductions"
+    }
+  ],
+  "lab": {
+    "package": "s02-neural-networks",
+    "chapter": "09",
+    "entry": "labs/s02-neural-networks/src/ch09.rs",
+    "goal": "Implement checked dense forward and backward with rectangular transfer tests",
+    "check": "just lab-check 09"
+  },
+  "topic_coverage": {
+    "Shapes": "shape",
+    "contiguous storage": "shape",
+    "matrix operations": "kernel",
+    "batched gradients": "backward"
+  },
+  "interactives": [
+    {
+      "id": "tensor-digits",
+      "title": "Tensor-to-digit inspector",
+      "file": "demo.js",
+      "anchor": "tensor-digits",
+      "illustration": true
+    }
+  ]
 }

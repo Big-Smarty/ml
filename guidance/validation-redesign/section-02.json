@@ -1,0 +1,309 @@
+{
+  "section": "02",
+  "package": "s02-neural-networks",
+  "chapters": [
+    "07",
+    "08",
+    "09",
+    "10",
+    "11"
+  ],
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.038,
+      "output": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "seconds": 0.038,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml"
+      ],
+      "returncode": 0,
+      "seconds": 0.128,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (labs/s02-neural-networks/target/debug/deps/s02_neural_networks-0363652ebb27b3f7)\n\nrunning 8 tests\ntest ch09::tests::bias_baseline_shapes_and_dense ... ok\ntest ch08::tests::local_baseline_graph_boundaries_and_reverse ... ok\ntest data::tests::fixture_and_invalid_headers ... ok\ntest ch11::tests::zero_initialization_freezes_hidden_and_oversized_values_fail ... ok\ntest mlp::tests::checkpoint_validation_and_safe_install ... ok\ntest ch07::tests::baseline_and_full_gradient ... ok\ntest ch10::tests::stable_scoring_bias_baseline_and_full_trainer ... ok\ntest ch11::tests::frozen_feature_baseline_and_full_mlp ... ok\n\ntest result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s\n\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "07"
+      ],
+      "returncode": 0,
+      "seconds": 0.384,
+      "output": "   Compiling s02-neural-networks v0.1.0 (/home/bigsmarty/.codex/worktrees/15f2/ml/labs/s02-neural-networks)\n    Finished `release` profile [optimized] target(s) in 0.37s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 07`\nsteps=10000, learning rate=1, first hidden weight shift=0\nXOR: 00\u21920, 01\u21921, 10\u21921, 11\u21920. Constant p=0.5 mean BCE=0.693147\nmean BCE 0.710458 -> 0.692693\nx=[0.0, 0.0] target=0 hidden=[0.52497918747894, 0.425557483188341] p=0.51821 class=1\nx=[0.0, 1.0] target=1 hidden=[0.425557483188341, 0.6456563062257954] p=0.51058 class=1\nx=[1.0, 0.0] target=1 hidden=[0.6899744811276125, 0.37754066879814546] p=0.49032 class=0\nx=[1.0, 1.0] target=0 hidden=[0.598687660112452, 0.598687660112452] p=0.48088 class=0\nunseen [0.1,0.9]: p=0.50826; no noisy-input correctness promise\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "07",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.018,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 07 --solution --check`\nall nine gradients agree on XOR and the changed soft-target rows\ninitialization shift=0: XOR mean BCE=0.001962\ninitialization shift=0.08: XOR mean BCE=0.001960\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "07",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 07 --check`\nGOAL_NOT_MET: parameter 0: derivative 0.000000000, central difference 0.011937895. Implement both hidden paths in ch07.rs.\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "08"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 08`\nnode 0: Leaf, value=3, sensitivity=1\nnode 1: Mul(0, 0), value=9, sensitivity=1\nnode 2: Add(1, 0), value=12, sensitivity=1\nFull reverse goal: dy/dx=7. Baseline reports only immediate sensitivities.\nneuron input=0.4, target=0.2: initial loss=0.010000000, gradient=[0.08000000000000003, 0.20000000000000007]\n20 neuron updates: loss 0.010000000->0.000000260, parameters=[0.46569296348658895, 0.014232408716472546]; learner starts affine, goal is tanh graph\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "08",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 08 --solution --check`\nshared x*x+x: value 12 and derivative 7 agree\nx=3: tanh(x*x+x) derivative=0.000000001, central difference=0.000000001\nx=3: tanh(x*x+x) derivative=0.000000001, central difference=0.000000001\nx=-0.4: tanh(x*x+x) derivative=0.188908350, central difference=0.188908350\nx=-0.4: tanh(x*x+x) derivative=0.188908350, central difference=0.188908350\nx=0.7: tanh(x*x+x) derivative=0.744332984, central difference=0.744332984\nx=0.7: tanh(x*x+x) derivative=0.744332984, central difference=0.744332984\nreverse sweep checkpoint passed; checking assembled neuron\nneuron input=0.4, parameter 0: gradient=0.066850837, central difference=0.066850837\nneuron input=0.4, parameter 1: gradient=0.167127093, central difference=0.167127093\nneuron input=0.4: twenty-step loss 0.008337993->0.000000682\nneuron input=-0.7, parameter 0: gradient=0.251447722, central difference=0.251447722\nneuron input=-0.7, parameter 1: gradient=-0.359211031, central difference=-0.359211031\nneuron input=-0.7: twenty-step loss 0.713887546->0.000244769\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "08",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 08 --check`\nGOAL_NOT_MET: x*x+x at x=3 needs derivative 7, got 1; count all three operand paths\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "09"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 09`\ninput multiplier=1\nX [2,3]=[1.0, 2.0, 3.0, 4.0, 5.0, 6.0]; W [2,3]=[1.0, 0.0, -1.0, 2.0, 1.0, 0.0]; bias=[0.5, -0.5]\nY [2,2]=[0.5, -0.5, 0.5, -0.5]; dX=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]; dW=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0]; db=[4.0, 6.0]\nduplicate batch: dW=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], db=[8.0, 12.0]; half dY: dW=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0], db=[2.0, 3.0]\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "09",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 09 --solution --check`\ndense forward/backward and all 18 rectangular transfer derivatives agree\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "09",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 09 --check`\nGOAL_NOT_MET: dense goal: Y [-1.5,3.5,-1.5,12.5], dX [5,2,-1,11,4,-3], dW [13,17,21,18,24,30], db [4,6]; got Y [0.5, -0.5, 0.5, -0.5], gradients Gradients { inputs: Matrix { rows: 2, cols: 3, data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] }, weights: Matrix { rows: 2, cols: 3, data: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0] }, bias: [4.0, 6.0] }\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "10"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 10`\nheld-out brightness multiplier=1; fit data unchanged\n30 images of 5\u00d73; first label=0\n###\n#.#\n#.#\n#.#\n###\nerror row 0: true=0, predicted=7, confidence=0.103\nerror row 1: true=1, predicted=7, confidence=0.103\nerror row 2: true=2, predicted=7, confidence=0.103\nerror row 3: true=3, predicted=7, confidence=0.103\nerror row 4: true=4, predicted=7, confidence=0.103\nerror row 5: true=5, predicted=7, confidence=0.103\nerror row 6: true=6, predicted=7, confidence=0.103\nerror row 8: true=8, predicted=7, confidence=0.103\nerror row 9: true=9, predicted=7, confidence=0.103\nerror row 10: true=1, predicted=7, confidence=0.103\nconfusion rows=true, columns=prediction:\n0: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]\n1: [0, 0, 0, 0, 0, 0, 0, 2, 0, 0]\n2: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]\n3: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]\n4: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]\n5: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]\n6: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]\n7: [0, 0, 0, 0, 0, 0, 0, 2, 0, 0]\n8: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]\n9: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0]\nfit loss=2.302784 accuracy=0.100; held-out loss 2.302585->2.302771, accuracy 0.083->0.167\nper-class recall [None, None, None, None, None, None, None, None, None, None]; baseline leaves these unreported until per_class_recall is implemented\nFixture: course block glyphs plus two ambiguous blanks; these are not MNIST accuracy results.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "10",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.019,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 10 --solution --check`\nlabel rotation=0: fit loss=0.093963, accuracy=1.000\nlabel rotation=3: fit loss=0.093963, accuracy=1.000\npixel-gradient/training checkpoint passed; checking per-class recall\nper-class recall correctly distinguishes mistakes and absent classes\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "10",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 10 --check`\nGOAL_NOT_MET: linear parameter 0: gradient 0.00000000, expected central difference -0.20537815; implement pixel-to-class weight gradients\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "11"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 11`\n30 images of 5\u00d73; first label=0\n###\n#.#\n#.#\n#.#\n###\ninitialization=scaled\nfirst-layer weight gradient before training: max |g|=0.000000000, zeros=240/240\nerror row 3: true=3, predicted=6, confidence=0.139\nerror row 4: true=4, predicted=6, confidence=0.178\nerror row 6: true=6, predicted=8, confidence=0.156\nerror row 7: true=7, predicted=1, confidence=0.200\nerror row 10: true=1, predicted=4, confidence=0.117\nerror row 11: true=7, predicted=4, confidence=0.117\nconfusion rows=true, columns=prediction:\n0: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0]\n1: [0, 1, 0, 0, 1, 0, 0, 0, 0, 0]\n2: [0, 0, 1, 0, 0, 0, 0, 0, 0, 0]\n3: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0]\n4: [0, 0, 0, 0, 0, 0, 1, 0, 0, 0]\n5: [0, 0, 0, 0, 0, 1, 0, 0, 0, 0]\n6: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0]\n7: [0, 1, 0, 0, 1, 0, 0, 0, 0, 0]\n8: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0]\n9: [0, 0, 0, 0, 0, 0, 0, 0, 0, 1]\nrequested optimizer=Adam; learner starts as SGD, solution implements requested algorithm\nfit loss=1.739286; held-out loss 3.314317->1.871891, accuracy 0.083->0.500; zero-activation counts / 12 = [3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 11, 4, 6, 12, 12, 3]\ncheckpoint restored step 480; identical next update on the same seven rows\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "11",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.022,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 11 --solution --check`\nall 66 MLP gradients agree on the signed-input transfer batch\nMomentum: independent two-step scalar update agrees\nMomentum: fit loss=0.001747, held-out loss=0.425151, accuracy=0.833\ncheckpoint restored step 480; identical next update on the same seven rows\nAdam: independent two-step scalar update agrees\nAdam: fit loss=0.014530, held-out loss=0.400744, accuracy=0.833\ncheckpoint restored step 480; identical next update on the same seven rows\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s02-neural-networks/Cargo.toml",
+        "--",
+        "11",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s02-neural-networks/target/release/s02-neural-networks 11 --check`\nGOAL_NOT_MET: MLP parameter 0: gradient 0.000000000, numeric 0.030438322. Complete the hidden gradient before optimizer experiments.\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    }
+  ]
+}

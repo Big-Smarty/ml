@@ -1,19 +1,152 @@
 {
-  "outcomes": ["Explain why an f32 performance kernel needs tolerance-based comparison with an f64 numerical oracle", "Construct a release-mode benchmark with warmups and repeated samples", "Report latency with units, variability, work, and measured throughput", "Calculate and qualify an arithmetic-intensity estimate", "Use profiling evidence to choose a useful optimization target"],
-  "lessons": ["Floating-point evidence", "Controlled measurement", "Work and throughput", "Memory costs and arithmetic intensity", "Benchmark practice", "Review and transfer"],
+  "outcomes": [
+    "Explain why an f32 performance kernel needs tolerance-based comparison with an f64 numerical oracle",
+    "Construct a release-mode benchmark with warmups and repeated samples",
+    "Report latency with units, variability, work, and measured throughput",
+    "Calculate and qualify an arithmetic-intensity estimate",
+    "Use profiling evidence to choose a useful optimization target"
+  ],
+  "lessons": [
+    "Which answer must survive an optimization?",
+    "What exactly belongs inside the timer?",
+    "How do samples support a performance claim?",
+    "What moves through memory for one matrix product?",
+    "Can profiling choose the next change?",
+    "What evidence will the next optimization have to preserve?"
+  ],
   "terms": {
-    "floating-point": {"name":"Floating point","definition":"A finite binary representation of numbers across a wide range of magnitudes.","explanation":"Rust f32 follows IEEE-754 binary32 arithmetic for ordinary values. Most real numbers are not exactly representable, so operations round. Addition is therefore not mathematically associative: changing reduction order can alter low bits. Fused multiply-add performs a multiplication and addition with one final rounding. Optimized kernels preserve the numerical method, but comparisons should use a documented absolute-plus-relative tolerance unless a fixed environment and exact operation order are explicit requirements."},
-    "benchmark": {"name":"Benchmark","definition":"A controlled experiment measuring a specified workload under recorded conditions.","explanation":"A useful benchmark identifies its input shapes, data type, build mode, machine, timed boundary, warmups, repetitions, and statistic. It also checks that the computation remains correct and makes its output observable. Kernel timing excludes setup such as allocation and printing; end-to-end timing includes those costs and answers another question. A benchmark result is evidence for that workload and environment, not a universal speed claim."},
-    "throughput": {"name":"Throughput","definition":"The amount of useful work completed per unit of elapsed time.","explanation":"For dense matrix work, throughput is often reported as billions of floating-point operations per second, or GFLOP/s. The numerator comes from a stated algorithmic counting convention, while the denominator is measured time. Throughput helps compare sizes with different operation counts, but it must remain beside latency, dimensions, precision, and hardware. A high rate does not establish correctness or model quality, and differing operation conventions can make apparently similar rates incomparable."},
-    "arithmetic-intensity": {"name":"Arithmetic intensity","definition":"Useful arithmetic operations divided by bytes transferred across a named memory boundary.","explanation":"Arithmetic intensity connects an algorithm’s work with data movement. A dense layer can reuse weights across batch rows, raising intensity, while a streaming elementwise operation usually performs little work per byte. The memory boundary must be stated: DRAM-to-cache traffic differs from cache-to-register traffic. Counting each array once gives a cold-array traffic estimate; warmed calls may already have those arrays cached, so this is not a DRAM lower bound. Hardware counters and profiling are needed before claiming which memory level limits a real run."}
+    "floating-point": {
+      "name": "Floating point",
+      "definition": "A finite binary representation of numbers across a wide range of magnitudes.",
+      "explanation": "Rust f32 follows IEEE-754 binary32 arithmetic for ordinary values. Most real numbers are not exactly representable, so operations round. Addition is therefore not mathematically associative: changing reduction order can alter low bits. Fused multiply-add performs a multiplication and addition with one final rounding. Optimized kernels preserve the numerical method, but comparisons should use a documented absolute-plus-relative tolerance unless a fixed environment and exact operation order are explicit requirements."
+    },
+    "benchmark": {
+      "name": "Benchmark",
+      "definition": "A controlled experiment measuring a specified workload under recorded conditions.",
+      "explanation": "A useful benchmark identifies its input shapes, data type, build mode, machine, timed boundary, warmups, repetitions, and statistic. It also checks that the computation remains correct and makes its output observable. Kernel timing excludes setup such as allocation and printing; end-to-end timing includes those costs and answers another question. A benchmark result is evidence for that workload and environment, not a universal speed claim."
+    },
+    "throughput": {
+      "name": "Throughput",
+      "definition": "The amount of useful work completed per unit of elapsed time.",
+      "explanation": "For dense matrix work, throughput is often reported as billions of floating-point operations per second, or GFLOP/s. The numerator comes from a stated algorithmic counting convention, while the denominator is measured time. Throughput helps compare sizes with different operation counts, but it must remain beside latency, dimensions, precision, and hardware. A high rate does not establish correctness or model quality, and differing operation conventions can make apparently similar rates incomparable."
+    },
+    "arithmetic-intensity": {
+      "name": "Arithmetic intensity",
+      "definition": "Useful arithmetic operations divided by bytes transferred across a named memory boundary.",
+      "explanation": "Arithmetic intensity connects an algorithm’s work with data movement. A dense layer can reuse weights across batch rows, raising intensity, while a streaming elementwise operation usually performs little work per byte. The memory boundary must be stated: DRAM-to-cache traffic differs from cache-to-register traffic. Counting each array once gives a cold-array traffic estimate; warmed calls may already have those arrays cached, so this is not a DRAM lower bound. Hardware counters and profiling are needed before claiming which memory level limits a real run."
+    }
   },
   "sources": [
-    {"title":"Rust f32 documentation","url":"https://doc.rust-lang.org/stable/std/primitive.f32.html","note":"Binary32 behavior and fused multiply-add"},
-    {"title":"Rust black_box documentation","url":"https://doc.rust-lang.org/stable/std/hint/fn.black_box.html","note":"Best-effort optimization barrier"},
-    {"title":"Rust Instant documentation","url":"https://doc.rust-lang.org/stable/std/time/struct.Instant.html","note":"Monotonic elapsed timing"},
-    {"title":"Linux workload tracing","url":"https://www.kernel.org/doc/html/latest/admin-guide/workload-tracing.html","note":"Performance counters and perf"},
-    {"title":"Roofline: An Insightful Visual Performance Model","url":"https://www2.eecs.berkeley.edu/Pubs/TechRpts/2008/EECS-2008-134.pdf","note":"Arithmetic intensity and compute/bandwidth ceilings"}
+    {
+      "title": "Rust f32 documentation",
+      "url": "https://doc.rust-lang.org/stable/std/primitive.f32.html",
+      "note": "Binary32 behavior and fused multiply-add"
+    },
+    {
+      "title": "Rust black_box documentation",
+      "url": "https://doc.rust-lang.org/stable/std/hint/fn.black_box.html",
+      "note": "Best-effort optimization barrier"
+    },
+    {
+      "title": "Rust Instant documentation",
+      "url": "https://doc.rust-lang.org/stable/std/time/struct.Instant.html",
+      "note": "Monotonic elapsed timing"
+    },
+    {
+      "title": "Linux workload tracing",
+      "url": "https://www.kernel.org/doc/html/latest/admin-guide/workload-tracing.html",
+      "note": "Performance counters and perf"
+    },
+    {
+      "title": "Roofline: An Insightful Visual Performance Model",
+      "url": "https://www2.eecs.berkeley.edu/Pubs/TechRpts/2008/EECS-2008-134.pdf",
+      "note": "Arithmetic intensity and compute/bandwidth ceilings"
+    }
   ],
-  "checks": ["Dense f32 outputs for inputs=[batch,in_features] and weights=[out_features,in_features] agree with an f64 accumulator on a deterministic odd-shaped fixture", "Bad dense shapes return an error", "No-argument benchmark uses three warmups and eleven measured repetitions", "Benchmark reports unit-bearing median and range values, checksum, GFLOP/s, cold-array traffic estimate, and estimated FLOP/byte", "Starter run succeeds while its guided median_ns test reaches the TODO"],
-  "limitations": ["The read-once/write-once cold-array traffic estimate is not a measured cache or warmed DRAM count", "Instant measurements include operating-system noise", "The project benchmarks one scalar dense inference kernel and does not implement training or gradients or claim universal CPU performance"]
+  "checks": [
+    "Scalar hand result [22,28,49,64] and varied-shape f64 comparisons pass",
+    "Learner measure must execute requested warmups plus samples, keep only samples, propagate failures and reject invalid plans",
+    "Transfer: change one shape, preserve labels and oracle, record real median and range"
+  ],
+  "limitations": [
+    "The read-once/write-once cold-array traffic estimate is not a measured cache or warmed DRAM count",
+    "Instant measurements include operating-system noise"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "floating-point",
+      "title": "Which answer must survive an optimization?",
+      "session": 1,
+      "minutes": 9
+    },
+    {
+      "id": "measurement",
+      "title": "What exactly belongs inside the timer?",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "work",
+      "title": "How do samples support a performance claim?",
+      "session": 1,
+      "minutes": 9
+    },
+    {
+      "id": "memory",
+      "title": "What moves through memory for one matrix product?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "practice",
+      "title": "Can profiling choose the next change?",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "review",
+      "title": "What evidence will the next optimization have to preserve?",
+      "session": 2,
+      "minutes": 6
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Measure a correct dense call",
+      "goal": "Implement warmups and repeated measurements with an oracle"
+    },
+    {
+      "id": 2,
+      "title": "Interpret memory and profiling evidence",
+      "goal": "Produce a configured local measurement and explain its limits"
+    }
+  ],
+  "lab": {
+    "package": "s05-cpu",
+    "chapter": "25",
+    "entry": "labs/s05-cpu/src/ch25.rs",
+    "goal": "Produce a configured local measurement and explain its limits",
+    "check": "just lab-check 25",
+    "manual_checks": [
+      "Inspect measure: warmups execute the same callable; Instant surrounds only the operation; sample storage is reserved before timing.",
+      "Record a real release measurement with CPU/toolchain/flags/shape/precision, median/range and identical timed boundaries. Profiling and causal interpretation are self-assessed."
+    ]
+  },
+  "topic_coverage": {
+    "Floating point": "floating-point",
+    "profiling": "practice",
+    "memory costs": "memory",
+    "arithmetic intensity": "memory"
+  },
+  "interactives": [
+    {
+      "id": "memory-gemm",
+      "title": "Matrix memory/GEMM tracer",
+      "file": "demo.js",
+      "anchor": "memory-gemm",
+      "illustration": true
+    }
+  ]
 }

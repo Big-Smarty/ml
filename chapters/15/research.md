@@ -23,3 +23,12 @@ GPT-6 Astra High independently read the full lesson, metadata, research, referen
 Corrected a second worked split that changed the parent class counts. Strengthened the tree/forest test to classify both sides and checked the mixed-node impurity.
 
 Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+
+
+## September 2026 section redesign
+
+The original lesson, metadata, and `projects/ch15` reference were read before replacement; the original source-tagged excerpt and reference project remain available. The new section route connects a disclosed maintenance dataset through uncertainty, preprocessing, classical learning, projection, clustering and a frozen evaluation capstone. Existing source claims above support the mathematical exposition; dataset-specific numbers come from the actual new Rust implementation, not from those papers.
+
+Learner goal: Implement recursive CART, bagging, random feature forests and residual boosting. The chapter has 4 sessions of approximately40 minutes. Topic coverage is recorded verbatim in meta.json. Each session includes implementation and an unfamiliar or controlled transfer, with native hints and explained completed-source checkpoints. Browser calculations are explicitly illustrations and never claim to execute Rust.
+
+Checks: Recursive XOR partition distinguishes a median stump; Depth/node changes, genuinely resampled bagging and random-feature forest; Squared-residual boosting lowers held synthetic regression error. Limitations: Small-data CART and fixed iteration counts are inspectable rather than optimized; Boosting minimizes squared residuals and clips only reported probabilities; it is not logistic gradient boosting; Trees/forests use fixed declared seeds and small ensembles; validation can worsen. Full execution evidence, algorithm scope and prerequisite audit are in guidance/redesign/section-03.md. The original reference may use a simpler fixture or a different algorithm variant; its preserved results are labelled separately from the shared lab.

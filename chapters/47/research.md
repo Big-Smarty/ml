@@ -1,3 +1,9 @@
+## Active redesign route (Section 09)
+
+The active learner route is `just lab 47` → edit `labs/s09-advanced/src/ch47.rs` → `just lab-check 47`. The lesson now contains 2 sessions and 6 ordered question-led steps. Goal: Prune deterministically, construct CSR, verify two-input parity, and distinguish byte and timing savings. The separately explained solution is `labs/s09-advanced/src/solutions/ch47.rs`; supplied validation, fixtures, and I/O are in `src/common/ch47.rs`. Original `projects/ch47` implementations remain preserved reference evidence. Earlier workflow descriptions below are historical reference notes and do not replace this active route.
+
+Every session includes a concrete worked calculation, implementation checkpoint, graduated hints, an explained answer, and a changed-input transfer task. The browser illustration in chapter 48 executes only a fixed local arithmetic fixture; no browser control claims to run Rust. Executable goal checks and source-review limits are recorded in `guidance/redesign/section-09.md`.
+
 # Chapter 47 research record
 
 ## Route and verification

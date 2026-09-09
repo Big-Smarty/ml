@@ -1,18 +1,19 @@
 {
   "outcomes": [
-    "Select and report a hardware Vulkan adapter without accepting a software fallback",
-    "Explain how Rust buffers and WGSL bindings represent the same contiguous [N] f32 vectors",
-    "Dispatch enough workgroups for an arbitrary element count without dropping the tail",
-    "Synchronize a real GPU result into a mapped readback buffer",
-    "Compare GPU output with the same scalar primitive using an explicit absolute-plus-relative tolerance"
+    "Trace f32 values through one supplied wgpu upload, bind, dispatch and synchronized readback route",
+    "Replace a serial chunk shader with bounded per-element SAXPY invocations",
+    "Query and report hardware Vulkan adapters without accepting CPU software fallback",
+    "Verify positive/negative scale and odd-length CPU/GPU results with an explicit tolerance"
   ],
   "lessons": [
-    "Why a GPU needs a different execution model",
-    "Discover the hardware you actually run",
-    "Move a vector through buffers and bindings",
-    "Dispatch WGSL and read the answer back",
-    "Run, debug, and extend the project",
-    "Review and transfer"
+    "What answer should leave the GPU?",
+    "How do five numbers become shader inputs?",
+    "Who owns the last three values?",
+    "Build the scaled vector operation",
+    "Which device will actually execute it?",
+    "When is a GPU result safe to read?",
+    "Verify the real round trip",
+    "Explain the result without the code open"
   ],
   "terms": {
     "adapter": {
@@ -42,22 +43,129 @@
     }
   },
   "sources": [
-    {"title": "wgpu 29 standalone compute example", "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/standalone/01_hello_compute/src/main.rs", "note": "First-party buffer, dispatch, and mapping pattern."},
-    {"title": "wgpu 29 Instance API", "url": "https://github.com/gfx-rs/wgpu/blob/v29/wgpu/src/api/instance.rs", "note": "First-party adapter enumeration API verified against installed source."},
-    {"title": "WebGPU specification", "url": "https://www.w3.org/TR/webgpu/", "note": "Normative resource, command, and synchronization model."},
-    {"title": "WGSL specification", "url": "https://www.w3.org/TR/WGSL/", "note": "Normative shader language and invocation semantics."}
+    {
+      "title": "wgpu 29 standalone compute example",
+      "url": "https://github.com/gfx-rs/wgpu/blob/v29/examples/standalone/01_hello_compute/src/main.rs",
+      "note": "First-party buffer, dispatch, and mapping pattern."
+    },
+    {
+      "title": "wgpu 29 Instance API",
+      "url": "https://github.com/gfx-rs/wgpu/blob/v29/wgpu/src/api/instance.rs",
+      "note": "First-party adapter enumeration API verified against installed source."
+    },
+    {
+      "title": "WebGPU specification",
+      "url": "https://www.w3.org/TR/webgpu/",
+      "note": "Normative resource, command, and synchronization model."
+    },
+    {
+      "title": "WGSL specification",
+      "url": "https://www.w3.org/TR/WGSL/",
+      "note": "Normative shader language and invocation semantics."
+    }
   ],
   "checks": [
-    "The executable reports every discovered adapter and the selected hardware Vulkan adapter",
-    "A five-element vector is dispatched and read back from a real compute shader",
-    "Ordinary tests cover the scalar oracle, f32 tolerance, and exact and partial dispatch counts",
-    "The ignored hardware test covers 67 elements, including a partial workgroup",
-    "Empty, mismatched, and nonfinite inputs return errors before adapter discovery"
+    "CPU baseline addition runs without GPU discovery",
+    "Learner goal checks invoke actual compute and test N=1,64,67,129 with scales0.5 and−2",
+    "Ordinary tests pass while recognizing the unfinished scaled-update goal",
+    "Explicit --gpu runs real selected WGSL, dispatches and maps output before comparing",
+    "Shape/nonfinite/scale validation and GPU buffer/dispatch limits are checked"
   ],
   "limitations": [
-    "The project creates a device for one operation rather than maintaining a long-lived compute context",
-    "The vector addition is a correctness demonstration, not a performance benchmark",
-    "Only the Vulkan backend is accepted for the course hardware path",
-    "GPU execution requires a hardware Vulkan adapter and fails explicitly when none is present"
-  ]
+    "CPU checks cannot establish WGSL execution or GPU speed",
+    "Baseline serial chunking is correct addition but does not implement the parallel scaled-update goal",
+    "The hardware route deliberately requires Vulkan and rejects CPU adapters",
+    "GPU setup is supplied and pipelines are not tuned per adapter"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "question",
+      "title": "What answer should leave the GPU?",
+      "session": 1,
+      "minutes": 7
+    },
+    {
+      "id": "buffers",
+      "title": "How do five numbers become shader inputs?",
+      "session": 1,
+      "minutes": 8
+    },
+    {
+      "id": "dispatch",
+      "title": "Who owns the last three values?",
+      "session": 1,
+      "minutes": 9
+    },
+    {
+      "id": "vector-build",
+      "title": "Build the scaled vector operation",
+      "session": 1,
+      "minutes": 16
+    },
+    {
+      "id": "adapter",
+      "title": "Which device will actually execute it?",
+      "session": 2,
+      "minutes": 8
+    },
+    {
+      "id": "readback",
+      "title": "When is a GPU result safe to read?",
+      "session": 2,
+      "minutes": 9
+    },
+    {
+      "id": "hardware-build",
+      "title": "Verify the real round trip",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "review",
+      "title": "Explain the result without the code open",
+      "session": 2,
+      "minutes": 5
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "From serial chunks to independent invocations",
+      "goal": "Implement scaled vector arithmetic and guarded per-element WGSL"
+    },
+    {
+      "id": 2,
+      "title": "Prove dispatch and synchronized readback",
+      "goal": "Run hardware parity or explicitly record unsupported hardware; vary launch geometry"
+    }
+  ],
+  "lab": {
+    "package": "s06-gpu",
+    "chapter": "29",
+    "entry": "labs/s06-gpu/src/ch29.rs",
+    "goal": "Implement guarded parallel SAXPY and verify actual hardware output against its CPU oracle",
+    "check": "just lab-check 29",
+    "manual_checks": [
+      "Review the actual ch29.rs shader: one global invocation owns each valid output; workgroup size matches VECTOR_WORKGROUP_SIZE; every input load and output store is bounded; scale bits are decoded.",
+      "Trace N=67 and129, including final valid and first invalid IDs; require actual --check --gpu parity/readback before recording hardware completion."
+    ]
+  },
+  "interactives": [
+    {
+      "id": "gpu-workgroups",
+      "title": "GPU workgroups and residency",
+      "file": "demo.js",
+      "anchor": "gpu-workgroups",
+      "illustration": true
+    }
+  ],
+  "topic_coverage": {
+    "Adapter discovery": "adapter",
+    "wgpu": "adapter",
+    "WGSL": "vector-build",
+    "buffers": "buffers",
+    "dispatch": "dispatch",
+    "readback": "readback"
+  }
 }

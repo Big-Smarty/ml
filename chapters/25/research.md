@@ -14,3 +14,12 @@ Final scoped formatting, offline strict Clippy, reference tests, and small relea
 ## Consistency revision, 2026-09-08
 
 The Chapter 9 dense contract was rechecked locally: row-major `inputs=[batch,in_features]`, `weights=[out_features,in_features]`, `bias=[out_features]`, and `outputs=[batch,out_features]`, computing inputs × weights-transpose + bias. Chapter 25 keeps that layout and argument order while changing the timed storage and arithmetic to `f32`; an untimed `f64` accumulator remains the numerical oracle. The Chapter 24 recommender connection is conceptual—its score matrix is also a row-product—but this benchmark remains a standalone dense inference kernel with no loss, training, or gradient interface. No new external source was needed for these local consistency corrections.
+
+
+## Active redesign, 2026-09-09
+
+Owner route: one GPT-6 Astra High implementation owner for the complete CPU section; no further authorship delegation. Read the old lesson, metadata, research, reference and starter code before replacing instruction. Original `projects/ch25`–`ch28` are preserved. Historical TODO/Rustlings statements above describe the earlier course, not the active lab.
+
+Reused the already checked Rust/LLVM and original research sources recorded above; no new claim of fresh web verification is made. The systems audit, interactive design evidence and learning-science synthesis informed worked arithmetic, 30–45-minute sessions, meaningful core-algorithm work, progressive hints, and unfamiliar-input transfer. These are design inferences, not a claim that this Rust course has demonstrated a causal learning benefit.
+
+The active learner entry is `labs/s05-cpu/src/ch25.rs`, with a complete separate solution. The section report `guidance/redesign/section-05.md` records exact topics/step mapping, actual local checks and benchmark configurations, prerequisite audit, hardware limits and manual source criteria. No browser illustration predicts hardware timing or substitutes for a Rust/hardware check.

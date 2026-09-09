@@ -6,15 +6,13 @@
     "Validate causality, normalization, gradients, loss reduction, and optional GPU GEMMs"
   ],
   "lessons": [
-    "Code and terminology carried forward",
-    "Assemble a pre-normalized decoder block",
-    "Normalize features within each token",
-    "Store all trainable state in one checked buffer",
-    "Derive the parameter count and the prediction contract",
-    "Backpropagate tensors in reverse order",
-    "Verify CPU and optional GPU execution",
-    "Practice and debug",
-    "Review and transfer"
+    "How can attention become a complete next-token model?",
+    "Where does token order enter the network?",
+    "Why normalize features separately for each token?",
+    "How do mean and variance change the derivative?",
+    "Which weights does the block actually own?",
+    "How does the feed-forward branch finish the decoder?",
+    "Can a complete decoder overfit a tiny pattern?"
   ],
   "terms": {
     "decoder-transformer": {
@@ -25,7 +23,7 @@
     "layer-normalization": {
       "name": "layer normalization",
       "definition": "Per-token feature normalization followed by learned gain and bias.",
-      "explanation": "Layer normalization computes mean and variance across a hidden row's features, independently for each token. It centers and scales the row, then applies trainable vectors \u03b3 and \u03b2. Unlike batch normalization, it uses the same type of statistics during training and inference and does not mix examples. Backward must include the dependence of mean and variance on every feature. The chapter uses pre-normalization, so normalized values enter each learned branch while the residual identity remains unnormalized."
+      "explanation": "Layer normalization computes mean and variance across a hidden row's features, independently for each token. It centers and scales the row, then applies trainable vectors γ and β. Unlike batch normalization, it uses the same type of statistics during training and inference and does not mix examples. Backward must include the dependence of mean and variance on every feature. The chapter uses pre-normalization, so normalized values enter each learned branch while the residual identity remains unnormalized."
     },
     "gelu": {
       "name": "Gaussian error linear unit",
@@ -61,15 +59,99 @@
     }
   ],
   "checks": [
-    "Exact large configuration count equals 14,442,496",
-    "Causal prefix logits ignore future token changes",
-    "Attention, normalization, feed-forward, embedding, and output gradients pass representative f32 finite differences",
-    "Representative identifiable parameter families change while loss falls",
-    "Optional GPU feature routes forward and backward GEMMs through chapter 30"
+    "just lab 36 runs the useful bounded learner baseline",
+    "just lab-check 36 calls the learner algorithms and fails until the full chapter goal is implemented",
+    "just lab 36 --solution --check checks the separate explained solution",
+    "Assemble token/position and pre-normalized attention residual paths",
+    "Derive and verify LayerNorm input/gain/bias backward",
+    "Complete FFN integration and match a full two-layer decoder",
+    "Overfit a tiny sequence and compare controlled depth variation",
+    "Supplied package tests verify numerical and boundary behavior; learner-written explanations and independent experiment reports are self-assessed"
   ],
   "limitations": [
-    "GPU bridge transfers around every GEMM",
-    "Attention and activation caches scale poorly with long contexts",
-    "Raw mutable parameter access is an expert boundary"
-  ]
+    "Learner implements complete block forward and LayerNorm backward; remaining all-parameter backward/storage is supplied by preserved ch36",
+    "Float32 reference and f64 attention illustration use stated tolerances, not universal bit equality",
+    "GPU bridge is preserved reference work and remains per-GEMM transfer based"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "architecture",
+      "title": "How can attention become a complete next-token model?",
+      "session": 1,
+      "minutes": 15
+    },
+    {
+      "id": "positions",
+      "title": "Where does token order enter the network?",
+      "session": 1,
+      "minutes": 25
+    },
+    {
+      "id": "normalization",
+      "title": "Why normalize features separately for each token?",
+      "session": 2,
+      "minutes": 15
+    },
+    {
+      "id": "norm-backward",
+      "title": "How do mean and variance change the derivative?",
+      "session": 2,
+      "minutes": 25
+    },
+    {
+      "id": "parameters",
+      "title": "Which weights does the block actually own?",
+      "session": 3,
+      "minutes": 15
+    },
+    {
+      "id": "backward",
+      "title": "How does the feed-forward branch finish the decoder?",
+      "session": 3,
+      "minutes": 25
+    },
+    {
+      "id": "verify",
+      "title": "Can a complete decoder overfit a tiny pattern?",
+      "session": 4,
+      "minutes": 35
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "How can attention become a complete next-token model?",
+      "goal": "Assemble token/position and pre-normalized attention residual paths"
+    },
+    {
+      "id": 2,
+      "title": "Why normalize features separately for each token?",
+      "goal": "Derive and verify LayerNorm input/gain/bias backward"
+    },
+    {
+      "id": 3,
+      "title": "Which weights does the block actually own?",
+      "goal": "Complete FFN integration and match a full two-layer decoder"
+    },
+    {
+      "id": 4,
+      "title": "Can a complete decoder overfit a tiny pattern?",
+      "goal": "Overfit a tiny sequence and compare controlled depth variation"
+    }
+  ],
+  "lab": {
+    "package": "s07-language-models",
+    "chapter": "36",
+    "entry": "labs/s07-language-models/src/ch36.rs",
+    "goal": "Assemble token/position and pre-normalized attention residual paths; Derive and verify LayerNorm input/gain/bias backward; Complete FFN integration and match a full two-layer decoder; Overfit a tiny sequence and compare controlled depth variation",
+    "check": "just lab-check 36"
+  },
+  "topic_coverage": {
+    "Residual paths": "architecture",
+    "normalization": "normalization",
+    "positions": "positions",
+    "feed-forward blocks": "backward"
+  },
+  "interactives": []
 }

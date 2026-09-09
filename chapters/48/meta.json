@@ -5,7 +5,14 @@
     "Enforce per-expert capacity and account for overflow",
     "Compute a Switch-style differentiable load-balancing loss"
   ],
-  "lessons": ["Conditional computation", "Routing gradients", "Capacity and overflow", "Balancing experts", "Rust experiment", "Practice and transfer"],
+  "lessons": [
+    "How can one input choose which parameters run?",
+    "Why can falling loss hide a frozen router?",
+    "Can one batch update both router and experts?",
+    "Which token is dropped when one expert fills?",
+    "What does a balancing loss actually encourage?",
+    "Can you distinguish collapse, overflow, and failed gradients?"
+  ],
   "terms": {
     "mixture-of-experts": {
       "name": "Mixture of experts",
@@ -39,21 +46,104 @@
     }
   },
   "sources": [
-    {"title": "Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity", "url": "https://arxiv.org/abs/2101.03961", "note": "Top-1 selected gates, capacity, and balancing"},
-    {"title": "GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding", "url": "https://arxiv.org/abs/2006.16668", "note": "Top-2 routing and capacity"},
-    {"title": "Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer", "url": "https://arxiv.org/abs/1701.06538", "note": "Jointly trained sparse gating and experts"}
+    {
+      "title": "Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity",
+      "url": "https://arxiv.org/abs/2101.03961",
+      "note": "Top-1 selected gates, capacity, and balancing"
+    },
+    {
+      "title": "GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding",
+      "url": "https://arxiv.org/abs/2006.16668",
+      "note": "Top-2 routing and capacity"
+    },
+    {
+      "title": "Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer",
+      "url": "https://arxiv.org/abs/1701.06538",
+      "note": "Jointly trained sparse gating and experts"
+    }
   ],
   "checks": [
-    "Router and selected-expert gradients match central differences away from a routing tie",
-    "Uncapped task-only half-MSE falls below one fifth of its initial value",
-    "All three experts receive routes after training on the deterministic fixture",
-    "Overflow count equals assignments beyond the computed per-expert capacity",
-    "Accepted task gradients divide by all attempted examples even when capacity drops one"
+    "Run the working learner baseline with just lab 48; implement the complete named algorithms and run just lab-check 48.",
+    "Run the separate solution goal checks and package tests; compare actual numerical intermediates described in each session.",
+    "Complete each session’s changed-input explanation; passing executable checks does not grade explanatory reasoning."
   ],
   "limitations": [
     "The reported mean loss is uncapped task loss and excludes the balancing term",
     "Scalar linear experts do not establish language-model quality or conditional-compute speed",
     "Hard top-1 selection is nondifferentiable at routing boundaries",
     "The fixture runs on one CPU process without expert communication"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "conditional",
+      "title": "How can one input choose which parameters run?",
+      "session": 1,
+      "minutes": 11
+    },
+    {
+      "id": "gradient",
+      "title": "Why can falling loss hide a frozen router?",
+      "session": 1,
+      "minutes": 11
+    },
+    {
+      "id": "joint-update",
+      "title": "Can one batch update both router and experts?",
+      "session": 1,
+      "minutes": 16
+    },
+    {
+      "id": "capacity",
+      "title": "Which token is dropped when one expert fills?",
+      "session": 2,
+      "minutes": 11
+    },
+    {
+      "id": "balance",
+      "title": "What does a balancing loss actually encourage?",
+      "session": 2,
+      "minutes": 11
+    },
+    {
+      "id": "practice",
+      "title": "Can you distinguish collapse, overflow, and failed gradients?",
+      "session": 2,
+      "minutes": 16
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Train a route, not only an expert",
+      "goal": "Derive and implement the task gradient through selected full-softmax probabilities."
+    },
+    {
+      "id": 2,
+      "title": "Give every attempted token an account",
+      "goal": "Implement capacity admission and load balancing, then diagnose overflow."
+    }
+  ],
+  "lab": {
+    "package": "s09-advanced",
+    "chapter": "48",
+    "entry": "labs/s09-advanced/src/ch48.rs",
+    "goal": "Implement the full jointly trained sparse expert update with exact capacity and balancing accounting.",
+    "check": "just lab-check 48"
+  },
+  "topic_coverage": {
+    "Routing": "conditional",
+    "expert capacity": "capacity",
+    "load balancing": "balance",
+    "conditional compute": "joint-update"
+  },
+  "interactives": [
+    {
+      "id": "routing-capacity",
+      "title": "Attempted routes, admitted tokens, and balancing",
+      "file": "demo.js",
+      "anchor": "routing-capacity",
+      "illustration": true
+    }
   ]
 }

@@ -1,19 +1,202 @@
 {
-  "outcomes": ["Compute convolution output shapes and values with padding and stride", "Trace max-pooling indices and route their gradients", "Backpropagate stable multiclass loss through a dense head and convolution", "Train the tiny digit fixture and optionally load prepared MNIST IDX files"],
-  "lessons": ["Why images need shared local weights", "Convolution arithmetic", "Pooling and gradients", "Build and run the classifier", "Practice and debug", "Review and transfer"],
+  "outcomes": [
+    "Compute a complete padded response map and explain a rectangular boundary case",
+    "Implement max pooling and preserve the correct winner indices on odd dimensions",
+    "Accumulate all nine shared derivatives and verify complete training",
+    "Run a controlled reduction comparison and trace a new image"
+  ],
+  "lessons": [
+    "Can one detector recognize a stroke in several places?",
+    "Which image positions contribute to an output?",
+    "Build the whole shared response map",
+    "What should survive a small local shift?",
+    "Why must pooling remember an index?",
+    "Replace subsampling with max pooling",
+    "How does digit error reach a shared kernel?",
+    "Accumulate and check all nine derivatives",
+    "Which failures can a falling loss hide?",
+    "What did the complete digit experiment establish?",
+    "How would the same model meet real image files?",
+    "Choose a reduction, then defend the comparison"
+  ],
   "terms": {
-    "convolution": {"name": "convolution", "definition": "A shared local weighted sum applied across spatial positions.", "explanation": "In neural-network libraries, convolution usually means cross-correlation: the kernel is not flipped before multiplication. A small kernel visits every image position, reusing the same weights, so it can detect a pattern wherever that pattern appears. Local connectivity preserves spatial structure and weight sharing limits the parameter count. A convolution layer may have several learned filters, each producing one output channel. Padding and stride determine which positions are visited and therefore the output shape."},
-    "padding": {"name": "padding", "definition": "Extra values conceptually placed around an input before a spatial operation.", "explanation": "Zero padding lets a kernel be centered near an image boundary even though part of its window falls outside the stored pixels. The missing positions contribute zero. With a 3×3 kernel, stride one, and one pixel of padding, output height and width equal the input dimensions. Padding is an architectural choice, not additional observed data. Different padding policies change boundary behavior and must be applied consistently in the forward and backward passes."},
-    "stride": {"name": "stride", "definition": "The number of input positions moved between neighboring kernel applications.", "explanation": "Stride one evaluates every adjacent location. Stride two skips every other position and usually reduces spatial resolution. For input size I, kernel size K, padding P, and stride S, the output size is floor((I + 2P − K)/S) + 1 when the numerator is nonnegative. Stride changes both computation and which details are retained. It should not be confused with the memory stride used to index a row-major array."},
-    "pooling": {"name": "pooling", "definition": "A fixed reduction over a small spatial neighborhood.", "explanation": "Max pooling keeps the largest activation in each window, while average pooling keeps the mean. Pooling reduces spatial size and makes later layers less sensitive to small local shifts. In backpropagation, average pooling distributes a gradient across every input; max pooling routes it only to the recorded winning position. Exact ties make max pooling nondifferentiable, so gradient checks should use inputs with a unique winner in every tested window."},
-    "receptive-field": {"name": "receptive field", "definition": "The input region that can influence a particular activation.", "explanation": "One 3×3 convolutional activation sees a 3×3 image patch. Deeper stacks combine nearby activations, so their effective receptive fields grow even when every kernel remains small. Pooling and stride make the field grow faster by reducing spatial resolution. Receptive field describes possible influence, not proof that every pixel contributes equally after training. It helps connect architecture choices to the scale of patterns a network can represent."}
+    "convolution": {
+      "name": "convolution",
+      "definition": "A shared local weighted sum applied across spatial positions.",
+      "explanation": "In neural-network libraries, convolution usually means cross-correlation: the kernel is not flipped before multiplication. A small kernel visits every image position, reusing the same weights, so it can detect a pattern wherever that pattern appears. Local connectivity preserves spatial structure and weight sharing limits the parameter count. A convolution layer may have several learned filters, each producing one output channel. Padding and stride determine which positions are visited and therefore the output shape."
+    },
+    "padding": {
+      "name": "padding",
+      "definition": "Extra values conceptually placed around an input before a spatial operation.",
+      "explanation": "Zero padding lets a kernel be centered near an image boundary even though part of its window falls outside the stored pixels. The missing positions contribute zero. With a 3×3 kernel, stride one, and one pixel of padding, output height and width equal the input dimensions. Padding is an architectural choice, not additional observed data. Different padding policies change boundary behavior and must be applied consistently in the forward and backward passes."
+    },
+    "stride": {
+      "name": "stride",
+      "definition": "The number of input positions moved between neighboring kernel applications.",
+      "explanation": "Stride one evaluates every adjacent location. Stride two skips every other position and usually reduces spatial resolution. For input size I, kernel size K, padding P, and stride S, the output size is floor((I + 2P − K)/S) + 1 when the numerator is nonnegative. Stride changes both computation and which details are retained. It should not be confused with the memory stride used to index a row-major array."
+    },
+    "pooling": {
+      "name": "pooling",
+      "definition": "A fixed reduction over a small spatial neighborhood.",
+      "explanation": "Max pooling keeps the largest activation in each window, while average pooling keeps the mean. Pooling reduces spatial size and makes later layers less sensitive to small local shifts. In backpropagation, average pooling distributes a gradient across every input; max pooling routes it only to the recorded winning position. Exact ties make max pooling nondifferentiable, so gradient checks should use inputs with a unique winner in every tested window."
+    },
+    "receptive-field": {
+      "name": "receptive field",
+      "definition": "The input region that can influence a particular activation.",
+      "explanation": "One 3×3 convolutional activation sees a 3×3 image patch. Deeper stacks combine nearby activations, so their effective receptive fields grow even when every kernel remains small. Pooling and stride make the field grow faster by reducing spatial resolution. Receptive field describes possible influence, not proof that every pixel contributes equally after training. It helps connect architecture choices to the scale of patterns a network can represent."
+    }
   },
   "sources": [
-    {"title":"Learning representations by back-propagating errors","url":"https://doi.org/10.1038/323533a0","note":"Original concise account of learning hidden representations by backpropagation."},
-    {"title":"Neocognitron","url":"https://doi.org/10.1007/BF00344251","note":"Early hierarchical local-feature and position-tolerance architecture."},
-    {"title":"Gradient-Based Learning Applied to Document Recognition","url":"https://doi.org/10.1109/5.726791","note":"Primary LeNet account of local receptive fields, shared weights, subsampling, and digit recognition."},
-    {"title":"The MNIST Database of Handwritten Digits","url":"https://yann.lecun.org/exdb/mnist/","note":"Official dataset description and IDX format source."}
+    {
+      "title": "Learning representations by back-propagating errors",
+      "url": "https://doi.org/10.1038/323533a0",
+      "note": "Original concise account of learning hidden representations by backpropagation."
+    },
+    {
+      "title": "Neocognitron",
+      "url": "https://doi.org/10.1007/BF00344251",
+      "note": "Early hierarchical local-feature and position-tolerance architecture."
+    },
+    {
+      "title": "Gradient-Based Learning Applied to Document Recognition",
+      "url": "https://doi.org/10.1109/5.726791",
+      "note": "Primary LeNet account of local receptive fields, shared weights, subsampling, and digit recognition."
+    },
+    {
+      "title": "The MNIST Database of Handwritten Digits",
+      "url": "https://yann.lecun.org/exdb/mnist/",
+      "note": "Official dataset description and IDX format source."
+    }
   ],
-  "checks": ["Central-difference and analytic convolution gradients agree away from ReLU and max-pool ties", "Training reduces validation cross-entropy, reaches at least 70% fixture accuracy, and increments optimizer step_count once per image update", "Malformed IDX headers are rejected", "Default execution performs no network access"],
-  "limitations": ["The default seven-segment images are course-authored and much simpler than handwriting", "The model has two filters and uses one-image-at-a-time SGD", "MNIST mode limits fitting and validation to 2,000 rows for a short CPU demonstration", "No claim is made about competitive MNIST accuracy"]
+  "checks": [
+    "Supplied pointwise baseline runs and reports 30% fixture accuracy",
+    "Learner checkpoints check rectangular convolution values, max winners and all nine weight derivatives",
+    "Full learner goal requires validation loss reduction and at least 7/10 correct on ten generated digits",
+    "IDX tests reject malformed headers, invalid labels and truncated payloads; default runs are offline"
+  ],
+  "limitations": [
+    "Two filters and sample-at-a-time scalar CPU SGD",
+    "Procedural seven-segment training and validation share a source; no population accuracy claim",
+    "Stride-one padding-one convolution and floor-sized 2×2 pooling are fixed in the local classifier",
+    "MNIST requires explicit local paths and limits fitting/validation to 2,000 images each; no new MNIST result claimed"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "local-weights",
+      "title": "Can one detector recognize a stroke in several places?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "shape",
+      "title": "Which image positions contribute to an output?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "convolve",
+      "title": "Build the whole shared response map",
+      "session": 1,
+      "minutes": 20
+    },
+    {
+      "id": "pooling",
+      "title": "What should survive a small local shift?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "routing",
+      "title": "Why must pooling remember an index?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "reduction",
+      "title": "Replace subsampling with max pooling",
+      "session": 2,
+      "minutes": 15
+    },
+    {
+      "id": "gradients",
+      "title": "How does digit error reach a shared kernel?",
+      "session": 3,
+      "minutes": 12
+    },
+    {
+      "id": "backward",
+      "title": "Accumulate and check all nine derivatives",
+      "session": 3,
+      "minutes": 18
+    },
+    {
+      "id": "debug",
+      "title": "Which failures can a falling loss hide?",
+      "session": 3,
+      "minutes": 8
+    },
+    {
+      "id": "run",
+      "title": "What did the complete digit experiment establish?",
+      "session": 4,
+      "minutes": 10
+    },
+    {
+      "id": "mnist",
+      "title": "How would the same model meet real image files?",
+      "session": 4,
+      "minutes": 8
+    },
+    {
+      "id": "review",
+      "title": "Choose a reduction, then defend the comparison",
+      "session": 4,
+      "minutes": 17
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Implement shared convolution",
+      "goal": "Compute a complete padded response map and explain a rectangular boundary case"
+    },
+    {
+      "id": 2,
+      "title": "Pool values and route credit",
+      "goal": "Implement max pooling and preserve the correct winner indices on odd dimensions"
+    },
+    {
+      "id": 3,
+      "title": "Differentiate the whole classifier",
+      "goal": "Accumulate all nine shared derivatives and verify complete training"
+    },
+    {
+      "id": 4,
+      "title": "Compare spatial reductions",
+      "goal": "Run a controlled reduction comparison and trace a new image"
+    }
+  ],
+  "lab": {
+    "package": "s04-deep-learning",
+    "chapter": "20",
+    "entry": "labs/s04-deep-learning/src/ch20.rs",
+    "goal": "Replace the pointwise/subsampling model with shared convolution, max pooling and matched backward",
+    "check": "just lab-check 20"
+  },
+  "topic_coverage": {
+    "Convolution": "local-weights",
+    "padding and stride": "shape",
+    "pooling": "pooling",
+    "gradients": "gradients"
+  },
+  "interactives": [
+    {
+      "id": "convolution-microscope",
+      "title": "Convolution microscope",
+      "file": "demo.js",
+      "anchor": "convolution-microscope",
+      "illustration": true
+    }
+  ]
 }

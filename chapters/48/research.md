@@ -1,3 +1,9 @@
+## Active redesign route (Section 09)
+
+The active learner route is `just lab 48` → edit `labs/s09-advanced/src/ch48.rs` → `just lab-check 48`. The lesson now contains 2 sessions and 6 ordered question-led steps. Goal: Implement the full jointly trained sparse expert update with exact capacity and balancing accounting. The separately explained solution is `labs/s09-advanced/src/solutions/ch48.rs`; supplied validation, fixtures, and I/O are in `src/common/ch48.rs`. Original `projects/ch48` implementations remain preserved reference evidence. Earlier workflow descriptions below are historical reference notes and do not replace this active route.
+
+Every session includes a concrete worked calculation, implementation checkpoint, graduated hints, an explained answer, and a changed-input transfer task. The browser illustration in chapter 48 executes only a fixed local arithmetic fixture; no browser control claims to run Rust. Executable goal checks and source-review limits are recorded in `guidance/redesign/section-09.md`.
+
 # Chapter 48 research record
 
 ## Route and verification

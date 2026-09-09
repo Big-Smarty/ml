@@ -3,15 +3,22 @@
     "Compute DPO loss from chosen, rejected, policy, and frozen-reference log probabilities",
     "Derive and check a mean DPO logit gradient stored separately from policy parameters",
     "Train a toy preference policy and a separate verifiable-reward policy",
-    "Explain what the reference policy and beta control"
+    "Explain what the reference policy and beta control",
+    "Train an explicit pairwise reward model and diagnose length confounding"
   ],
   "lessons": [
-    "From reward to preferences",
-    "DPO arithmetic",
-    "Reference policy",
-    "Verifiable reward",
-    "Rust experiment",
-    "Practice and transfer"
+    "What does choosing one answer over another tell us?",
+    "What information is present in a preference pair?",
+    "Can a reward model learn what the comparisons actually distinguish?",
+    "Does the learned score transfer beyond the training lengths?",
+    "How do chosen and rejected odds form a DPO loss?",
+    "Why must the reference stay fixed?",
+    "Can one old-policy batch implement the full DPO objective?",
+    "When can an automatic checker supply reward?",
+    "Does a verifier reward optimize the same objective as a chosen label?",
+    "What does an incomplete verifier fail to check?",
+    "Which kind of feedback supports which claim?",
+    "Sources and further reading"
   ],
   "terms": {
     "preference-pair": {
@@ -43,6 +50,11 @@
       "name": "Verifiable reward",
       "definition": "A reward computed by an automatic checker with a clear pass or score rule.",
       "explanation": "Arithmetic equality, program tests, and formal proof checking can provide feedback without a subjective preference label. The chapter's one-prompt task rewards exactly one correct categorical answer, so its objective is a probability-weighted sum over all three candidate rewards and its exact policy gradient has no sampling noise. This is not an arithmetic mean across candidates. Real verifiers can be incomplete, exploitable, or insensitive to reasoning quality. A policy that optimizes the checker may still fail the broader user goal, so held-out tasks and adversarial checks remain necessary."
+    },
+    "reward-model": {
+      "name": "Reward model",
+      "definition": "A learned function that assigns scalar scores to prompt-response outcomes from feedback.",
+      "explanation": "A pairwise reward model can fit comparisons by making the chosen response score exceed the rejected response score. Pairwise ordering does not fix an absolute reward offset. The training examples and response features determine what the model can distinguish, so a score can reflect confounded length or presentation features instead of the intended preference. This chapter trains a two-feature linear Bradley–Terry reward model and tests counterbalanced and confounded comparisons separately from DPO."
     }
   },
   "sources": [
@@ -65,6 +77,11 @@
       "title": "Proximal Policy Optimization Algorithms",
       "url": "https://arxiv.org/abs/1707.06347",
       "note": "Context for practical policy optimization"
+    },
+    {
+      "title": "Training language models to follow instructions with human feedback",
+      "url": "https://arxiv.org/abs/2203.02155",
+      "note": "Separate SFT, learned reward-model and policy-optimization stages; full-pipeline results are not SFT-alone evidence"
     }
   ],
   "checks": [
@@ -75,12 +92,121 @@
     "Reversing a shared-prompt pair batch preserves its update",
     "The fused loss_and_gradient returns a distinct Gradient with the policy-logit shape",
     "Invalid rows and overflowing arithmetic are rejected; failed overflowing updates preserve old logits",
-    "Verifiable-reward training assigns the correct action probability above 0.99"
+    "Verifiable-reward training assigns the correct action probability above 0.99",
+    "Expected-reward first update differs from winner-only supervised training",
+    "Balanced reward comparisons transfer to equal-length held-out responses",
+    "Opposed preference pairs retain an irreducible conflict"
   ],
   "limitations": [
-    "One-token categorical responses do not exercise autoregressive masking or length effects",
-    "Course-authored preferences contain no annotator noise or conflicting comparisons",
-    "The exact-reward task does not test exploration, verifier gaming, or multi-step credit",
-    "Finite preference fitting does not impose a hard KL bound or guarantee retention of unobserved behavior"
-  ]
+    "Categorical responses do not exercise full autoregressive masking or long-response length effects",
+    "Tiny reward features expose confounding but do not model human preferences broadly",
+    "Equality verifier checks a final integer, not a requested derivation",
+    "Finite DPO fitting does not enforce a hard KL bound or guarantee retention"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "continuity",
+      "title": "What does choosing one answer over another tell us?",
+      "session": 1,
+      "minutes": 5
+    },
+    {
+      "id": "feedback",
+      "title": "What information is present in a preference pair?",
+      "session": 1,
+      "minutes": 9
+    },
+    {
+      "id": "reward-model",
+      "title": "Can a reward model learn what the comparisons actually distinguish?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "reward-build",
+      "title": "Does the learned score transfer beyond the training lengths?",
+      "session": 1,
+      "minutes": 14
+    },
+    {
+      "id": "dpo",
+      "title": "How do chosen and rejected odds form a DPO loss?",
+      "session": 2,
+      "minutes": 13
+    },
+    {
+      "id": "reference",
+      "title": "Why must the reference stay fixed?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "practice",
+      "title": "Can one old-policy batch implement the full DPO objective?",
+      "session": 2,
+      "minutes": 17
+    },
+    {
+      "id": "verifiable",
+      "title": "When can an automatic checker supply reward?",
+      "session": 3,
+      "minutes": 13
+    },
+    {
+      "id": "run",
+      "title": "Does a verifier reward optimize the same objective as a chosen label?",
+      "session": 3,
+      "minutes": 9
+    },
+    {
+      "id": "transfer",
+      "title": "What does an incomplete verifier fail to check?",
+      "session": 3,
+      "minutes": 15
+    },
+    {
+      "id": "review",
+      "title": "Which kind of feedback supports which claim?",
+      "session": 3,
+      "minutes": 3
+    },
+    {
+      "id": "sources",
+      "title": "Sources and further reading",
+      "session": 3,
+      "minutes": 1
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Learn a reward model",
+      "goal": "Fit paired reward scores and test confounded feature transfer"
+    },
+    {
+      "id": 2,
+      "title": "Fit relative response odds",
+      "goal": "Implement stable mean DPO gradients and frozen reference"
+    },
+    {
+      "id": 3,
+      "title": "Optimize a verifier",
+      "goal": "Implement expected-reward gradients and expose an incomplete checker"
+    }
+  ],
+  "lab": {
+    "package": "s08-adaptation",
+    "chapter": "46",
+    "entry": "labs/s08-adaptation/src/ch46.rs",
+    "goal": "Fit paired reward scores and test confounded feature transfer; Implement stable mean DPO gradients and frozen reference; Implement expected-reward gradients and expose an incomplete checker",
+    "check": "just lab-check 46"
+  },
+  "topic_coverage": {
+    "DPO": "dpo",
+    "reference policy": "reference",
+    "preference pairs": "feedback",
+    "verifiable reward": "verifiable"
+  },
+  "interactives": []
 }

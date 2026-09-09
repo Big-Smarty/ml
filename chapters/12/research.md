@@ -21,3 +21,12 @@ The runnable project implements a simple percentile confidence interval because 
 GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (08–14). Verified worked confidence-interval, bootstrap, calibration, and Brier arithmetic against Efron and official calibration documentation. Added checks distinguishing all-correct, all-wrong, and mixed bootstrap samples, exact calibration summaries, malformed inputs, and unequal Brier errors. PubMed 24895046 was verified as Austin and Steyerberg’s calibration-curve bootstrap paper.
 
 See [the per-chapter review and validation record](../../guidance/astra-review-01-14.md) for evidence, gate results, and limitations.
+
+
+## September 2026 section redesign
+
+The original lesson, metadata, and `projects/ch12` reference were read before replacement; the original source-tagged excerpt and reference project remain available. The new section route connects a disclosed maintenance dataset through uncertainty, preprocessing, classical learning, projection, clustering and a frozen evaluation capstone. Existing source claims above support the mathematical exposition; dataset-specific numbers come from the actual new Rust implementation, not from those papers.
+
+Learner goal: Implement whole-machine percentile bootstrap and counted reliability bins. The chapter has 3 sessions of approximately40 minutes. Topic coverage is recorded verbatim in meta.json. Each session includes implementation and an unfamiliar or controlled transfer, with native hints and explained completed-source checkpoints. Browser calculations are explicitly illustrations and never claim to execute Rust.
+
+Checks: Whole-machine resampling retains paired predictions and duplicated-group invariance; Degenerate predictions and unfamiliar calibration-bin arithmetic; Reject malformed probabilities and inadequate repetitions. Limitations: Only six independent machines; nominal bootstrap coverage is fragile; Group bootstrap preserves each short sequence but does not model shared shocks or regime shift; No recalibrator is fitted; confidence sharpening is a demonstration. Full execution evidence, algorithm scope and prerequisite audit are in guidance/redesign/section-03.md. The original reference may use a simpler fixture or a different algorithm variant; its preserved results are labelled separately from the shared lab.

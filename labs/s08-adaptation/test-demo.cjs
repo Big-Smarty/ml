@@ -1,0 +1,27 @@
+'use strict';
+const assert = require('node:assert/strict');
+const { inferenceBudgetS08: budget } = require('../../chapters/40/demo.js');
+const four = budget(5, 4);
+assert.equal(four.cacheBytes, 640);
+assert.equal(four.fullRows, 30);
+assert.equal(four.cachedRows, 10);
+assert.equal(four.squareScoreBytes, 200);
+// Row/tile workspace is for a single query/head; the square tensor covers both heads.
+assert.equal(four.rowScoreBytes, 20);
+assert.equal(four.tileScoreBytes, 8);
+assert.deepEqual(four.codes, [-7, -2, 1, 7]);
+assert.equal(four.weightBytes, 6);
+assert.ok(Math.abs(four.error - 0.05714285714285716) < 1e-12);
+const eight = budget(5, 8);
+assert.deepEqual(eight.codes, [-127, -38, 25, 127]);
+assert.equal(eight.weightBytes, 8);
+assert.equal(eight.cacheBytes, four.cacheBytes);
+assert.ok(Math.abs(eight.error - 0.0031496062992125984) < 1e-12);
+const longer = budget(6, 4);
+assert.equal(longer.cacheBytes, 768);
+assert.equal(longer.fullRows, 42);
+assert.equal(longer.cachedRows, 12);
+assert.equal(budget(1, 4).tileScoreBytes, 4);
+for (const count of [0, 13, 1.5, NaN, Infinity]) assert.throws(() => budget(count, 4), RangeError);
+for (const bits of [0, 16, '4', NaN]) assert.throws(() => budget(5, bits), RangeError);
+console.log('Chapter 40 demo: cache/work/score memory, signed quantization, storage/error and invalid controls pass');

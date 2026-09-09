@@ -1,18 +1,17 @@
 {
   "outcomes": [
-    "Construct deterministic stratified folds from stable row IDs",
-    "Keep scaling and all learned preprocessing inside each training fold",
-    "Run a fixed-budget hyperparameter search with deterministic tie-breaking",
-    "Compare a learned logistic model with a fair majority baseline",
-    "Evaluate once on untouched test rows and inspect errors by ID"
+    "Construct reproducible group/time cross-validation with fold-local preprocessing",
+    "Search a declared hyperparameter budget using pooled cost and stable ties",
+    "Compare three learned model families with training-only majority/prevalence baselines",
+    "Inspect final residuals and slices without reselecting on final outcomes"
   ],
   "lessons": [
-    "Write the evaluation contract before tuning",
-    "Cross-validation reuses development data safely",
-    "Fit every learned transformation inside the fold",
-    "Search a fixed budget and compare fairly",
-    "Finish with error analysis, not one score",
-    "Run the capstone and practice"
+    "What exactly will the final comparison claim?",
+    "Give each machine group a validation turn",
+    "Search the declared budget without moving the goalposts",
+    "Compare real models and retain the cheap reference",
+    "Refit once and inspect the held-out result",
+    "Turn mistakes into testable next-cycle hypotheses"
   ],
   "terms": {
     "evaluation-protocol": {
@@ -23,7 +22,7 @@
     "cross-validation": {
       "name": "cross-validation",
       "definition": "Repeated fitting in which each development fold serves once as held-out validation data.",
-      "explanation": "In k-fold cross-validation, each row receives exactly one validation prediction while appearing in the training portion of other fits. Fold construction must respect groups or time when rows are dependent. Stratification preserves class proportions but does not remove dependence. Scores across folds share training rows, so their spread is useful diagnostic information rather than an automatic independent-sample confidence interval. Every row must appear in exactly one validation fold."
+      "explanation": "Cross-validation repeatedly fits on training partitions and evaluates held-out partitions. Here each eligible later development row receives one validation prediction while earlier rows from other machine blocks provide training. Gap rows are intentionally excluded. Group and time constraints take precedence over label stratification. Fold fits share observations, so fold spread is not an independent-sample confidence interval. Every learned transformation is refitted within its training partition."
     },
     "hyperparameter": {
       "name": "hyperparameter",
@@ -37,24 +36,110 @@
     }
   },
   "sources": [
-    {"title": "A Study of Cross-Validation and Bootstrap", "url": "https://ai.stanford.edu/~ronnyk/accEst.pdf", "note": "Kohavi's empirical comparison of accuracy-estimation methods."},
-    {"title": "On Over-fitting in Model Selection and Subsequent Selection Bias", "url": "https://www.jmlr.org/papers/v11/cawley10a.html", "note": "Primary analysis of model-selection overfitting."},
-    {"title": "Random Search for Hyper-Parameter Optimization", "url": "https://jmlr.org/papers/v13/bergstra12a.html", "note": "Primary fixed-budget random-search study."},
-    {"title": "Rules of Machine Learning", "url": "https://developers.google.com/machine-learning/guides/rules-of-ml", "note": "First-party guidance on simple baselines and pipeline foundations."},
-    {"title": "Rust slice documentation", "url": "https://doc.rust-lang.org/std/primitive.slice.html", "note": "Official stable sorting API used in fold construction."}
+    {
+      "title": "A Study of Cross-Validation and Bootstrap",
+      "url": "https://ai.stanford.edu/~ronnyk/accEst.pdf",
+      "note": "Kohavi's empirical comparison of accuracy-estimation methods."
+    },
+    {
+      "title": "On Over-fitting in Model Selection and Subsequent Selection Bias",
+      "url": "https://www.jmlr.org/papers/v11/cawley10a.html",
+      "note": "Primary analysis of model-selection overfitting."
+    },
+    {
+      "title": "Random Search for Hyper-Parameter Optimization",
+      "url": "https://jmlr.org/papers/v13/bergstra12a.html",
+      "note": "Primary fixed-budget random-search study."
+    },
+    {
+      "title": "Rules of Machine Learning",
+      "url": "https://developers.google.com/machine-learning/guides/rules-of-ml",
+      "note": "First-party guidance on simple baselines and pipeline foundations."
+    },
+    {
+      "title": "Rust slice documentation",
+      "url": "https://doc.rust-lang.org/std/primitive.slice.html",
+      "note": "Official stable sorting API used in fold construction."
+    }
   ],
   "checks": [
-    "A fixed seed yields identical fold membership across runs",
-    "Every development row receives one valid fold and each fold contains three rows per class",
-    "Scaling is fitted separately on each fold's training rows",
-    "Cross-validation accuracy pools correct and total held-out rows instead of averaging fold percentages",
-    "Candidate ties resolve to the earliest frozen candidate",
-    "The selected logistic model beats the majority baseline on the untouched fixture test"
+    "Three group/time folds have48/18 rows and54 distinct validation IDs",
+    "All six candidates are evaluated; minimum pooled cost and stable ordering",
+    "Reordered source rows return the same sorted partition IDs; checks do not open final outcomes"
   ],
   "limitations": [
-    "The bundled fixture is small, balanced, independent, and deliberately separable",
-    "The executable compares majority prediction with one learned logistic model",
-    "The capstone does not compute confidence intervals or nested cross-validation",
-    "Group and temporal split strategies are explained but not implemented"
-  ]
+    "Controlled288-row dataset with only18 final rows and six final machines",
+    "The development winner fails to lead on shifted final data; final results do not authorize reselection",
+    "Nested CV and causal diagnosis are explained, not implemented; final slices are descriptive"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "protocol",
+      "title": "What exactly will the final comparison claim?",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "cross-validation",
+      "title": "Give each machine group a validation turn",
+      "session": 1,
+      "minutes": 22
+    },
+    {
+      "id": "search",
+      "title": "Search the declared budget without moving the goalposts",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "fair-baselines",
+      "title": "Compare real models and retain the cheap reference",
+      "session": 2,
+      "minutes": 22
+    },
+    {
+      "id": "final-evaluation",
+      "title": "Refit once and inspect the held-out result",
+      "session": 3,
+      "minutes": 18
+    },
+    {
+      "id": "error-analysis",
+      "title": "Turn mistakes into testable next-cycle hypotheses",
+      "session": 3,
+      "minutes": 22
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "What exactly will the final comparison claim?",
+      "goal": "Implement legal rotating machine/time folds and preserve membership under reversed source order"
+    },
+    {
+      "id": 2,
+      "title": "Search the declared budget without moving the goalposts",
+      "goal": "Evaluate all frozen candidates and verify pooled costs against raw error counts"
+    },
+    {
+      "id": 3,
+      "title": "Refit once and inspect the held-out result",
+      "goal": "Open the frozen final report, add a descriptive day-11 slice and specify a new-cycle temporal protocol"
+    }
+  ],
+  "lab": {
+    "package": "s03-tabular",
+    "chapter": "19",
+    "entry": "labs/s03-tabular/src/ch19.rs",
+    "goal": "Implement frozen group/time cross-validation and six-candidate pooled-cost selection",
+    "check": "just lab-check 19"
+  },
+  "topic_coverage": {
+    "Cross-validation": "cross-validation",
+    "hyperparameter search": "search",
+    "fair baselines": "fair-baselines",
+    "error analysis": "error-analysis"
+  },
+  "interactives": []
 }

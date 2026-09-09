@@ -1,20 +1,157 @@
 {
-  "outcomes": ["Distinguish raw rows, encoded feature vectors, and discrete class labels", "Fit median imputation and a category vocabulary on training rows only", "Construct group-isolated and past-to-future splits", "Transform held-out rows with fixed fitted state and a stable feature shape"],
-  "lessons": ["Code and terminology carried forward", "Split before learning anything", "Missing is information about measurement", "Categories need a stable vocabulary", "Groups and time define believable tests", "Build the Rust preprocessor", "Practice and review"],
+  "outcomes": [
+    "Fit missing-value imputation and standardization using training observations only",
+    "Encode known and unknown categories with a fixed training vocabulary",
+    "Implement grouped and temporal splits that match the deployment question"
+  ],
+  "lessons": [
+    "What was known when the prediction was made?",
+    "How do blank readings become model inputs?",
+    "Which column means “loaded”?",
+    "Can the same fitted state transform a new batch?",
+    "Which holdout matches deployment?",
+    "Implement and audit the split boundary"
+  ],
   "terms": {
-    "imputation": {"name":"Imputation","definition":"Replacement of missing data with a defined usable value.","explanation":"Median imputation learns the middle observed training value and substitutes it for missing entries. A missingness indicator can preserve the distinction between observed and replaced values. Imputation does not recover the unknown truth or fix biased missingness. Its state must be stored with the model and applied unchanged during validation, testing, and deployment. The cause of missingness still deserves investigation."},
-    "one-hot-encoding": {"name":"One-hot encoding","definition":"Representation of an unordered category with one binary feature per fitted category.","explanation":"A fitted vocabulary defines stable column order. A known category activates its column while others remain zero. An unseen category can map to all zeros or to a reserved unknown column, depending on the training-time policy. Discovering categories from test data leaks information and can silently change the shape expected by the predictive model. Store vocabulary order with every checkpoint."},
-    "grouped-split": {"name":"Grouped split","definition":"A split that assigns every row from one entity or group to the same partition.","explanation":"Grouped evaluation is needed when rows from one patient, user, site, device, or document share information and the claim concerns new groups. Row-level random splitting lets entity-specific signals cross the boundary. Group assignment must occur before fitting preprocessing. Metrics and uncertainty estimates should also respect the group as the sampling unit. Verify that group identifiers never cross partitions. Count groups separately from rows."},
-    "temporal-split": {"name":"Temporal split","definition":"An evaluation split that trains on earlier observations and tests on later ones.","explanation":"Temporal splits reproduce systems that learn from the past and predict the future. They prevent future values from influencing fitted models or preprocessing. A gap may be needed when feature windows overlap the target period. Chronological ordering alone is insufficient if a feature becomes available only after the prediction moment. Record both event time and feature availability time. Preserve ordering inside every fold."}
+    "imputation": {
+      "name": "Imputation",
+      "definition": "Replacement of missing data with a defined usable value.",
+      "explanation": "Median imputation learns the middle observed training value and substitutes it for missing entries. A missingness indicator can preserve the distinction between observed and replaced values. Imputation does not recover the unknown truth or fix biased missingness. Its state must be stored with the model and applied unchanged during validation, testing, and deployment. The cause of missingness still deserves investigation."
+    },
+    "one-hot-encoding": {
+      "name": "One-hot encoding",
+      "definition": "Representation of an unordered category with one binary feature per fitted category.",
+      "explanation": "A fitted vocabulary defines stable column order. A known category activates its column while others remain zero. An unseen category can map to all zeros or to a reserved unknown column, depending on the training-time policy. Discovering categories from test data leaks information and can silently change the shape expected by the predictive model. Store vocabulary order with every checkpoint."
+    },
+    "grouped-split": {
+      "name": "Grouped split",
+      "definition": "A split that assigns every row from one entity or group to the same partition.",
+      "explanation": "Grouped evaluation is needed when rows from one patient, user, site, device, or document share information and the claim concerns new groups. Row-level random splitting lets entity-specific signals cross the boundary. Group assignment must occur before fitting preprocessing. Metrics and uncertainty estimates should also respect the group as the sampling unit. Verify that group identifiers never cross partitions. Count groups separately from rows."
+    },
+    "temporal-split": {
+      "name": "Temporal split",
+      "definition": "An evaluation split that trains on earlier observations and tests on later ones.",
+      "explanation": "Temporal splits reproduce systems that learn from the past and predict the future. They prevent future values from influencing fitted models or preprocessing. A gap may be needed when feature windows overlap the target period. Chronological ordering alone is insufficient if a feature becomes available only after the prediction moment. Record both event time and feature availability time. Preserve ordering inside every fold."
+    }
   },
   "sources": [
-    {"title":"scikit-learn Common Pitfalls","url":"https://scikit-learn.org/stable/common_pitfalls.html","note":"Official split-before-fit leakage guidance."},
-    {"title":"SimpleImputer API","url":"https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html","note":"Imputation strategies and missing indicators."},
-    {"title":"OneHotEncoder API","url":"https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html","note":"Vocabulary fitting and unknown-category behavior."},
-    {"title":"GroupKFold API","url":"https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GroupKFold.html","note":"Non-overlapping group folds."},
-    {"title":"TimeSeriesSplit API","url":"https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html","note":"Past-to-future folds and optional gap."},
-    {"title":"UCI Auto MPG","url":"https://archive.ics.uci.edu/dataset/9/auto+mpg","note":"Optional CC BY 4.0 extension dataset."}
+    {
+      "title": "scikit-learn Common Pitfalls",
+      "url": "https://scikit-learn.org/stable/common_pitfalls.html",
+      "note": "Official split-before-fit leakage guidance."
+    },
+    {
+      "title": "SimpleImputer API",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.impute.SimpleImputer.html",
+      "note": "Imputation strategies and missing indicators."
+    },
+    {
+      "title": "OneHotEncoder API",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.OneHotEncoder.html",
+      "note": "Vocabulary fitting and unknown-category behavior."
+    },
+    {
+      "title": "GroupKFold API",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GroupKFold.html",
+      "note": "Non-overlapping group folds."
+    },
+    {
+      "title": "TimeSeriesSplit API",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TimeSeriesSplit.html",
+      "note": "Past-to-future folds and optional gap."
+    },
+    {
+      "title": "UCI Auto MPG",
+      "url": "https://archive.ics.uci.edu/dataset/9/auto+mpg",
+      "note": "Optional CC BY 4.0 extension dataset."
+    }
   ],
-  "checks": ["Reference Preprocessor::fit estimates median and categories from training RawRow values after the split", "Preprocessor::transform returns 2 + categories.len() encoded features and leaves the class label separate", "Held-out value 999 and category secret cannot alter fitted state", "Group and temporal split behaviors have runnable tests", "Even-count median remains finite at extreme finite inputs; missing indicators remain distinct"],
-  "limitations": ["Project handles one numeric and one categorical feature", "All-zero unknown handling does not distinguish different unseen categories", "Combined group-and-time splitting is discussed but not generalized into a splitter", "CSV ingestion and external data download are excluded"]
+  "checks": [
+    "Median4 and imputed mean27.5 for changed missing-value fixture",
+    "Training fitted state is invariant to held-only extreme values and categories",
+    "Row/group/time/strict membership, chronology, unknown encoding and constant scales"
+  ],
+  "limitations": [
+    "Median/indicator and one-hot choices are simple modeling assumptions",
+    "All-missing training numeric columns are rejected; unknown categories have an explicit bit",
+    "Splits answer different population questions and are not a model-selection contest"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "split-first",
+      "title": "What was known when the prediction was made?",
+      "session": 1,
+      "minutes": 15
+    },
+    {
+      "id": "missing",
+      "title": "How do blank readings become model inputs?",
+      "session": 1,
+      "minutes": 25
+    },
+    {
+      "id": "categories",
+      "title": "Which column means “loaded”?",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "rust-project",
+      "title": "Can the same fitted state transform a new batch?",
+      "session": 2,
+      "minutes": 22
+    },
+    {
+      "id": "structured-splits",
+      "title": "Which holdout matches deployment?",
+      "session": 3,
+      "minutes": 20
+    },
+    {
+      "id": "availability",
+      "title": "Implement and audit the split boundary",
+      "session": 3,
+      "minutes": 20
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "What was known when the prediction was made?",
+      "goal": "Fit medians and numeric scales from training observations; handle a changed missing/zero fixture"
+    },
+    {
+      "id": 2,
+      "title": "Which column means “loaded”?",
+      "goal": "Fit a category vocabulary and encode a held-only category without changing width"
+    },
+    {
+      "id": 3,
+      "title": "Which holdout matches deployment?",
+      "goal": "Implement four split policies and adapt the development split to a same-machine future claim"
+    }
+  ],
+  "lab": {
+    "package": "s03-tabular",
+    "chapter": "13",
+    "entry": "labs/s03-tabular/src/ch13.rs",
+    "goal": "Implement training-fitted median/scaling/vocabulary and four legal split policies",
+    "check": "just lab-check 13"
+  },
+  "topic_coverage": {
+    "Missing values": "missing",
+    "categories": "categories",
+    "grouped splits": "structured-splits",
+    "temporal splits": "availability"
+  },
+  "interactives": [
+    {
+      "id": "split-tool",
+      "title": "Split and leakage illustration",
+      "file": "demo.js",
+      "anchor": "split-tool",
+      "illustration": true
+    }
+  ]
 }

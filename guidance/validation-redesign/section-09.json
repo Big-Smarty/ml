@@ -1,0 +1,569 @@
+{
+  "section": "09",
+  "package": "s09-advanced",
+  "chapters": [
+    "47",
+    "48",
+    "49",
+    "50",
+    "51",
+    "52",
+    "53",
+    "54",
+    "55",
+    "56"
+  ],
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.053,
+      "output": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "seconds": 0.045,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml"
+      ],
+      "returncode": 0,
+      "seconds": 0.675,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/lib.rs (labs/s09-advanced/target/debug/deps/s09_advanced-8677fa8637bd0fcd)\n\nrunning 45 tests\ntest ch56::baseline_tie_rule_is_last_index ... ok\ntest solutions::ch47::tests::invalid_shapes_are_rejected ... ok\ntest ch56::split_guard_rejects_equal_or_shared_passages ... ok\ntest solutions::ch47::tests::csr_matches_masked_dense_including_empty_rows ... ok\ntest solutions::ch47::tests::pruning_keeps_requested_largest_magnitudes ... ok\ntest solutions::ch48::tests::overflow_task_gradient_uses_all_examples_as_denominator ... ok\ntest solutions::ch48::tests::selected_full_softmax_gate_has_router_gradient ... ok\ntest solutions::ch48::tests::capacity_reports_overflow ... ok\ntest solutions::ch49::tests::associative_scan_matches_recurrence ... ok\ntest solutions::ch49::tests::invalid_sequence_shapes_are_rejected ... ok\ntest solutions::ch49::tests::linear_attention_recurrence_matches_scalar_oracle ... ok\ntest solutions::ch49::tests::transition_composition_is_associative ... ok\ntest solutions::ch51::tests::finite_difference_matches_quadratic_and_vae_reparameterization ... ok\ntest solutions::ch51::tests::perfect_noise_prediction_recovers_the_previous_state ... ok\ntest solutions::ch52::tests::invalid_embeddings_are_rejected ... ok\ntest solutions::ch48::tests::balance_gradient_matches_fixed_frequency_objective ... ok\ntest solutions::ch53::tests::serving_monitor_and_rollback_are_real ... ignored, requires host loopback networking\ntest solutions::ch52::tests::supplied_data_candidates_and_temperature_are_used ... ok\ntest solutions::ch53::tests::checkpoint_round_trip_and_schema_validation ... ok\ntest solutions::ch56::tests::capacity_rounds_after_division ... ok\ntest solutions::ch50::tests::pipeline_backward_matches_serial_update ... ok\ntest solutions::ch56::tests::parameter_span_abi_is_stable ... ok\ntest solutions::ch56::tests::request_boundary_is_strict ... ok\ntest solutions::ch54::tests::boundaries_and_causal_adjustment_change_the_conclusion ... ok\ntest solutions::ch56::verification::large_common_logits_and_tiny_temperature_are_stable ... ok\ntest solutions::ch56::verification::dropped_tokens_keep_task_loss_and_shared_decoder_gradients ... ok\ntest solutions::ch54::tests::audit_metrics_use_their_own_denominators ... ok\ntest solutions::ch56::tests::capacity_counts_attempts_and_drops ... ok\ntest solutions::ch56::tests::one_expert_is_dense_feed_forward ... ok\ntest solutions::ch56::verification::failed_exclusive_save_keeps_existing_temporary_file ... ok\ntest solutions::ch56::split_guard_rejects_equal_or_shared_passages ... ok\ntest solutions::ch55::full_port_and_artifact_check ... ok\ntest solutions::ch51::tests::gan_updates_both_networks_and_outputs_finite_samples ... ok\ntest solutions::ch50::tests::pipeline_and_recovery_preserve_results ... ok\ntest solutions::ch56::verification::fragmented_requests_receive_complete_200_or_400_responses ... ok\ntest solutions::ch56::tests::router_and_expert_gradients_match_finite_differences ... ok\ntest solutions::ch56::tests::training_changes_trunk_router_and_expert ... ok\ntest solutions::ch56::verification::checkpoint_rejects_hostile_headers_and_changed_resume_inputs ... ok\ntest solutions::ch50::tests::parallel_step_matches_serial_and_shards_match_dot ... ok\ntest solutions::ch56::verification::one_expert_matches_independent_dense_decoder_and_causality ... ok\ntest solutions::ch56::tests::checkpoint_resume_is_exact ... ok\ntest solutions::ch56::verification::every_parameter_gradient_matches_finite_differences_away_from_ties ... ok\ntest solutions::ch51::tests::vae_and_diffusion_objectives_fall ... ok\ntest solutions::ch52::tests::training_improves_loss_and_retrieval ... ok\ntest solutions::ch48::tests::router_and_experts_train_and_loss_falls ... ok\n\ntest result: ok. 44 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.06s\n\n     Running unittests src/main.rs (labs/s09-advanced/target/debug/deps/s09_advanced-6d4a89fb2d87c011)\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n     Running tests/baselines.rs (labs/s09-advanced/target/debug/deps/baselines-0cdbc1e244511b65)\n\nrunning 1 test\ntest all_ten_offline_baselines_run_and_reject_unknown_arguments ... ok\n\ntest result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.53s\n\n   Doc-tests s09_advanced\n\nrunning 0 tests\n\ntest result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "47"
+      ],
+      "returncode": 0,
+      "seconds": 0.021,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 47`\nchapter 47: working learner baseline; --check assesses the full goal\nscalar CPU, f64, 192x192, release=true\ndensity=1.000, nnz=36864, output RMSE=0.00000, dense-kernel median/range=9.46\u00b5s/9.44\u00b5s..9.65\u00b5s, CSR-kernel median/range=12.89\u00b5s/12.85\u00b5s..16.4\u00b5s\ndensity=1.000, nnz=36864, output RMSE=0.00000, dense-kernel median/range=9.49\u00b5s/9.46\u00b5s..10.64\u00b5s, CSR-kernel median/range=12.93\u00b5s/12.85\u00b5s..17.07\u00b5s\ndensity=1.000, nnz=36864, output RMSE=0.00000, dense-kernel median/range=9.51\u00b5s/9.479\u00b5s..10.87\u00b5s, CSR-kernel median/range=12.88\u00b5s/12.85\u00b5s..54.739\u00b5s\ndensity=1.000, nnz=36864, output RMSE=0.00000, dense-kernel median/range=9.49\u00b5s/9.48\u00b5s..12.51\u00b5s, CSR-kernel median/range=12.93\u00b5s/12.849\u00b5s..12.99\u00b5s\nThese timings describe this scalar fixture and machine only.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "47",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 47 --solution --check`\nchapter 47 learning-goal checks passed (solution)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "47",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 47 --check`\nGOAL_NOT_MET: magnitude budget: got [-1.0, 0.2, 3.0, -2.0]; expected [0,0,3,-2]\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "48"
+      ],
+      "returncode": 0,
+      "seconds": 0.017,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 48`\nchapter 48: working learner baseline; --check assesses the full goal\nMoE uncapped task half-MSE: 1.36810 -> 0.00697\nroute counts=[0, 18, 36], final-epoch overflow=0\nrouter=[[0.0, 0.0], [0.01, -0.02], [-0.02, 0.01]]\nexperts=[[0.1, -0.1], [3.531520428728306, 0.4957932560173972], [3.362679314161417, 1.615600234674605]]\nThis tiny CPU layer verifies routing gradients and capacity, not large-model quality or speed.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "48",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.018,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 48 --solution --check`\nchapter 48 learning-goal checks passed (solution)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "48",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 48 --check`\nGOAL_NOT_MET: router task derivative: actual 0.00000000, central difference 0.02874757; frozen or normalized-to-one gates cannot learn\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "49"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 49`\nchapter 49: working learner baseline; --check assesses the full goal\nlearning goal: recurrent result differs from feature-kernel oracle\nlength=4096, release=true\nSSM recurrence=7.26\u00b5s, sequential scan schedule=8.48\u00b5s, final=0.583772\nlinear-attention recurrence=20.28\u00b5s, final=0.037303\ndirect scalar oracle for first 256 tokens=17.69\u00b5s\nFixed selective coefficients are illustrative, not a trained Mamba layer.\nThe scan schedule exposes parallel structure but this scalar program executes it sequentially.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "49",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 49 --solution --check`\nchapter 49 learning-goal checks passed (solution)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "49",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 49 --check`\nGOAL_NOT_MET: feature-kernel summaries: actual [2.0, 0.5, 0.5], direct oracle [1.9999999999992806, 0.6069802731410308, 0.5370569280343139]; uniform averaging loses query/key weights\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "50"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 50`\nchapter 50: working learner baseline; --check assesses the full goal\ndata parallel: two workers sent private gradient sums\ntensor parallel prediction: -0.296641\ntensor-parallel update matches serial within 1e-12: true\npipeline stages communicated 6 activations; mean loss 3.712481\npipeline backward updated both stages and matches serial: false\nrecovery equivalence: true\nThis is measured local CPU thread communication, not multi-GPU execution.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "50",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 50 --solution --check`\nchapter 50 learning-goal checks passed (solution)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "50",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 50 --check`\nGOAL_NOT_MET: sum/count reduction got Gradient { weights: [6.0, 6.0, 6.0, 6.0], bias: 6.0, count: 2 }; expected sum 10 and count 4, giving mean 2.5\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "51"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 51`\nchapter 51: working learner baseline; --check assesses the full goal\nselected autoencoder objective: 0.4057 -> 0.0000; decoder means: 0.659, 0.209\nGAN generator: x=1.325z-0.000; discriminator loss 1.3863\ndiffusion noise MSE: 0.6567 -> 0.4190; reverse sample 0.539\ndata fixture: n=6, mean=0.000, variance=1.150, negative=3, |x|<0.5=0, quartiles=[-1.000, -0.700, 1.000]\nlatent decoder means: n=512, mean=0.059, variance=1.065, negative=241, |x|<0.5=191, quartiles=[-0.662, 0.088, 0.694]\nlatent decoder observations (unit decoder variance): n=512, mean=0.054, variance=2.120, negative=244, |x|<0.5=142, quartiles=[-0.931, 0.078, 0.914]\nGAN: n=512, mean=0.078, variance=1.868, negative=242, |x|<0.5=140, quartiles=[-0.877, 0.116, 0.919]\ndiffusion: n=512, mean=0.059, variance=1.065, negative=241, |x|<0.5=191, quartiles=[-0.662, 0.088, 0.694]\nAll three models were trained here; affine Gaussian sampling cannot represent these two modes.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "51",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 51 --solution --check`\nchapter 51 learning-goal checks passed (solution)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "51",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 51 --check`\nGOAL_NOT_MET: VAE objective 0.30653000 differs from reconstruction plus 0.1 KL 0.41913721\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "52"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 52`\nchapter 52: working learner baseline; --check assesses the full goal\nselected alignment objective: 1.0040 -> 0.0000\nlocal perturbed-image recall@1: 100%\nimage 0 retrieves \"two vertical pixels\"\nimage 1 retrieves \"two horizontal pixels\"\nimage 2 retrieves \"main diagonal\"\nThe three-pair fixture verifies alignment mechanics, not open-vocabulary understanding.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "52",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.017,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 52 --solution --check`\nchapter 52 learning-goal checks passed (solution)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "52",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 52 --check`\nGOAL_NOT_MET: symmetric objective: actual 1.00401947, expected 1.13219612; inspect the column axis and 2N denominator\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "53"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 53`\nchapter 53: working learner baseline; --check assesses the full goal\ncheckpoint: model v1, schema 1, data hash 08dd92a401a54599\ncanary rollback selected previous version: true\nlive input mean 12.25; drift alert: true\nvalidated prediction for x=12: 3.0000\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "53",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 53 --solution --check`\nchapter 53 learning-goal checks passed (solution)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "53",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 53 --check`\nGOAL_NOT_MET: a numerically equivalent candidate should pass the canary, not be rejected unconditionally\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "54"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 54`\nchapter 54: working learner baseline; --check assesses the full goal\ngroup * n=12 accuracy=0.667 positive_rate=0.417 TPR=None FPR=None\ngroup * n=12 accuracy=0.667 positive_rate=0.417 TPR=None FPR=None\nlocal logit ablation contributions: feature0=0.800, feature1=0.400\nrobustness at radius 0.25: 4 boundary flips, max probability change 0.050\nloss-threshold membership attack: TPR=0.875 FPR=0.0 advantage=0.875\nsecurity boundary rejects NaN: true\noutcome-rate difference: crude=+0.300, equal-stratum standardized=-0.100\nThese diagnostics expose evidence gaps; they do not certify fairness, privacy, robustness, or causality.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "54",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 54 --solution --check`\nchapter 54 learning-goal checks passed (solution)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "54",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 54 --check`\nGOAL_NOT_MET: group denominators: A=GroupMetrics { group: '*', count: 12, accuracy: 0.6666666666666666, positive_rate: 0.4166666666666667, true_positive_rate: None, false_positive_rate: None }, B=GroupMetrics { group: '*', count: 12, accuracy: 0.6666666666666666, positive_rate: 0.4166666666666667, true_positive_rate: None, false_positive_rate: None }; pooled accuracy cannot substitute for group rates\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "55"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 55`\nchapter 55: working learner baseline; --check assesses the full goal\ninput [1.5, -2.0, 0.5]; [out,in] output [1.4500000000000002, 0.5499999999999998]; [in,out] runtime [-0.7999999999999998, -2.3000000000000003]\nforward/gradient/update parity: Err(\"GOAL_NOT_MET: aggregate outputs differ; implement per-coordinate diagnostics\")\nCustom fixed-shape format, not ONNX. --framework explicitly runs the separate pinned Burn 2x2 reference and may download packages.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "55",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 55 --solution --check`\nchapter 55 learning-goal checks passed (solution)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "55",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 55 --check`\nGOAL_NOT_MET: runtime forward coordinates differ from scratch\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "56"
+      ],
+      "returncode": 0,
+      "seconds": 0.038,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 56`\nchapter 56: working learner baseline; --check assesses the full goal\nsame fixture: 160 SGD steps, 16 tokens/step, width 8, expert width 12; matched shared initialization\ndense parameters: total 2852, nonexpert+one-expert 2852\nconfigured three-expert parameters: total 3303, nonexpert+one-expert 2879\nuncapped task cross-entropy, mean over ALL corpus targets:\ndense train loss 4.8493 -> 1.5412; held-out 2.0097\nconfigured three-expert train loss 4.8493 -> 1.5412; held-out 2.0097\nconfigured training probe: routes [16, 0, 0]; accepted [16, 0, 0]; dropped 0; capacity 16; mean gate 1.000\nparameter change norm1: L2=0.021526\nparameter change norm2: L2=0.007260\nparameter change norm_final: L2=2.466723\nparameter change token_embedding: L2=1.573736\nparameter change position_embedding: L2=0.943058\nparameter change qkv_weight: L2=0.274508\nparameter change qkv_bias: L2=0.038703\nparameter change attention_output_weight: L2=0.263412\nparameter change attention_output_bias: L2=0.153045\nparameter change router_weight: L2=0.000000\nparameter change router_bias: L2=0.000000\nparameter change expert.0.ff1_weight: L2=0.142062\nparameter change expert.0.ff1_bias: L2=0.017356\nparameter change expert.0.ff2_weight: L2=0.163100\nparameter change expert.0.ff2_bias: L2=0.160971\nparameter change expert.1.ff1_weight: L2=0.000000\nparameter change expert.1.ff1_bias: L2=0.000000\nparameter change expert.1.ff2_weight: L2=0.000000\nparameter change expert.1.ff2_bias: L2=0.000000\nparameter change expert.2.ff1_weight: L2=0.000000\nparameter change expert.2.ff1_bias: L2=0.000000\nparameter change expert.2.ff2_weight: L2=0.000000\nparameter change expert.2.ff2_bias: L2=0.000000\nparameter change output_weight: L2=4.106951\nparameter change output_bias: L2=0.937358\nsample: \"rust\\0ttns. prktttte. torout. rttutet\"\nTiny overlapping-vocabulary fixture checks mechanics, not language quality, privacy, or scale.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "56",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.027,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 56 --solution --check`\nactual sparse LM: train CE 4.848896 -> 1.368557; held-out CE 1.878740; 2560 token presentations\nchapter 56 learning-goal checks passed (solution)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s09-advanced/Cargo.toml",
+        "--",
+        "56",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s09-advanced/target/release/s09-advanced 56 --check`\nGOAL_NOT_MET: learned routing must follow expert-one bias; got [0, 0, 0], indicating the fixed dense baseline\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    }
+  ]
+}

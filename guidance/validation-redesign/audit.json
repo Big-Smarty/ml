@@ -1,0 +1,454 @@
+{
+  "stats": [
+    {
+      "chapter": "01",
+      "words": 2176,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 5,
+      "interactives": 1
+    },
+    {
+      "chapter": "02",
+      "words": 1870,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "03",
+      "words": 1850,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "04",
+      "words": 1862,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "05",
+      "words": 2067,
+      "steps": 7,
+      "sessions": 2,
+      "topics": 5,
+      "interactives": 0
+    },
+    {
+      "chapter": "06",
+      "words": 2314,
+      "steps": 7,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "07",
+      "words": 2351,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 3,
+      "interactives": 1
+    },
+    {
+      "chapter": "08",
+      "words": 2265,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 3,
+      "interactives": 1
+    },
+    {
+      "chapter": "09",
+      "words": 2070,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "10",
+      "words": 2433,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "11",
+      "words": 3459,
+      "steps": 9,
+      "sessions": 3,
+      "topics": 5,
+      "interactives": 0
+    },
+    {
+      "chapter": "12",
+      "words": 1946,
+      "steps": 6,
+      "sessions": 3,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "13",
+      "words": 1974,
+      "steps": 6,
+      "sessions": 3,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "14",
+      "words": 2045,
+      "steps": 7,
+      "sessions": 3,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "15",
+      "words": 2190,
+      "steps": 8,
+      "sessions": 4,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "16",
+      "words": 1657,
+      "steps": 6,
+      "sessions": 3,
+      "topics": 3,
+      "interactives": 0
+    },
+    {
+      "chapter": "17",
+      "words": 2084,
+      "steps": 8,
+      "sessions": 4,
+      "topics": 5,
+      "interactives": 0
+    },
+    {
+      "chapter": "18",
+      "words": 2016,
+      "steps": 8,
+      "sessions": 4,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "19",
+      "words": 1927,
+      "steps": 6,
+      "sessions": 3,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "20",
+      "words": 3203,
+      "steps": 12,
+      "sessions": 4,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "21",
+      "words": 2446,
+      "steps": 9,
+      "sessions": 3,
+      "topics": 3,
+      "interactives": 0
+    },
+    {
+      "chapter": "22",
+      "words": 2856,
+      "steps": 9,
+      "sessions": 3,
+      "topics": 3,
+      "interactives": 1
+    },
+    {
+      "chapter": "23",
+      "words": 2984,
+      "steps": 12,
+      "sessions": 4,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "24",
+      "words": 2661,
+      "steps": 9,
+      "sessions": 3,
+      "topics": 3,
+      "interactives": 0
+    },
+    {
+      "chapter": "25",
+      "words": 1989,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "26",
+      "words": 1665,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "27",
+      "words": 2478,
+      "steps": 9,
+      "sessions": 3,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "28",
+      "words": 2297,
+      "steps": 9,
+      "sessions": 3,
+      "topics": 5,
+      "interactives": 0
+    },
+    {
+      "chapter": "29",
+      "words": 2484,
+      "steps": 8,
+      "sessions": 2,
+      "topics": 6,
+      "interactives": 1
+    },
+    {
+      "chapter": "30",
+      "words": 2560,
+      "steps": 7,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "31",
+      "words": 2650,
+      "steps": 8,
+      "sessions": 2,
+      "topics": 3,
+      "interactives": 0
+    },
+    {
+      "chapter": "32",
+      "words": 2417,
+      "steps": 9,
+      "sessions": 2,
+      "topics": 5,
+      "interactives": 0
+    },
+    {
+      "chapter": "33",
+      "words": 2693,
+      "steps": 5,
+      "sessions": 3,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "34",
+      "words": 2578,
+      "steps": 5,
+      "sessions": 3,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "35",
+      "words": 2901,
+      "steps": 5,
+      "sessions": 3,
+      "topics": 5,
+      "interactives": 1
+    },
+    {
+      "chapter": "36",
+      "words": 3232,
+      "steps": 7,
+      "sessions": 4,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "37",
+      "words": 2073,
+      "steps": 6,
+      "sessions": 3,
+      "topics": 5,
+      "interactives": 0
+    },
+    {
+      "chapter": "38",
+      "words": 3407,
+      "steps": 7,
+      "sessions": 4,
+      "topics": 5,
+      "interactives": 0
+    },
+    {
+      "chapter": "39",
+      "words": 2461,
+      "steps": 8,
+      "sessions": 4,
+      "topics": 5,
+      "interactives": 0
+    },
+    {
+      "chapter": "40",
+      "words": 2940,
+      "steps": 9,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "41",
+      "words": 2429,
+      "steps": 8,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "42",
+      "words": 2727,
+      "steps": 8,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "43",
+      "words": 2974,
+      "steps": 10,
+      "sessions": 3,
+      "topics": 3,
+      "interactives": 0
+    },
+    {
+      "chapter": "44",
+      "words": 3150,
+      "steps": 10,
+      "sessions": 3,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "45",
+      "words": 3491,
+      "steps": 12,
+      "sessions": 3,
+      "topics": 3,
+      "interactives": 0
+    },
+    {
+      "chapter": "46",
+      "words": 3201,
+      "steps": 12,
+      "sessions": 3,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "47",
+      "words": 1459,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "48",
+      "words": 1761,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 1
+    },
+    {
+      "chapter": "49",
+      "words": 1458,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "50",
+      "words": 2172,
+      "steps": 9,
+      "sessions": 3,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "51",
+      "words": 2097,
+      "steps": 9,
+      "sessions": 3,
+      "topics": 5,
+      "interactives": 0
+    },
+    {
+      "chapter": "52",
+      "words": 1455,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 3,
+      "interactives": 0
+    },
+    {
+      "chapter": "53",
+      "words": 1470,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 6,
+      "interactives": 0
+    },
+    {
+      "chapter": "54",
+      "words": 2122,
+      "steps": 9,
+      "sessions": 3,
+      "topics": 6,
+      "interactives": 0
+    },
+    {
+      "chapter": "55",
+      "words": 1397,
+      "steps": 6,
+      "sessions": 2,
+      "topics": 4,
+      "interactives": 0
+    },
+    {
+      "chapter": "56",
+      "words": 2966,
+      "steps": 12,
+      "sessions": 4,
+      "topics": 5,
+      "interactives": 0
+    }
+  ],
+  "findings": [],
+  "rust": []
+}

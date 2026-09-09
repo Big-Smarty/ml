@@ -10,3 +10,12 @@ GPT-6 Astra High independently read the full lesson, metadata, research, referen
 Verified all three loop orders, nonsquare offsets, output clearing, saturating tile ends, and maximum-size blocks. Added shape/precision/architecture/thread/warmup/sample/timed-boundary labels. The consistency pass later named logical indices `row`, `col`, and `inner` throughout, and explicitly mapped Chapter 25's stored dense weights `[out_features,in_features]` through a transpose to GEMM B `[k,n]`. No kernel algorithm change was needed.
 
 Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+
+
+## Active redesign, 2026-09-09
+
+Owner route: one GPT-6 Astra High implementation owner for the complete CPU section; no further authorship delegation. Read the old lesson, metadata, research, reference and starter code before replacing instruction. Original `projects/ch25`–`ch28` are preserved. Historical TODO/Rustlings statements above describe the earlier course, not the active lab.
+
+Reused the already checked Rust/LLVM and original research sources recorded above; no new claim of fresh web verification is made. The systems audit, interactive design evidence and learning-science synthesis informed worked arithmetic, 30–45-minute sessions, meaningful core-algorithm work, progressive hints, and unfamiliar-input transfer. These are design inferences, not a claim that this Rust course has demonstrated a causal learning benefit.
+
+The active learner entry is `labs/s05-cpu/src/ch26.rs`, with a complete separate solution. The section report `guidance/redesign/section-05.md` records exact topics/step mapping, actual local checks and benchmark configurations, prerequisite audit, hardware limits and manual source criteria. No browser illustration predicts hardware timing or substitutes for a Rust/hardware check.

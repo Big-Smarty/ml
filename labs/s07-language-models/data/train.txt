@@ -1,0 +1,3 @@
+The workshop clock ticks beside the window. A student writes a small program, reads its output, and changes one idea. The program learns that a question should lead to an answer. Another student checks the arithmetic and records the result. Small examples reveal mistakes before large runs make them expensive.
+
+At dusk the group closes their laptops. They can explain each prediction as a chain of bytes, embeddings, attention, and learned weights. Tomorrow they will test the model on words it did not see during training. This course-authored text is released under CC0 for the bundled teaching demonstration.

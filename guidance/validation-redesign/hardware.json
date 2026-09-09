@@ -1,0 +1,78 @@
+[
+  {
+    "chapter": "29",
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "labs/s06-gpu/Cargo.toml",
+      "--",
+      "29",
+      "--solution",
+      "--check",
+      "--gpu"
+    ],
+    "returncode": 0,
+    "seconds": 0.057,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 29 --solution --check --gpu`\nchapter 29: solution / real hardware requested\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\noptional features: timestamp_query=true, shader_f16=true\nleft=[1.0, -2.0, 3.5, 8.0, 0.25], right=[2.0, 5.0, -0.5, 1.0, 0.75], scale=0.5 -> [2.5, 4.0, 1.25, 5.0, 0.875]\nhardware readback=[2.5, 4.0, 1.25, 5.0, 0.875], max CPU difference=0.000e0\nN=1, scale=0.5, hardware max error=0\nN=1, scale=-2, hardware max error=0\nN=64, scale=0.5, hardware max error=0\nN=64, scale=-2, hardware max error=0\nN=67, scale=0.5, hardware max error=0\nN=67, scale=-2, hardware max error=0\nN=129, scale=0.5, hardware max error=0\nN=129, scale=-2, hardware max error=0\nrequested automatic checks passed; consult lab.manual_checks for source/trace criteria. CPU-only runs do not verify GPU execution\n"
+  },
+  {
+    "chapter": "30",
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "labs/s06-gpu/Cargo.toml",
+      "--",
+      "30",
+      "--solution",
+      "--check",
+      "--gpu"
+    ],
+    "returncode": 0,
+    "seconds": 0.055,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 30 --solution --check --gpu`\nchapter 30: solution / real hardware requested\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\noptional features: timestamp_query=true, shader_f16=true\nA=[[1,2,3],[4,5,6]], B=[[7,8],[9,10],[11,12]], C=[58.0, 64.0, 139.0, 154.0]\nsum([3,1,4,1,5,9,2,6])=31\n3x17 x 17x5: hardware max error=5.960e-8\n17x19 x 19x33: hardware max error=3.576e-7\nreduction N=1: hardware max error=0\nreduction N=600: hardware max error=0\nreduction N=777: hardware max error=0\nNumerical parity only. Inspect cooperative loads, two uniform tile barriers, tree reduction and no early edge return to establish the implementation goal.\nrequested automatic checks passed; consult lab.manual_checks for source/trace criteria. CPU-only runs do not verify GPU execution\n"
+  },
+  {
+    "chapter": "31",
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "labs/s06-gpu/Cargo.toml",
+      "--",
+      "31",
+      "--solution",
+      "--check",
+      "--gpu"
+    ],
+    "returncode": 0,
+    "seconds": 0.637,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 31 --solution --check --gpu`\nchapter 31: solution / real hardware requested\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\noptional features: timestamp_query=true, shader_f16=true\n2-4-1 tanh, 8 examples, 800 full-batch steps, rate=0.3: BCE 0.730554 -> 0.013002\nunseen [-0.6, -0.9]: p=0.0588, target=0\nunseen [-0.9, 0.7]: p=0.9941, target=1\nunseen [0.7, -0.9]: p=0.9901, target=1\nunseen [0.9, 0.6]: p=0.0295, target=0\nresident N=8, steps=1: BCE 0.730555 -> 0.725870, max parameter error=2.980e-8\nresident N=8, steps=80: BCE 0.730555 -> 0.685484, max parameter error=1.341e-7\nresident N=3, steps=3: BCE 0.763586 -> 0.709495, max parameter error=2.980e-8\nresident N=8, steps=800: BCE 0.730555 -> 0.013002, max parameter error=2.861e-6\n17 gradient probes: max error=7.993e-9 against f64 central differences\nrequested automatic checks passed; consult lab.manual_checks for source/trace criteria. CPU-only runs do not verify GPU execution\n"
+  },
+  {
+    "chapter": "32",
+    "command": [
+      "cargo",
+      "run",
+      "--release",
+      "--offline",
+      "--manifest-path",
+      "labs/s06-gpu/Cargo.toml",
+      "--",
+      "32",
+      "--solution",
+      "--check",
+      "--gpu"
+    ],
+    "returncode": 0,
+    "seconds": 0.075,
+    "output": "    Finished `release` profile [optimized] target(s) in 0.02s\n     Running `labs/s06-gpu/target/release/s06-gpu 32 --solution --check --gpu`\nchapter 32: solution / real hardware requested\ndiscovered adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan, DiscreteGpu) driver=radv Mesa 26.2.2-arch3.2\ndiscovered adapter: AMD Ryzen 9 9900X 12-Core Processor (RADV RAPHAEL_MENDOCINO) (Vulkan, IntegratedGpu) driver=radv Mesa 26.2.2-arch3.2\nselected hardware adapter: AMD Radeon RX 6950 XT (RADV NAVI21) (Vulkan)\noptional features: timestamp_query=true, shader_f16=true\naffine + ReLU, N=65537, small fixture [-1,0,2] -> [0.0, 0.25, 3.25]; planned runs=30\nSeparate: call including allocations/upload/readback/timestamp decode=298.347\u00b5s, max error=0.000e0, f16=false\nFusedF32: call including allocations/upload/readback/timestamp decode=291.466\u00b5s, max error=0.000e0, f16=false\nMixed: call including allocations/upload/readback/timestamp decode=294.566\u00b5s, max error=0.000e0, f16=true\nSeparate: call including allocations/upload/readback/timestamp decode=306.436\u00b5s, max error=0.000e0, f16=false\nFusedF32: call including allocations/upload/readback/timestamp decode=285.046\u00b5s, max error=0.000e0, f16=false\nMixed: call including allocations/upload/readback/timestamp decode=320.155\u00b5s, max error=0.000e0, f16=true\nSeparate: call including allocations/upload/readback/timestamp decode=399.885\u00b5s, max error=0.000e0, f16=false\nFusedF32: call including allocations/upload/readback/timestamp decode=733.211\u00b5s, max error=0.000e0, f16=false\nMixed: call including allocations/upload/readback/timestamp decode=307.856\u00b5s, max error=0.000e0, f16=true\nSeparate: call including allocations/upload/readback/timestamp decode=309.606\u00b5s, max error=0.000e0, f16=false\nFusedF32: call including allocations/upload/readback/timestamp decode=291.537\u00b5s, max error=0.000e0, f16=false\nMixed: call including allocations/upload/readback/timestamp decode=289.876\u00b5s, max error=0.000e0, f16=true\nSeparate: call including allocations/upload/readback/timestamp decode=307.346\u00b5s, max error=0.000e0, f16=false\nFusedF32: call including allocations/upload/readback/timestamp decode=285.216\u00b5s, max error=0.000e0, f16=false\nMixed: call including allocations/upload/readback/timestamp decode=328.266\u00b5s, max error=0.000e0, f16=true\nSeparate: call including allocations/upload/readback/timestamp decode=300.766\u00b5s, max error=0.000e0, f16=false\nFusedF32: call including allocations/upload/readback/timestamp decode=286.436\u00b5s, max error=0.000e0, f16=false\nMixed: call including allocations/upload/readback/timestamp decode=289.726\u00b5s, max error=0.000e0, f16=true\nSeparate: call including allocations/upload/readback/timestamp decode=308.315\u00b5s, max error=0.000e0, f16=false\nFusedF32: call including allocations/upload/readback/timestamp decode=290.526\u00b5s, max error=0.000e0, f16=false\nMixed: call including allocations/upload/readback/timestamp decode=328.255\u00b5s, max error=0.000e0, f16=true\nseparate: encoding-through-output-map wall median=250.437\u00b5s, range=242.147\u00b5s..331.946\u00b5s\nseparate: summed device pass ns median=6400, range=6320..7040\nfused: encoding-through-output-map wall median=234.787\u00b5s, range=229.487\u00b5s..660.611\u00b5s\nfused: summed device pass ns median=3560, range=480..4160\nmixed: encoding-through-output-map wall median=219.807\u00b5s, range=214.868\u00b5s..253.627\u00b5s\nmixed: summed device pass ns median=3680, range=3600..4160\nnon-binary fixture N=257 Separate: f16=false, max error=0.000e0\nnon-binary fixture N=257 FusedF32: f16=false, max error=0.000e0\nnon-binary fixture N=257 Mixed: f16=true, max error=4.580e-3\nSchedule evidence passed; speed and shader correctness require --gpu. No speed threshold is a learning goal.\nrequested automatic checks passed; consult lab.manual_checks for source/trace criteria. CPU-only runs do not verify GPU execution\n"
+  }
+]

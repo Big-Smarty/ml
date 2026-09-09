@@ -4,15 +4,21 @@
     "Apply and differentiate a zero-initialized LoRA projection",
     "Prove the base remains frozen",
     "Distill teacher probabilities into a smaller decoder",
-    "Separate fit from held-out adaptation evidence"
+    "Separate fit from held-out adaptation evidence",
+    "Implement response-only supervision without deleting prompt context",
+    "Implement and gradient-check temperature-two distillation"
   ],
   "lessons": [
-    "Supervised fine-tuning continues next-token training",
-    "Change a projection through a low-rank path",
-    "Learn a teacher’s distribution",
-    "Choose the adaptation boundary",
-    "Run, debug, and extend",
-    "Before you move on"
+    "Which parameters should change for a new task?",
+    "What does supervised fine-tuning optimize?",
+    "How can we supervise responses without deleting the prompt?",
+    "How does a low-rank update change a frozen matrix?",
+    "Can we train both factors and then merge the adapter?",
+    "What information is in a teacher distribution?",
+    "Which adaptation boundary fits the evidence?",
+    "Does a softer teacher require a different gradient?",
+    "Can you distinguish fitting, transfer and forgetting?",
+    "Sources and further reading"
   ],
   "terms": {
     "supervised-fine-tuning": {
@@ -59,14 +65,108 @@
     "Base parameter values remain unchanged after adapter training",
     "One adapter gradient matches central differences",
     "Soft-target gradient matches direct cross-entropy finite differences",
-    "Student KL to teacher falls and remains correct for a confidently wrong student"
+    "Student KL to teacher falls and remains correct for a confidently wrong student",
+    "Changing masked target IDs preserves loss and gradients within 2e-5",
+    "Temperature-two derivative matches central differences",
+    "Separate train and unseen-input evaluation actually runs"
   ],
   "limitations": [
-    "Base decoder is pretrained only on tiny synthetic cycles, not a useful language model",
-    "SFT and LoRA quality is measured only on tiny training fixtures",
-    "LoRA targets only the output projection",
-    "Distillation uses temperature tau=1 and V hard-target backward passes per example",
-    "Loss covers full sequences rather than masking prompt tokens",
-    "LoRA computes a full backward pass on a cloned effective model, so trainable parameter counts do not establish memory or speed savings"
-  ]
+    "Tiny synthetic pretraining and nearby prompt variations do not establish broad instruction quality",
+    "LoRA targets the output projection and clones a full effective decoder; trainable count is not a memory/speed measurement",
+    "Response masks use repeated prefix-gradient differences; temperature distillation uses V hard-target backwards per token",
+    "Held-out inputs are tiny known-vocabulary combinations, not new domains"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "continuity",
+      "title": "Which parameters should change for a new task?",
+      "session": 1,
+      "minutes": 5
+    },
+    {
+      "id": "sft",
+      "title": "What does supervised fine-tuning optimize?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "response-mask",
+      "title": "How can we supervise responses without deleting the prompt?",
+      "session": 1,
+      "minutes": 23
+    },
+    {
+      "id": "lora",
+      "title": "How does a low-rank update change a frozen matrix?",
+      "session": 2,
+      "minutes": 20
+    },
+    {
+      "id": "adapter-build",
+      "title": "Can we train both factors and then merge the adapter?",
+      "session": 2,
+      "minutes": 20
+    },
+    {
+      "id": "distillation",
+      "title": "What information is in a teacher distribution?",
+      "session": 3,
+      "minutes": 16
+    },
+    {
+      "id": "choice",
+      "title": "Which adaptation boundary fits the evidence?",
+      "session": 3,
+      "minutes": 5
+    },
+    {
+      "id": "practice",
+      "title": "Does a softer teacher require a different gradient?",
+      "session": 3,
+      "minutes": 18
+    },
+    {
+      "id": "review",
+      "title": "Can you distinguish fitting, transfer and forgetting?",
+      "session": 3,
+      "minutes": 3
+    },
+    {
+      "id": "sources",
+      "title": "Sources and further reading",
+      "session": 3,
+      "minutes": 1
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Select response supervision",
+      "goal": "Implement a response mask and compare unseen prompts"
+    },
+    {
+      "id": 2,
+      "title": "Train and merge an adapter",
+      "goal": "Implement both factor gradients and prove frozen-base/merge parity"
+    },
+    {
+      "id": 3,
+      "title": "Distill a distribution",
+      "goal": "Implement temperature-consistent gradients and evaluate unseen tokens"
+    }
+  ],
+  "lab": {
+    "package": "s08-adaptation",
+    "chapter": "43",
+    "entry": "labs/s08-adaptation/src/ch43.rs",
+    "goal": "Implement a response mask and compare unseen prompts; Implement both factor gradients and prove frozen-base/merge parity; Implement temperature-consistent gradients and evaluate unseen tokens",
+    "check": "just lab-check 43"
+  },
+  "topic_coverage": {
+    "Supervised fine-tuning": "response-mask",
+    "LoRA": "lora",
+    "distillation": "distillation"
+  },
+  "interactives": []
 }

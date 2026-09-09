@@ -1,19 +1,176 @@
 {
-  "outcomes": ["Explain SIMD lanes, vector prefixes, horizontal reduction, and scalar tails", "Distinguish compiler auto-vectorization from an inspected guarantee", "Implement runtime-guarded AVX2 and FMA dispatch with a scalar fallback", "Run an actual stable AVX-512F extension only on supported x86 CPUs", "Document unsafe invariants and test empty, short, and odd vector lengths"],
-  "lessons": ["SIMD lanes and tails", "Compiler auto-vectorization", "Safe runtime dispatch", "Stable AVX-512 extension", "SIMD practice", "Review and transfer"],
+  "outcomes": [
+    "Explain SIMD lanes, vector prefixes, horizontal reduction, and scalar tails",
+    "Distinguish compiler auto-vectorization from an inspected guarantee",
+    "Implement runtime-guarded AVX2 and FMA dispatch with a scalar fallback",
+    "Run an actual stable AVX-512F extension only on supported x86 CPUs",
+    "Document unsafe invariants and test empty, short, and odd vector lengths"
+  ],
+  "lessons": [
+    "How can several partial sums make one dot product?",
+    "What can ordinary Rust ask the compiler to do?",
+    "Can portable code make every lane and tail visible?",
+    "How can an executable call only supported instructions?",
+    "Can the portable dot become a guarded vector kernel?",
+    "Which failure belongs at the public boundary?",
+    "What changes for sixteen lanes?",
+    "Does the vector path help this dense workload?",
+    "What is now true of the section’s dense kernel?"
+  ],
   "terms": {
-    "simd": {"name":"SIMD","definition":"Single instruction, multiple data: one instruction applies an operation across several lanes.","explanation":"A 256-bit AVX register can hold eight f32 values, while a 512-bit AVX-512 register can hold sixteen. Vector kernels load complete groups, compute lane-wise, and often reduce lanes to a scalar. SIMD can increase arithmetic throughput, but memory traffic, reduction overhead, dependencies, and CPU frequency can limit gains. The same executable must retain a safe fallback for architectures or CPUs without the requested instruction set."},
-    "scalar-tail": {"name":"Scalar tail","definition":"Elements left after processing every complete SIMD-width group.","explanation":"For length N and lane width W, the tail has N modulo W values. A safe vector loop runs only while at least W elements remain, then ordinary scalar code processes the suffix. This handles empty, short, odd, and exact-multiple lengths without padding or out-of-bounds loads. Masked vector operations are another option on some architectures, but a scalar tail is portable, easy to verify, and sufficient until measurement proves tail cost matters."},
-    "auto-vectorization": {"name":"Auto-vectorization","definition":"A compiler transformation from scalar source operations to vector instructions.","explanation":"LLVM’s vectorizers analyze loop legality, dependencies, aliases, target capabilities, and estimated cost. Independent elementwise loops are often easier to transform than floating-point reductions whose reassociation changes rounding. Optimized compilation enables the machinery, but source code has no universal promise that a specific loop vectorizes. Inspect generated code or optimization remarks before making that claim, and benchmark the resulting function with correctness checks and observable outputs."},
-    "runtime-feature-dispatch": {"name":"Runtime feature dispatch","definition":"Selecting an implementation after detecting instruction support on the CPU currently running the program.","explanation":"A portable x86 binary can contain scalar and target-feature functions. The generic caller uses is_x86_feature_detected! and invokes an AVX function only when every required capability is present. Architecture cfg gates keep x86 intrinsics out of other targets. The target-feature call is unsafe because executing unsupported instructions is undefined behavior; runtime checks, equal lengths, and proven in-bounds loads form the documented safety argument."}
+    "simd": {
+      "name": "SIMD",
+      "definition": "Single instruction, multiple data: one instruction applies an operation across several lanes.",
+      "explanation": "A 256-bit AVX register can hold eight f32 values, while a 512-bit AVX-512 register can hold sixteen. Vector kernels load complete groups, compute lane-wise, and often reduce lanes to a scalar. SIMD can increase arithmetic throughput, but memory traffic, reduction overhead, dependencies, and CPU frequency can limit gains. The same executable must retain a safe fallback for architectures or CPUs without the requested instruction set."
+    },
+    "scalar-tail": {
+      "name": "Scalar tail",
+      "definition": "Elements left after processing every complete SIMD-width group.",
+      "explanation": "For length N and lane width W, the tail has N modulo W values. A safe vector loop runs only while at least W elements remain, then ordinary scalar code processes the suffix. This handles empty, short, odd, and exact-multiple lengths without padding or out-of-bounds loads. Masked vector operations are another option on some architectures, but a scalar tail is portable, easy to verify, and sufficient until measurement proves tail cost matters."
+    },
+    "auto-vectorization": {
+      "name": "Auto-vectorization",
+      "definition": "A compiler transformation from scalar source operations to vector instructions.",
+      "explanation": "LLVM’s vectorizers analyze loop legality, dependencies, aliases, target capabilities, and estimated cost. Independent elementwise loops are often easier to transform than floating-point reductions whose reassociation changes rounding. Optimized compilation enables the machinery, but source code has no universal promise that a specific loop vectorizes. Inspect generated code or optimization remarks before making that claim, and benchmark the resulting function with correctness checks and observable outputs."
+    },
+    "runtime-feature-dispatch": {
+      "name": "Runtime feature dispatch",
+      "definition": "Selecting an implementation after detecting instruction support on the CPU currently running the program.",
+      "explanation": "A portable x86 binary can contain scalar and target-feature functions. The generic caller uses is_x86_feature_detected! and invokes an AVX function only when every required capability is present. Architecture cfg gates keep x86 intrinsics out of other targets. The target-feature call is unsafe because executing unsupported instructions is undefined behavior; runtime checks, equal lengths, and proven in-bounds loads form the documented safety argument."
+    }
   },
   "sources": [
-    {"title":"Rust Reference target_feature","url":"https://doc.rust-lang.org/stable/reference/attributes/codegen.html","note":"Target-feature calling safety"},
-    {"title":"Rust is_x86_feature_detected macro","url":"https://doc.rust-lang.org/stable/std/macro.is_x86_feature_detected.html","note":"Runtime CPU feature detection"},
-    {"title":"Rust _mm256_fmadd_ps intrinsic","url":"https://doc.rust-lang.org/core/arch/x86/fn._mm256_fmadd_ps.html","note":"Stable AVX2/FMA operation"},
-    {"title":"Rust 1.89 release notes","url":"https://blog.rust-lang.org/2025/08/07/Rust-1.89.0/","note":"AVX-512 stabilization"},
-    {"title":"LLVM Auto-Vectorization","url":"https://llvm.org/docs/Vectorizers.html","note":"Loop and SLP vectorizer behavior"}
+    {
+      "title": "Rust Reference target_feature",
+      "url": "https://doc.rust-lang.org/stable/reference/attributes/codegen.html",
+      "note": "Target-feature calling safety"
+    },
+    {
+      "title": "Rust is_x86_feature_detected macro",
+      "url": "https://doc.rust-lang.org/stable/std/macro.is_x86_feature_detected.html",
+      "note": "Runtime CPU feature detection"
+    },
+    {
+      "title": "Rust _mm256_fmadd_ps intrinsic",
+      "url": "https://doc.rust-lang.org/core/arch/x86/fn._mm256_fmadd_ps.html",
+      "note": "Stable AVX2/FMA operation"
+    },
+    {
+      "title": "Rust 1.89 release notes",
+      "url": "https://blog.rust-lang.org/2025/08/07/Rust-1.89.0/",
+      "note": "AVX-512 stabilization"
+    },
+    {
+      "title": "LLVM Auto-Vectorization",
+      "url": "https://llvm.org/docs/Vectorizers.html",
+      "note": "Loop and SLP vectorizer behavior"
+    }
   ],
-  "checks": ["dot_dispatch and dot_avx512_checked reject unequal lengths before any intrinsic call", "dot_dispatch handles every length 0 through 39 and odd length 1003", "dot_scalar and every runtime-supported AVX2/FMA and AVX-512F backend are compared directly with dot_f64_reference", "The auto-vectorization candidate handles an odd length", "Explicit AVX-512 mode returns a clear unsupported error when detection fails", "Every unsafe call and load has documented feature and bounds invariants"],
-  "limitations": ["Explicit SIMD implementations cover x86/x86_64 but not ARM NEON", "The project uses scalar tails rather than masked AVX-512 loads", "Default selection prefers AVX2/FMA and does not auto-tune backends", "Auto-vectorization must be inspected for each compiler and target", "No speedup is claimed without local release measurements"]
+  "checks": [
+    "Portable lane sums match worked values and f64 over empty/short/odd lengths",
+    "Forced scalar and default dispatch match f64; AVX2+FMA and AVX-512F execute only when supported",
+    "Last-element impulses catch dropped tails; invalid shapes/nonfinite inputs/overflow rejected",
+    "Dense integration retains W[n,k], bias once, and varied-shape oracle agreement"
+  ],
+  "limitations": [
+    "Explicit SIMD implementations cover x86/x86_64 but not ARM NEON",
+    "The project uses scalar tails rather than masked AVX-512 loads",
+    "Default selection prefers AVX2/FMA and does not auto-tune backends",
+    "Auto-vectorization must be inspected for each compiler and target",
+    "No speedup is claimed without local release measurements"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "lanes",
+      "title": "How can several partial sums make one dot product?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "automatic",
+      "title": "What can ordinary Rust ask the compiler to do?",
+      "session": 1,
+      "minutes": 9
+    },
+    {
+      "id": "lane-checkpoint",
+      "title": "Can portable code make every lane and tail visible?",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "dispatch",
+      "title": "How can an executable call only supported instructions?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "practice",
+      "title": "Can the portable dot become a guarded vector kernel?",
+      "session": 2,
+      "minutes": 20
+    },
+    {
+      "id": "safe-transfer",
+      "title": "Which failure belongs at the public boundary?",
+      "session": 2,
+      "minutes": 6
+    },
+    {
+      "id": "avx512",
+      "title": "What changes for sixteen lanes?",
+      "session": 3,
+      "minutes": 12
+    },
+    {
+      "id": "simd-measure",
+      "title": "Does the vector path help this dense workload?",
+      "session": 3,
+      "minutes": 19
+    },
+    {
+      "id": "review",
+      "title": "What is now true of the section’s dense kernel?",
+      "session": 3,
+      "minutes": 6
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Make lane grouping explicit",
+      "goal": "Implement portable complete vectors and scalar tails"
+    },
+    {
+      "id": 2,
+      "title": "Guard explicit SIMD",
+      "goal": "Implement AVX2/FMA dispatch with a proved safe prefix and fallback"
+    },
+    {
+      "id": 3,
+      "title": "Extend and measure",
+      "goal": "Implement guarded AVX-512F and report actual backend evidence"
+    }
+  ],
+  "lab": {
+    "package": "s05-cpu",
+    "chapter": "28",
+    "entry": "labs/s05-cpu/src/ch28.rs",
+    "goal": "Implement guarded AVX-512F and report actual backend evidence",
+    "check": "just lab-check 28",
+    "manual_checks": [
+      "Inspect cfg architecture gates and actual AVX2/FMA and AVX-512F intrinsic loops; backend labels alone do not establish execution.",
+      "Trace each unsafe caller: runtime detects every target feature, validates equal lengths, bounds complete unaligned loads and fixed-width stores, and finishes scalar tails.",
+      "Keep a working scalar fallback and report unsupported actual SIMD execution honestly; inspect generated assembly before claiming auto-vectorization."
+    ]
+  },
+  "topic_coverage": {
+    "Auto-vectorization": "automatic",
+    "AVX2 and FMA": "practice",
+    "feature detection": "dispatch",
+    "tails": "lane-checkpoint",
+    "AVX-512 extension": "avx512"
+  },
+  "interactives": []
 }

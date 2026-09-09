@@ -1,19 +1,33 @@
-# Chapter 22 research notes
+# Chapter 22: redesign research and implementation record
 
-Route: chapter authored by the assigned high-reasoning author after bounded source verification by `gpt-5.6-luna` at high reasoning. Verification date: 2026-09-08. Code, vectors, and arithmetic are course-authored.
+Author route: one GPT-6 Astra High section owner, 2026-09-09. Read the complete previous lesson, metadata, research notes, reference and starter sources before redesign. The active AUTHORING/CHAPTER_TEMPLATE/ASSIGNMENTS/NUMERICS contract replaces historical Rustlings and broken-starter requirements. Reference projects remain unchanged; tested numerical algorithms are adapted into labs/s04-deep-learning with learner-selected cores and separate explained solutions.
 
-- Hinton and Salakhutdinov, “Reducing the Dimensionality of Data with Neural Networks,” Science 313 (2006), https://doi.org/10.1126/science.1127647. Supports encoder–decoder dimensionality reduction and gradient fine-tuning.
-- Vincent et al., “Stacked Denoising Autoencoders,” JMLR 11 (2010), https://www.jmlr.org/papers/v11/vincent10a.html. Supports reconstructing clean inputs from corrupted views and evaluating learned features downstream.
-- Chen et al., “A Simple Framework for Contrastive Learning of Visual Representations,” ICML 2020, https://proceedings.mlr.press/v119/chen20j.html. Supports the importance of view construction, a contrastive objective, and evaluating representations separately from pretraining loss.
-- van den Oord, Li, and Vinyals, “Representation Learning with Contrastive Predictive Coding,” arXiv:1807.03748, https://arxiv.org/abs/1807.03748. Supports noise-contrastive prediction of future latent representations. This is an arXiv primary preprint.
+## Evidence and source claims
 
-The executable uses analytic gradients through both sides of a shared normalized encoder and stable InfoNCE logits. Its six-pair retrieval result is training-set evidence only.
+The following primary sources were previously verified in the course's 2026-09-08 research and independent review. This redesign reuses those bounded claims; it does not claim a new literature search or reproduction of the papers' full experiments.
 
+- Reducing the Dimensionality of Data with Neural Networks — https://doi.org/10.1126/science.1127647
+  Primary deep-autoencoder dimensionality-reduction paper.
+- Stacked Denoising Autoencoders — https://www.jmlr.org/papers/v11/vincent10a.html
+  Primary account of reconstructing clean inputs from corrupted views.
+- A Simple Framework for Contrastive Learning of Visual Representations — https://proceedings.mlr.press/v119/chen20j.html
+  Primary SimCLR paper on view construction, projection heads, and contrastive training.
+- Representation Learning with Contrastive Predictive Coding — https://arxiv.org/abs/1807.03748
+  Primary CPC preprint introducing a contrastive predictive objective.
 
-## Independent Astra review, 2026-09-08
+## Active learning route
 
-GPT-6 Astra High independently read the full lesson, metadata, research, reference, starter, and Rustlings exercise/solution. Bounded GPT-5.6 Luna High primary-source and technical verification covered chapters 20–24; the researcher supplied checks and source findings, while Astra implemented the corrections.
+- Session 1: Implement AE encoder derivatives through the old decoder and tanh.
+- Session 2: Accumulate both shared-encoder paths and verify an asymmetric paired batch.
+- Session 3: Implement epsilon-aware cosine neighbors and compare objectives with retrieval.
 
-Confirmed analytic gradients through both shared contrastive branches and the autoencoder. Corrected stale numerical-training wording; retained numerical gradient checks. Reordered loss arithmetic and added non-finite input/tiny-temperature rejection tests. Training-pair retrieval is not a transfer estimate.
+Every session has worked values, named Rust work, a checkpoint or controlled experiment, optional explanation and a changed-input transfer task. Baseline success demonstrates a functioning earlier model, not the completed learning goal. The chapter's --check calls the selected learner core. Intentional numerical mismatches return GOAL_NOT_MET; malformed CLI/data errors remain ordinary errors. Cargo tests cover the supplied machinery and completed solution without requiring unfinished learner goals to pass.
 
-Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+## Boundaries
+
+- Six course-authored vectors/pairs; default reported retrieval is on training pairs
+- An unfamiliar interpolation is a narrow transfer check, not downstream validation
+- Two-dimensional linear contrastive encoder and small tanh bottleneck
+- The neighborhood browser tool uses designed vectors and a fixed decoder, not trained results
+
+The numerical handoff and actual commands/results are in guidance/redesign/section-04.md. Browser tools are arithmetic illustrations and never execute Rust or certify completion. Source snippets carry exact data-source paths. The learning design follows the provided worked-example, retrieval and interactive research synthesis as a design inference, not evidence of measured learning gains in this course.

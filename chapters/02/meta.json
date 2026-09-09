@@ -1,18 +1,145 @@
 {
-  "outcomes": ["Keep the Chapter 1 Neuron interface while changing only its gradient strategy", "Derive exact MSE gradients for a weight and bias", "Perform a simultaneous analytical update", "Check derivatives with central differences", "Diagnose sign, averaging, and stale-parameter bugs"],
-  "lessons": ["From numerical probes to derivatives", "Derive the gradient", "Check before trusting", "Build and run the Rust project", "Practice and transfer"],
+  "outcomes": [
+    "Derive both slopes from an example error",
+    "Replace numerical probing with a checked analytical gradient",
+    "Explain counted arithmetic separately from elapsed runtime"
+  ],
+  "lessons": [
+    "Why does a tiny model repeat so much work?",
+    "What does a derivative say about one error?",
+    "How do five examples vote on two slopes?",
+    "When can two slope calculations disagree?",
+    "What should a failed agreement check make you inspect?",
+    "Did the replacement preserve learning?"
+  ],
   "terms": {
-    "derivative": {"name": "Derivative", "definition": "The limiting local rate at which one quantity changes with another.", "explanation": "For a loss and one parameter, the derivative describes the slope of the loss at the current parameter value. Its sign gives a local direction and its magnitude gives sensitivity in the parameter's units. A derivative is not the change caused by an arbitrary large jump; it summarizes infinitesimal behavior. In this chapter, algebra gives an exact derivative for mean squared error, while central differences provide an independent numerical estimate."},
-    "partial-derivative": {"name": "Partial derivative", "definition": "A derivative with respect to one input while holding the others fixed.", "explanation": "A model's loss depends on several parameters. The partial derivative with respect to the weight asks how loss changes as only the weight moves; the bias stays fixed. Repeating that question for every parameter creates the gradient. Holding other values fixed is essential to the definition, even though the optimizer later updates all parameters together. Partial derivatives let a multidimensional optimization problem be expressed as familiar one-dimensional local slopes."},
-    "analytical-gradient": {"name": "Analytical gradient", "definition": "A gradient computed from a derived formula rather than numerical probes.", "explanation": "For mean squared error, algebra and differentiation reduce repeated loss evaluations to one pass through the examples. The result is cheaper and usually more accurate than finite differences. Analytical does not mean automatically correct: a missing factor, wrong reduction, or in-place update can corrupt it. That is why implementations compare analytical components with an independent central-difference approximation on small smooth fixtures before using them in long training runs."},
-    "finite-difference": {"name": "Finite difference", "definition": "A numerical slope estimate formed from function values at nearby inputs.", "explanation": "The central-difference estimate evaluates loss at a parameter plus a small step and at the parameter minus that step, then divides their difference by twice the step. It is slow because every parameter needs extra loss evaluations, but it is valuable as an independent check of derivative code. The step cannot be arbitrarily small: floating-point cancellation eventually overwhelms the approximation. Gradient checks therefore use a sensible step and combined absolute and relative tolerances."}
+    "derivative": {
+      "name": "Derivative",
+      "definition": "The limiting local rate at which one quantity changes with another.",
+      "explanation": "For a loss and one parameter, the derivative describes the slope of the loss at the current parameter value. Its sign gives a local direction and its magnitude gives sensitivity in the parameter's units. A derivative is not the change caused by an arbitrary large jump; it summarizes infinitesimal behavior. In this chapter, algebra gives an exact derivative for mean squared error, while central differences provide an independent numerical estimate."
+    },
+    "partial-derivative": {
+      "name": "Partial derivative",
+      "definition": "A derivative with respect to one input while holding the others fixed.",
+      "explanation": "A model's loss depends on several parameters. The partial derivative with respect to the weight asks how loss changes as only the weight moves; the bias stays fixed. Repeating that question for every parameter creates the gradient. Holding other values fixed is essential to the definition, even though the optimizer later updates all parameters together. Partial derivatives let a multidimensional optimization problem be expressed as familiar one-dimensional local slopes."
+    },
+    "analytical-gradient": {
+      "name": "Analytical gradient",
+      "definition": "A gradient computed from a derived formula rather than numerical probes.",
+      "explanation": "For mean squared error, algebra and differentiation reduce repeated loss evaluations to one pass through the examples. The result is cheaper and usually more accurate than finite differences. Analytical does not mean automatically correct: a missing factor, wrong reduction, or in-place update can corrupt it. That is why implementations compare analytical components with an independent central-difference approximation on small smooth fixtures before using them in long training runs."
+    },
+    "finite-difference": {
+      "name": "Finite difference",
+      "definition": "A numerical slope estimate formed from function values at nearby inputs.",
+      "explanation": "The central-difference estimate evaluates loss at a parameter plus a small step and at the parameter minus that step, then divides their difference by twice the step. It is slow because every parameter needs extra loss evaluations, but it is valuable as an independent check of derivative code. The step cannot be arbitrarily small: floating-point cancellation eventually overwhelms the approximation. Gradient checks therefore use a sensible step and combined absolute and relative tolerances."
+    }
   },
   "sources": [
-    {"title": "MIT OpenCourseWare Calculus", "url": "https://ocw.mit.edu/courses/res-18-001-calculus-fall-2023/mitres_18_001_f17_full_book.pdf", "note": "Derivatives, partial derivatives, and gradients"},
-    {"title": "PyTorch gradcheck mechanics", "url": "https://docs.pytorch.org/docs/stable/notes/gradcheck.html", "note": "Analytical versus finite-difference derivative checks"},
-    {"title": "Learning representations by back-propagating errors", "url": "https://doi.org/10.1038/323533a0", "note": "Historical gradient-based learning context"},
-    {"title": "Efficient BackProp", "url": "https://cseweb.ucsd.edu/~gary/258a/lecun98efficient.pdf", "note": "Practical gradient descent and scaling"}
+    {
+      "title": "MIT OpenCourseWare Calculus",
+      "url": "https://ocw.mit.edu/courses/res-18-001-calculus-fall-2023/mitres_18_001_f17_full_book.pdf",
+      "note": "Derivatives, partial derivatives, and gradients"
+    },
+    {
+      "title": "PyTorch gradcheck mechanics",
+      "url": "https://docs.pytorch.org/docs/stable/notes/gradcheck.html",
+      "note": "Analytical versus finite-difference derivative checks"
+    },
+    {
+      "title": "Learning representations by back-propagating errors",
+      "url": "https://doi.org/10.1038/323533a0",
+      "note": "Historical gradient-based learning context"
+    },
+    {
+      "title": "Efficient BackProp",
+      "url": "https://cseweb.ucsd.edu/~gary/258a/lecun98efficient.pdf",
+      "note": "Practical gradient descent and scaling"
+    }
   ],
-  "checks": ["Analytical gradient at zero equals (-8, -2)", "Central differences match at two parameter settings within atol 1e-6 plus rtol 1e-4", "One step at learning rate 0.1 produces weight 0.8 and bias 0.2", "Training for 100 steps reaches loss below 1e-12", "Empty and nonfinite data are rejected"],
-  "limitations": ["The closed-form derivative is specific to this affine MSE model", "Finite differences are a debugging oracle, not a scalable training method"]
+  "checks": [
+    "Three parameter settings agree with finite differences on asymmetric data within absolute1e-6 plus relative1e-4",
+    "Gradient row-visit instrumentation reports N instead of4N, excluding boundary validation/reporting",
+    "Unfamiliar prediction at2.5 is within0.001 of6"
+  ],
+  "limitations": [
+    "Operation counts exclude validation and reporting and are not benchmark timings",
+    "Agreement is local evidence on small smooth inputs",
+    "Honest instrumentation and analytical implementation also require reading the authored loop"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "repeated-work",
+      "title": "Why does a tiny model repeat so much work?",
+      "session": 1,
+      "minutes": 6
+    },
+    {
+      "id": "local-change",
+      "title": "What does a derivative say about one error?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "derive",
+      "title": "How do five examples vote on two slopes?",
+      "session": 1,
+      "minutes": 20
+    },
+    {
+      "id": "gradient-lab",
+      "title": "When can two slope calculations disagree?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "same-state",
+      "title": "What should a failed agreement check make you inspect?",
+      "session": 2,
+      "minutes": 16
+    },
+    {
+      "id": "cost-and-transfer",
+      "title": "Did the replacement preserve learning?",
+      "session": 2,
+      "minutes": 10
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Derive a cheaper gradient",
+      "goal": "Implement both MSE derivatives in one truthful data pass"
+    },
+    {
+      "id": 2,
+      "title": "Check agreement and preserve behavior",
+      "goal": "Build a diagnostic comparison and verify asymmetric unseen predictions"
+    }
+  ],
+  "lab": {
+    "package": "s01-foundations",
+    "chapter": "02",
+    "entry": "labs/s01-foundations/src/ch02.rs",
+    "goal": "Replace numerical probing with a one-pass analytical gradient and verify agreement",
+    "check": "just lab-check 02",
+    "manual_checks": [
+      "Explain the prediction and independent variation in your own words; numeric checks do not grade prose."
+    ]
+  },
+  "interactives": [
+    {
+      "id": "loss-gradient",
+      "title": "Compare slopes and one update",
+      "file": "demo.js",
+      "anchor": "loss-gradient",
+      "illustration": true
+    }
+  ],
+  "topic_coverage": {
+    "Derivatives": "local-change",
+    "gradients": "derive",
+    "analytical updates": "cost-and-transfer",
+    "finite-difference checks": "gradient-lab"
+  }
 }

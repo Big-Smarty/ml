@@ -1,16 +1,19 @@
 {
   "outcomes": [
-    "Fit deterministic k-means to unlabeled feature points and compute summed inertia",
-    "Explain Gaussian-mixture responsibilities as normalized component probabilities",
-    "Implement stable expectation-maximization with log-sum-exp",
-    "Use negative log density as an anomaly score without confusing rarity with harm"
+    "Implement k-means assignment and mean-update iterations",
+    "Fit weighted diagonal Gaussian mixture components through stable EM",
+    "Calculate responsibilities and negative-log-density anomaly scores",
+    "Explain initialization, covariance and projection limits on clustering claims"
   ],
   "lessons": [
-    "Alternate between centers and assignments",
-    "Replace a hard group with a probability",
-    "Fit the mixture with expectation-maximization",
-    "Turn density into an anomaly score",
-    "Run the models and practice"
+    "Can unlabeled readings reveal operating regimes?",
+    "Implement the alternating center updates",
+    "What if membership is uncertain?",
+    "Build the E-step from a frozen mixture",
+    "Fit means, variances and weights from fractional counts",
+    "Distinguish fitted density from a good scientific explanation",
+    "How unusual is this observation under the fitted density?",
+    "Stress the score and record its limits"
   ],
   "terms": {
     "cluster": {
@@ -45,22 +48,122 @@
     }
   },
   "sources": [
-    {"title": "Some Methods for Classification and Analysis of Multivariate Observations", "url": "https://digicoll.lib.berkeley.edu/record/113015?v=pdf", "note": "MacQueen's original k-means paper."},
-    {"title": "Least Squares Quantization in PCM", "url": "https://doi.org/10.1109/TIT.1982.1056489", "note": "Lloyd's least-squares quantization algorithm."},
-    {"title": "Maximum Likelihood from Incomplete Data via the EM Algorithm", "url": "https://academic.oup.com/jrsssb/article/39/1/1/7027539", "note": "Original general EM paper."},
-    {"title": "Pattern Clustering by Multivariate Mixture Analysis", "url": "https://doi.org/10.1207/s15327906mbr0503_6", "note": "Early multivariate Gaussian-mixture clustering."}
+    {
+      "title": "Some Methods for Classification and Analysis of Multivariate Observations",
+      "url": "https://digicoll.lib.berkeley.edu/record/113015?v=pdf",
+      "note": "MacQueen's original k-means paper."
+    },
+    {
+      "title": "Least Squares Quantization in PCM",
+      "url": "https://doi.org/10.1109/TIT.1982.1056489",
+      "note": "Lloyd's least-squares quantization algorithm."
+    },
+    {
+      "title": "Maximum Likelihood from Incomplete Data via the EM Algorithm",
+      "url": "https://academic.oup.com/jrsssb/article/39/1/1/7027539",
+      "note": "Original general EM paper."
+    },
+    {
+      "title": "Pattern Clustering by Multivariate Mixture Analysis",
+      "url": "https://doi.org/10.1207/s15327906mbr0503_6",
+      "note": "Early multivariate Gaussian-mixture clustering."
+    }
   ],
   "checks": [
-    "K-means finds one negative and one positive fixture center with summed inertia below 3",
-    "Final assignments are recomputed from the returned centers",
-    "Mixture responsibilities sum to one and component weights remain normalized",
-    "The distant point receives a larger anomaly score than a cluster-center point",
-    "Later well-conditioned EM fits do not reduce summed fixture log-likelihood beyond tolerance"
+    "Updated centers yield inertia1; final reassignment uses returned centers",
+    "Unequal-spread EM improves likelihood and respects variance floors",
+    "Stable huge-offset responsibilities and unfamiliar distant anomaly score"
   ],
   "limitations": [
-    "K-means uses deterministic single-start initialization",
-    "Empty k-means centers are retained rather than reseeded",
-    "The GMM supports diagonal two-dimensional components only",
-    "No anomaly threshold is estimated from the tiny training fixture"
-  ]
+    "Diagonal mixtures cannot represent arbitrary covariance orientation",
+    "Empty k-means centers are retained; near-zero EM components are dropped",
+    "Density anomalies depend on units and projection and are not failure probabilities"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "kmeans",
+      "title": "Can unlabeled readings reveal operating regimes?",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "center-updates",
+      "title": "Implement the alternating center updates",
+      "session": 1,
+      "minutes": 22
+    },
+    {
+      "id": "mixtures",
+      "title": "What if membership is uncertain?",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "expectation",
+      "title": "Build the E-step from a frozen mixture",
+      "session": 2,
+      "minutes": 22
+    },
+    {
+      "id": "maximization",
+      "title": "Fit means, variances and weights from fractional counts",
+      "session": 3,
+      "minutes": 20
+    },
+    {
+      "id": "mixture-check",
+      "title": "Distinguish fitted density from a good scientific explanation",
+      "session": 3,
+      "minutes": 20
+    },
+    {
+      "id": "anomaly",
+      "title": "How unusual is this observation under the fitted density?",
+      "session": 4,
+      "minutes": 18
+    },
+    {
+      "id": "anomaly-review",
+      "title": "Stress the score and record its limits",
+      "session": 4,
+      "minutes": 22
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Can unlabeled readings reveal operating regimes?",
+      "goal": "Implement Lloyd assignments/means and test an extreme added reading and final reassignment"
+    },
+    {
+      "id": 2,
+      "title": "What if membership is uncertain?",
+      "goal": "Build a frozen E-step responsibility matrix and transfer equal-mixture normalization to three components"
+    },
+    {
+      "id": 3,
+      "title": "Fit means, variances and weights from fractional counts",
+      "goal": "Implement weighted M-step parameters and compare responsibility entropy on changed queries"
+    },
+    {
+      "id": 4,
+      "title": "How unusual is this observation under the fitted density?",
+      "goal": "Implement a local shifted-query anomaly diagnostic and interpret floor-dependent density scores"
+    }
+  ],
+  "lab": {
+    "package": "s03-tabular",
+    "chapter": "18",
+    "entry": "labs/s03-tabular/src/ch18.rs",
+    "goal": "Implement Lloyd updates, stable EM and inspect changed-input density scores",
+    "check": "just lab-check 18"
+  },
+  "topic_coverage": {
+    "K-means": "kmeans",
+    "Gaussian mixtures": "mixtures",
+    "EM": "maximization",
+    "anomaly scores": "anomaly"
+  },
+  "interactives": []
 }

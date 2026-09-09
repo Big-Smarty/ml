@@ -1,0 +1,218 @@
+[
+  {
+    "chapter": 12,
+    "flags": [],
+    "exit": 0
+  },
+  {
+    "chapter": 12,
+    "flags": [
+      "--check"
+    ],
+    "exit": 1
+  },
+  {
+    "chapter": 12,
+    "flags": [
+      "--solution"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 12,
+    "flags": [
+      "--solution",
+      "--check"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 13,
+    "flags": [],
+    "exit": 0
+  },
+  {
+    "chapter": 13,
+    "flags": [
+      "--check"
+    ],
+    "exit": 1
+  },
+  {
+    "chapter": 13,
+    "flags": [
+      "--solution"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 13,
+    "flags": [
+      "--solution",
+      "--check"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 14,
+    "flags": [],
+    "exit": 0
+  },
+  {
+    "chapter": 14,
+    "flags": [
+      "--check"
+    ],
+    "exit": 1
+  },
+  {
+    "chapter": 14,
+    "flags": [
+      "--solution"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 14,
+    "flags": [
+      "--solution",
+      "--check"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 15,
+    "flags": [],
+    "exit": 0
+  },
+  {
+    "chapter": 15,
+    "flags": [
+      "--check"
+    ],
+    "exit": 1
+  },
+  {
+    "chapter": 15,
+    "flags": [
+      "--solution"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 15,
+    "flags": [
+      "--solution",
+      "--check"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 16,
+    "flags": [],
+    "exit": 0
+  },
+  {
+    "chapter": 16,
+    "flags": [
+      "--check"
+    ],
+    "exit": 1
+  },
+  {
+    "chapter": 16,
+    "flags": [
+      "--solution"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 16,
+    "flags": [
+      "--solution",
+      "--check"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 17,
+    "flags": [],
+    "exit": 0
+  },
+  {
+    "chapter": 17,
+    "flags": [
+      "--check"
+    ],
+    "exit": 1
+  },
+  {
+    "chapter": 17,
+    "flags": [
+      "--solution"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 17,
+    "flags": [
+      "--solution",
+      "--check"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 18,
+    "flags": [],
+    "exit": 0
+  },
+  {
+    "chapter": 18,
+    "flags": [
+      "--check"
+    ],
+    "exit": 1
+  },
+  {
+    "chapter": 18,
+    "flags": [
+      "--solution"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 18,
+    "flags": [
+      "--solution",
+      "--check"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 19,
+    "flags": [],
+    "exit": 0
+  },
+  {
+    "chapter": 19,
+    "flags": [
+      "--check"
+    ],
+    "exit": 1
+  },
+  {
+    "chapter": 19,
+    "flags": [
+      "--solution"
+    ],
+    "exit": 0
+  },
+  {
+    "chapter": 19,
+    "flags": [
+      "--solution",
+      "--check"
+    ],
+    "exit": 0
+  }
+]

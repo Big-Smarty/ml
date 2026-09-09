@@ -1,3 +1,9 @@
+## Active redesign route (Section 09)
+
+The active learner route is `just lab 51` → edit `labs/s09-advanced/src/ch51.rs` → `just lab-check 51`. The lesson now contains 3 sessions and 9 ordered question-led steps. Goal: Implement beta-VAE and GAN objectives and a complete tested deterministic reverse diffusion chain. The separately explained solution is `labs/s09-advanced/src/solutions/ch51.rs`; supplied validation, fixtures, and I/O are in `src/common/ch51.rs`. Original `projects/ch51` implementations remain preserved reference evidence. Earlier workflow descriptions below are historical reference notes and do not replace this active route.
+
+Every session includes a concrete worked calculation, implementation checkpoint, graduated hints, an explained answer, and a changed-input transfer task. The browser illustration in chapter 48 executes only a fixed local arithmetic fixture; no browser control claims to run Rust. Executable goal checks and source-review limits are recorded in `guidance/redesign/section-09.md`.
+
 # Chapter 51 research notes
 
 Model route: GPT-5.6 Luna High bounded primary-source research for the Sol High chapter author. The chapter metadata assigns **Generative modeling beyond text** with topics VAE, GAN, diffusion, sampling, and objectives; the project is to generate a small synthetic distribution. Source claims below were checked against the original papers' stable arXiv records and full text on 2026-09-08. No secondary summaries are used.

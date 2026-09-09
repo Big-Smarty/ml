@@ -22,3 +22,12 @@ The fixed two-feature implementation uses a full distance sort because it reveal
 GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (08–14). Gaussian prediction now rejects nonfinite queries and log scores rather than choosing an arbitrary class. Scaling and Gaussian fitting reject overflowing statistics; kNN rejects overflowing squared distances. Added a Gaussian log-density oracle and deterministic vote-tie check. Clarified that a constant training coordinate gives no neighbor discrimination, even when a differing query adds a common distance term.
 
 See [the per-chapter review and validation record](../../guidance/astra-review-01-14.md) for evidence, gate results, and limitations.
+
+
+## September 2026 section redesign
+
+The original lesson, metadata, and `projects/ch14` reference were read before replacement; the original source-tagged excerpt and reference project remain available. The new section route connects a disclosed maintenance dataset through uncertainty, preprocessing, classical learning, projection, clustering and a frozen evaluation capstone. Existing source claims above support the mathematical exposition; dataset-specific numbers come from the actual new Rust implementation, not from those papers.
+
+Learner goal: Implement complete kNN voting and fitted Gaussian priors/variances. The chapter has 3 sessions of approximately40 minutes. Topic coverage is recorded verbatim in meta.json. Each session includes implementation and an unfamiliar or controlled transfer, with native hints and explained completed-source checkpoints. Browser calculations are explicitly illustrations and never claim to execute Rust.
+
+Checks: Changed nearest-neighbor majority differs from nearest label; Unequal class priors/spreads and variance floor are fitted correctly; Full width and finite input boundaries; probabilities remain normalized. Limitations: Full scans and sorts are expensive on large high-dimensional tables; Correlated sensors violate NB conditional independence; binary coordinates use a Gaussian approximation; Neighbor fractions and NB posterior outputs may be poorly calibrated. Full execution evidence, algorithm scope and prerequisite audit are in guidance/redesign/section-03.md. The original reference may use a simpler fixture or a different algorithm variant; its preserved results are labelled separately from the shared lab.

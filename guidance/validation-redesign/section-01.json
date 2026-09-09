@@ -1,0 +1,361 @@
+{
+  "section": "01",
+  "package": "s01-foundations",
+  "chapters": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06"
+  ],
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.036,
+      "output": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "seconds": 0.037,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml"
+      ],
+      "returncode": 0,
+      "seconds": 0.03,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (labs/s01-foundations/target/debug/deps/s01_foundations-1e1d3a628ed3f97e)\n\nrunning 11 tests\ntest args::tests::malformed_experiments_fail ... ok\ntest ch06::tests::shuffle_preserves_rows ... ok\ntest ch02::tests::gradients_and_real_baseline ... ok\ntest ch01::tests::baseline_is_useful_and_boundaries_hold ... ok\ntest solutions::ch04::tests::check_all_bce_derivatives ... ok\ntest solutions::ch06::tests::l2_gradient_and_short_batch ... ok\ntest ch05::tests::learner_baseline_counts_and_solution ... ok\ntest ch06::tests::baseline_and_goal_solutions ... ok\ntest ch06::tests::goal_checks_reject_wrong_penalty_and_ignored_patience ... ok\ntest ch03::tests::baseline_scaling_and_solution ... ok\ntest ch04::tests::baseline_and_stability ... ok\n\ntest result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s\n\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "01"
+      ],
+      "returncode": 0,
+      "seconds": 0.322,
+      "output": "   Compiling s01-foundations v0.1.0 (/home/bigsmarty/.codex/worktrees/15f2/ml/labs/s01-foundations)\n    Finished `release` profile [optimized] target(s) in 0.31s\n     Running `labs/s01-foundations/target/release/s01-foundations 01`\ncalibration pairs: [(-2.0, -3.0), (-1.0, -1.0), (0.0, 1.0), (1.0, 3.0), (2.0, 5.0)]; zero-rule MSE=9.000000\ncandidate weight=1, bias=0: MSE=3.000000\ncandidate weight=1, bias=1: MSE=2.000000\ncandidate weight=1.5, bias=0.5: MSE=0.750000\ncomparison winner=[1.5, 0.5]; requested numerical-training steps=100, rate=0.1\nweight=1.500000, bias=0.500000; training MSE=0.750000000\nunseen x=-1.5: prediction=-1.750000\nunseen x=0.5: prediction=1.250000\nunseen x=1.5: prediction=2.750000\nunseen x=3: prediction=5.000000\nThe supplied candidate baseline ignores step/rate values; your numerical trainer uses them. Baseline success is not the learning goal.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "01",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 01 --solution --check`\ncalibration: MSE=0.000000000, unseen absolute error=0.000000000\nchanged line: MSE=0.000000000, unseen absolute error=0.000000000\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "01",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 01 --check`\ncalibration: MSE=0.750000000, unseen absolute error=0.750000000\nGOAL_NOT_MET: learn parameters from both supplied linear fixtures with numerical slopes; see ch01.rs\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "02"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 02`\ngradient=[-8.000000000141227, -1.9999999999242843]; gradient row visits=20 (reporting/validation excluded)\ntrained=[2.0, 0.9999999997962964], MSE=0.0000000000; gradient row visits=2000\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "02",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 02 --solution --check`\nmodel=[0.0, 0.0]: analytical=[-16.0, -7.333333333333334], numerical=[-15.999999999927182, -7.333333333114921], row visits=3\nmodel=[1.3, -0.4]: analytical=[-8.399999999999999, -4.666666666666666], numerical=[-8.400000000063912, -4.66666666665283], row visits=3\nmodel=[-0.7, 2.0]: analytical=[-15.33333333333333, -5.2], numerical=[-15.333333333344966, -5.199999999838667], row visits=3\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "02",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 02 --check`\nmodel=[0.0, 0.0]: analytical=[-15.999999999927182, -7.333333333114921], numerical=[-15.999999999927182, -7.333333333114921], row visits=12\nGOAL_NOT_MET: compute both slopes in one pass; count rows actually visited\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "03"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 03`\nfeature order=[raw sensor,load,vibration]; scaler=Scaler { mean: [0.0, 0.0, 0.0], scale: [1.0, 1000.0, 1.0] }\nweights+bias=[1.999999999999994, 0.0, 0.0, 0.9999999999999971], MSE=10.000000, unseen [0.5,half the load scale,-0.5] predicts 2.000000\nraw-units comparison MSE=10.000000\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "03",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 03 --solution --check`\nall four gradient components agree; unfamiliar prediction absolute error=0.000000000\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "03",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 03 --check`\nGOAL_NOT_MET: component 1 is 0, finite difference is -6.4000000000064\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "04"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 04`\nfault classifier: parameters=[0.0, 0.0, 0.0], mean BCE=0.693147\n[-1.0, -0.5]: logit=0.0000, probability=0.5000, class=1\n[0.1, 0.1]: logit=0.0000, probability=0.5000, class=1\n[1.2, 0.7]: logit=0.0000, probability=0.5000, class=1\nextreme logit=1000, target=false: BCE=1000\nextreme logit=-1000, target=true: BCE=1000\nextreme logit=1000, target=true: BCE=0\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "04",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 04 --solution --check`\ntraining BCE=0.009286 (goal <0.04)\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "04",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 04 --check`\ntraining BCE=0.693147 (goal <0.04)\nGOAL_NOT_MET: implement mean BCE gradients and repeated simultaneous updates\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "05"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 05`\nsplit sizes=[72, 24, 24]; machine-disjoint=false\nLEAKAGE: repeated machines cross splits; following numbers are a contaminated demonstration, not a final estimate.\nvalidation candidates=[0.2, 0.35, 0.5, 0.65, 0.8]; miss cost=5, false-alarm cost=1\nthreshold frozen from validation=0.5; test candidate:\nCounts { tp: 4, fp: 0, tn: 18, fn_: 2 }; accuracy=0.917, precision=1.000, recall=0.667, F1=0.800, balanced accuracy=0.833, cost(5FN+FP)=10\nresidual error: machine=0, features=[-1.42, -0.9], p=0.0113, actual fault=true\nresidual error: machine=13, features=[-1.1, 0.6], p=0.0943, actual fault=true\nalways-negative on same test rows:\nCounts { tp: 0, fp: 0, tn: 18, fn_: 6 }; accuracy=0.750, precision=0.000, recall=0.000, F1=0.000, balanced accuracy=0.500, cost(5FN+FP)=30\nforbidden after-inspection feature (available only AFTER outcome):\nCounts { tp: 6, fp: 0, tn: 18, fn_: 0 }; accuracy=1.000, precision=1.000, recall=1.000, F1=1.000, balanced accuracy=1.000, cost(5FN+FP)=0\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "05",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 05 --solution --check`\nchanged validation set: chosen threshold=0.3, expected0.3 under5FN+FP\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "05",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 05 --check`\nGOAL_NOT_MET: split complete machines, not their individual visits\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "06"
+      ],
+      "returncode": 0,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 06`\nslow: Config { epochs: 80, batch: 12, rate: 0.001, l2: 0.0, seed: 7, patience: 0 }\nepoch=0, train MSE=12.686667, validation MSE=14.796667\nepoch=1, train MSE=12.545850, validation MSE=14.632616\nepoch=5, train MSE=11.999102, validation MSE=13.995342\nepoch=80, train MSE=5.368064, validation MSE=6.213826\nsteps=80, model=[0.752918973978973, 0.09663756831246478]\nfull batch: Config { epochs: 80, batch: 12, rate: 0.03, l2: 0.0, seed: 7, patience: 0 }\nepoch=0, train MSE=12.686667, validation MSE=14.796667\nepoch=1, train MSE=8.828091, validation MSE=10.293671\nepoch=5, train MSE=2.404528, validation MSE=2.694052\nepoch=80, train MSE=0.081195, validation MSE=0.024385\nsteps=80, model=[2.030887113752678, 1.0474295372585043]\nminibatch: Config { epochs: 80, batch: 5, rate: 0.03, l2: 0.0, seed: 7, patience: 0 }\nunsupported/failed run: GOAL_NOT_MET: baseline supports full-batch SGD only; implement minibatches, L2 and saved-best early stopping\nL2: Config { epochs: 80, batch: 5, rate: 0.03, l2: 0.2, seed: 7, patience: 0 }\nunsupported/failed run: GOAL_NOT_MET: baseline supports full-batch SGD only; implement minibatches, L2 and saved-best early stopping\nunstable: Config { epochs: 15, batch: 12, rate: 1.0, l2: 0.0, seed: 7, patience: 0 }\nepoch=0, train MSE=12.686667, validation MSE=14.796667\nepoch=1, train MSE=292.068380, validation MSE=331.324884\nepoch=5, train MSE=142366808.760599, validation MSE=153961105.042273\nepoch=15, train MSE=23925696378590371774464.000000, validation MSE=25872661625530277167104.000000\nsteps=15, model=[87618244295.13773, -10572550530.2356]\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "06",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 06 --solution --check`\nminibatch validation MSE=0.041615\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s01-foundations/Cargo.toml",
+        "--",
+        "06",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s01-foundations/target/release/s01-foundations 06 --check`\nGOAL_NOT_MET: baseline supports full-batch SGD only; implement minibatches, L2 and saved-best early stopping\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    }
+  ]
+}

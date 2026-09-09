@@ -7,13 +7,11 @@
     "Use finite differences and causal invariance as complementary tests"
   ],
   "lessons": [
-    "Code and terminology carried forward",
-    "Ask, match, and retrieve",
-    "Mask information from the future",
-    "Reverse the weighted mixture",
-    "Check the whole chain numerically",
-    "Practice and investigate",
-    "Review and transfer"
+    "What does one position ask another position for?",
+    "How do we stop the future from answering its own question?",
+    "Where does the error travel through a weighted mixture?",
+    "Does your backward match every local change?",
+    "How do independent heads fit inside a decoder?"
   ],
   "terms": {
     "self-attention": {
@@ -55,16 +53,90 @@
     }
   ],
   "checks": [
-    "causal_attention receives direct row-major query, key, and value arrays and returns output plus source-position probabilities with the documented shapes",
-    "Every Q, K, and V element passes f64 central differences against the summed attention_probe_objective",
-    "backward propagates supplied output gradients without an extra averaging denominator",
-    "Future key and value changes cannot affect earlier outputs, and masked probabilities are exactly zero",
-    "Default run traces probabilities, outputs, and nonzero gradient norms"
+    "just lab 35 runs the useful bounded learner baseline",
+    "just lab-check 35 calls the learner algorithms and fails until the full chapter goal is implemented",
+    "just lab 35 --solution --check checks the separate explained solution",
+    "Implement scaled causal attention and verify future invariance",
+    "Derive every QKV backward path and check all elements numerically",
+    "Compose two independent heads and explain feature packing",
+    "Supplied package tests verify numerical and boundary behavior; learner-written explanations and independent experiment reports are self-assessed"
   ],
   "limitations": [
-    "The standalone project receives direct Q, K, and V inputs rather than token IDs or learned projections",
-    "It implements one attention head and no dropout",
-    "Its test-only probe objective is not next-token cross-entropy",
-    "Quadratic attention storage is suitable only for short sequences"
+    "Direct supplied Q/K/V inputs, one head per operation, no dropout",
+    "Derivative probe is a summed scalar functional, not next-token cross-entropy",
+    "Quadratic storage; browser illustration is not Rust execution"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "qkv",
+      "title": "What does one position ask another position for?",
+      "session": 1,
+      "minutes": 15
+    },
+    {
+      "id": "causal",
+      "title": "How do we stop the future from answering its own question?",
+      "session": 1,
+      "minutes": 25
+    },
+    {
+      "id": "backward",
+      "title": "Where does the error travel through a weighted mixture?",
+      "session": 2,
+      "minutes": 15
+    },
+    {
+      "id": "gradient-check",
+      "title": "Does your backward match every local change?",
+      "session": 2,
+      "minutes": 25
+    },
+    {
+      "id": "heads",
+      "title": "How do independent heads fit inside a decoder?",
+      "session": 3,
+      "minutes": 35
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "What does one position ask another position for?",
+      "goal": "Implement scaled causal attention and verify future invariance"
+    },
+    {
+      "id": 2,
+      "title": "Where does the error travel through a weighted mixture?",
+      "goal": "Derive every QKV backward path and check all elements numerically"
+    },
+    {
+      "id": 3,
+      "title": "How do independent heads fit inside a decoder?",
+      "goal": "Compose two independent heads and explain feature packing"
+    }
+  ],
+  "lab": {
+    "package": "s07-language-models",
+    "chapter": "35",
+    "entry": "labs/s07-language-models/src/ch35.rs",
+    "goal": "Implement scaled causal attention and verify future invariance; Derive every QKV backward path and check all elements numerically; Compose two independent heads and explain feature packing",
+    "check": "just lab-check 35"
+  },
+  "topic_coverage": {
+    "Queries": "qkv",
+    "keys": "qkv",
+    "values": "qkv",
+    "causal masking": "causal",
+    "gradients": "backward"
+  },
+  "interactives": [
+    {
+      "id": "attention-lab",
+      "title": "Causal attention and decoder path",
+      "file": "demo.js",
+      "anchor": "attention-lab",
+      "illustration": true
+    }
   ]
 }

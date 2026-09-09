@@ -1,3 +1,13 @@
+# Chapter 46: September 2026 redesign verification
+
+Route: one GPT-6 Astra High section owner read the complete original lesson, metadata, research and reference implementations, plus the supplied advanced/interactive/learning-science evidence synthesis. No chapter subauthors or new research delegation. The original source verification below is retained as historical provenance; this current record supersedes old starter/exercise and implementation-scope statements.
+
+Required learned Bradley–Terry reward model, mean DPO batch gradients and exact verifier policy gradient execute separately. Counterbalanced reward features test held-out equal-length responses; confounded length and opposed preferences expose failures. First-step expected-reward numerics distinguish the objective from chosen-only supervision. InstructGPT supports pipeline distinctions; its full-pipeline results are not attributed to SFT alone.
+
+The author rechecked the primary PPO and InstructGPT records for the added algorithm/pipeline attribution. New numeric claims come from executable course fixtures, not borrowed benchmark outcomes. See `guidance/redesign/section-08.md` for actual commands, values, prerequisite audit and limits.
+
+## Preserved source-verification history
+
 # Chapter 46 research record
 
 ## Route and verification

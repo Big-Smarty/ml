@@ -7,19 +7,19 @@
     "Estimate persistent memory and define a throughput measurement"
   ],
   "lessons": [
-    "Adapt each parameter's update scale",
-    "Change learning rate with progress",
-    "Accumulate microbatches",
-    "Account for memory",
-    "Resume the exact next step",
-    "Practice and diagnose",
-    "Review and transfer"
+    "How can two differently scaled gradients use one learning rate?",
+    "Can we keep moments and parameters consistent?",
+    "Which gradients belong to the same update?",
+    "When should we bound a large gradient?",
+    "Which step selects the next learning rate?",
+    "Will a restored run take the same next update?",
+    "How much storage is hidden behind the parameter count?"
   ],
   "terms": {
     "adamw": {
       "name": "AdamW",
       "definition": "An adaptive moment optimizer that applies weight decay separately from the gradient moment update.",
-      "explanation": "AdamW tracks exponential averages of gradients and squared gradients, corrects their initialization bias, and divides the first by the square root of the second. It then adds \u03bb\u03b8 as a separate decay contribution. This separation matters because placing an L2 penalty inside the gradient lets Adam's adaptive scaling alter it. A resumable run stores both moment vectors, step, and all hyperparameters. Parameter-group policies may exclude gains or biases, but such choices must be explicit."
+      "explanation": "AdamW tracks exponential averages of gradients and squared gradients, corrects their initialization bias, and divides the first by the square root of the second. It then adds λθ as a separate decay contribution. This separation matters because placing an L2 penalty inside the gradient lets Adam's adaptive scaling alter it. A resumable run stores both moment vectors, step, and all hyperparameters. Parameter-group policies may exclude gains or biases, but such choices must be explicit."
     },
     "gradient-accumulation": {
       "name": "gradient accumulation",
@@ -55,15 +55,101 @@
     }
   ],
   "checks": [
-    "Save-load branch produces bit-identical next loss and parameters",
-    "Checkpoint restores cursor, RNG, schedule step, model, and moments",
-    "Accumulated return value is the mean data loss and excludes AdamW weight decay",
-    "Nonfinite gradients and checkpoint values are rejected",
-    "Default run reports calculated persistent memory and measured loss"
+    "just lab 38 runs the useful bounded learner baseline",
+    "just lab-check 38 calls the learner algorithms and fails until the full chapter goal is implemented",
+    "just lab 38 --solution --check checks the separate explained solution",
+    "Implement complete AdamW moments and proposed parameter update",
+    "Combine unequal microbatch gradients then globally clip",
+    "Implement the schedule and prove next-update checkpoint equivalence",
+    "Compare optimizer configurations and account for excluded memory",
+    "Supplied package tests verify numerical and boundary behavior; learner-written explanations and independent experiment reports are self-assessed"
   ],
   "limitations": [
-    "Weight decay applies uniformly to all spans",
-    "Checkpoint format lacks a checksum and parent-directory synchronization",
-    "GPU feature retains host optimizer and per-GEMM transfers"
-  ]
+    "Proposal buffers and checkpoint staging add memory beyond printed persistent count",
+    "Uniform decay covers gains and biases as well as matrices",
+    "CH38LM02 serialization is reused, but this lab cursor/fingerprint policy requires this lab for exact continuation",
+    "No checkpoint checksum or parent-directory sync; no cross-platform bitwise guarantee"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "adamw",
+      "title": "How can two differently scaled gradients use one learning rate?",
+      "session": 1,
+      "minutes": 15
+    },
+    {
+      "id": "optimizer-build",
+      "title": "Can we keep moments and parameters consistent?",
+      "session": 1,
+      "minutes": 25
+    },
+    {
+      "id": "accumulation",
+      "title": "Which gradients belong to the same update?",
+      "session": 2,
+      "minutes": 16
+    },
+    {
+      "id": "clipping",
+      "title": "When should we bound a large gradient?",
+      "session": 2,
+      "minutes": 24
+    },
+    {
+      "id": "schedule",
+      "title": "Which step selects the next learning rate?",
+      "session": 3,
+      "minutes": 14
+    },
+    {
+      "id": "checkpoint",
+      "title": "Will a restored run take the same next update?",
+      "session": 3,
+      "minutes": 26
+    },
+    {
+      "id": "memory",
+      "title": "How much storage is hidden behind the parameter count?",
+      "session": 4,
+      "minutes": 35
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "How can two differently scaled gradients use one learning rate?",
+      "goal": "Implement complete AdamW moments and proposed parameter update"
+    },
+    {
+      "id": 2,
+      "title": "Which gradients belong to the same update?",
+      "goal": "Combine unequal microbatch gradients then globally clip"
+    },
+    {
+      "id": 3,
+      "title": "Which step selects the next learning rate?",
+      "goal": "Implement the schedule and prove next-update checkpoint equivalence"
+    },
+    {
+      "id": 4,
+      "title": "How much storage is hidden behind the parameter count?",
+      "goal": "Compare optimizer configurations and account for excluded memory"
+    }
+  ],
+  "lab": {
+    "package": "s07-language-models",
+    "chapter": "38",
+    "entry": "labs/s07-language-models/src/ch38.rs",
+    "goal": "Implement complete AdamW moments and proposed parameter update; Combine unequal microbatch gradients then globally clip; Implement the schedule and prove next-update checkpoint equivalence; Compare optimizer configurations and account for excluded memory",
+    "check": "just lab-check 38"
+  },
+  "topic_coverage": {
+    "AdamW": "adamw",
+    "schedules": "schedule",
+    "accumulation": "accumulation",
+    "memory": "memory",
+    "resumable training": "checkpoint"
+  },
+  "interactives": []
 }

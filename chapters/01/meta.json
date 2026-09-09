@@ -1,19 +1,16 @@
 {
   "outcomes": [
-    "Organize a scalar neuron and its gradient with Rust structs and methods",
-    "Train one scalar neuron without ML libraries",
-    "Calculate prediction and mean squared error by hand",
-    "Explain borrowing with &self and propagate numerical errors with Result and ?",
-    "Diagnose the update sign, learning rate, and sequential-update bug"
+    "Compare calibration rules using every example",
+    "Implement numerical slopes and simultaneous training updates",
+    "Verify a changed line and distinguish inference from training"
   ],
   "lessons": [
-    "The shared neuron interface",
-    "Examples and targets",
-    "The prediction rule",
-    "A numerical loss",
-    "Numerical slopes and updates",
-    "Run and check the program",
-    "Practice and transfer"
+    "What is the sensor getting wrong?",
+    "Which number tilts the line, and which shifts it?",
+    "How can we compare two imperfect rules?",
+    "Can two nearby guesses reveal a direction?",
+    "Can your program turn slopes into learning?",
+    "What did the successful run establish?"
   ],
   "terms": {
     "dataset": {
@@ -92,24 +89,94 @@
       "title": "Rust Book",
       "url": "https://doc.rust-lang.org/book/",
       "note": "Language reference"
-    },
-    {
-      "title": "Rustlings usage",
-      "url": "https://rustlings.rust-lang.org/usage/",
-      "note": "Exercise workflow"
     }
   ],
   "checks": [
-    "Starting MSE equals 9",
-    "Initial numerical gradient is weight -8 and bias -2 within 1e-8",
-    "First step is weight 0.8, bias 0.2 within 1e-8",
-    "An asymmetric fixture proves weight and bias update from the same old model",
-    "100 steps yield MSE below 1e-12",
-    "Held-out prediction at 0.5 is within 1e-7 of 2",
-    "Invalid data and learning rates are rejected"
+    "Candidate search selects the lowest-loss supplied rule",
+    "Goal requires MSE below1e-8 and unfamiliar error below1e-4 on two different lines",
+    "Asymmetric one-step fixture requires[1.3,0.8] within absolute1e-6 plus relative1e-4",
+    "Malformed options, empty/nonfinite data and invalid rates are rejected"
   ],
   "limitations": [
-    "Exact synthetic data validates mechanics, not real-world generalization",
-    "Numerical gradients scale poorly with parameter count"
-  ]
+    "Exact synthetic fixtures demonstrate mechanics, not real-sensor generalization",
+    "Numerical gradients need two complete loss probes per parameter",
+    "A passing behavioral check cannot establish that numerical probing rather than another equivalent method was authored"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "sensor",
+      "title": "What is the sensor getting wrong?",
+      "session": 1,
+      "minutes": 7
+    },
+    {
+      "id": "line",
+      "title": "Which number tilts the line, and which shifts it?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "errors",
+      "title": "How can we compare two imperfect rules?",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "slopes",
+      "title": "Can two nearby guesses reveal a direction?",
+      "session": 2,
+      "minutes": 9
+    },
+    {
+      "id": "train",
+      "title": "Can your program turn slopes into learning?",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "unseen",
+      "title": "What did the successful run establish?",
+      "session": 2,
+      "minutes": 10
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Compare calibration rules",
+      "goal": "Retain a grid comparison and explain its changed-line limitation"
+    },
+    {
+      "id": 2,
+      "title": "Build numerical training",
+      "goal": "Train both parameters from numerical slopes and verify unfamiliar readings"
+    }
+  ],
+  "lab": {
+    "package": "s01-foundations",
+    "chapter": "01",
+    "entry": "labs/s01-foundations/src/ch01.rs",
+    "goal": "Replace candidate search with numerical-gradient training",
+    "check": "just lab-check 01",
+    "manual_checks": [
+      "Explain the prediction and independent variation in your own words; numeric checks do not grade prose."
+    ]
+  },
+  "interactives": [
+    {
+      "id": "neuron-fit",
+      "title": "Fit a sensor",
+      "file": "demo.js",
+      "anchor": "neuron-fit",
+      "illustration": true
+    }
+  ],
+  "topic_coverage": {
+    "Prediction": "sensor",
+    "weights and bias": "line",
+    "squared loss": "errors",
+    "numerical slopes": "slopes",
+    "training and inference": "unseen"
+  }
 }

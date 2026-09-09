@@ -1,0 +1,465 @@
+{
+  "section": "03",
+  "package": "s03-tabular",
+  "chapters": [
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19"
+  ],
+  "passed": true,
+  "results": [
+    {
+      "command": [
+        "cargo",
+        "fmt",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.045,
+      "output": ""
+    },
+    {
+      "command": [
+        "cargo",
+        "clippy",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--all-targets",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "returncode": 0,
+      "seconds": 0.04,
+      "output": "    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "test",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml"
+      ],
+      "returncode": 0,
+      "seconds": 0.04,
+      "output": "    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s\n     Running unittests src/main.rs (labs/s03-tabular/target/debug/deps/s03_tabular-f25567fb68f68604)\n\nrunning 9 tests\ntest ch17::tests::baseline_and_solution ... ok\ntest ch16::tests::baseline_and_solution ... ok\ntest data::tests::fixture_and_boundaries ... ok\ntest ch13::tests::baseline_and_solution ... ok\ntest ch15::tests::baseline_and_solution ... ok\ntest ch14::tests::baseline_and_solution ... ok\ntest ch18::tests::baseline_and_solution ... ok\ntest ch12::tests::baseline_and_solution ... ok\ntest ch19::tests::baseline_and_solution ... ok\n\ntest result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s\n\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "12"
+      ],
+      "returncode": 0,
+      "seconds": 0.881,
+      "output": "   Compiling s03-tabular v0.1.0 (/home/bigsmarty/.codex/worktrees/15f2/ml/labs/s03-tabular)\n    Finished `release` profile [optimized] target(s) in 0.86s\n     Running `labs/s03-tabular/target/release/s03-tabular 12`\nMaintenance v1: fixed sensor-rule predictions on 18 development readings from 6 machines; no model fitting.\nfrozen heuristic: n=18 accuracy=0.667 Brier=0.1859 cost(4FN+FP)/n=0.833 TP=4 FP=3 FN=3 TN=8\n95% interval (0.44888888888888884, 0.8844444444444444); seed=7; 2000 repetitions requested\nbin 0: n=18 mean p=0.4471, frequency=0.3889\nA working report is not a learning-goal pass. --check inspects groups, pairs, endpoints and bin arithmetic.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "12",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 12 --solution --check`\ntwo machines (one always correct, one always wrong): interval=(0.0, 1.0); expected [0,1]\nGoal checks passed. Explain why six machines still cannot establish nominal 95% coverage.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "12",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 12 --check`\ntwo machines (one always correct, one always wrong): interval=(0.010000000000000009, 0.99); expected [0,1]\nGOAL_NOT_MET: Goal not met: sample whole machine groups with replacement and recompute accuracy; row-count standard errors invent independence\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "13"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 13`\nMaintenance v1; prediction at day d, target/repair known at d+1. Candidate features: 3 sensors, missingness, regime.\nRow k=3: n=36 accuracy=0.667 Brier=0.1728 cost(4FN+FP)/n=0.833 TP=8 FP=6 FN=6 TN=16\n train=108 valid=36 validation rows with known machines=36 median=[61.89788888888889, 2.331558823529413, 0.5441111111111112] vocabulary=[]\nGroup k=3: n=36 accuracy=0.667 Brier=0.1728 cost(4FN+FP)/n=0.833 TP=8 FP=6 FN=6 TN=16\n train=108 valid=36 validation rows with known machines=36 median=[61.89788888888889, 2.331558823529413, 0.5441111111111112] vocabulary=[]\nTime k=3: n=36 accuracy=0.667 Brier=0.1728 cost(4FN+FP)/n=0.833 TP=8 FP=6 FN=6 TN=16\n train=108 valid=36 validation rows with known machines=36 median=[61.89788888888889, 2.331558823529413, 0.5441111111111112] vocabulary=[]\nFutureGroup k=3: n=36 accuracy=0.667 Brier=0.1728 cost(4FN+FP)/n=0.833 TP=8 FP=6 FN=6 TN=16\n train=108 valid=36 validation rows with known machines=36 median=[61.89788888888889, 2.331558823529413, 0.5441111111111112] vocabulary=[]\nFORBIDDEN repair_after feature: n=18 accuracy=1.000 Brier=0.0000 cost(4FN+FP)/n=0.000 TP=7 FP=0 FN=0 TN=11\nTrain-only temperature center 0.000; fit-before-split center 0.000. Perfect repair prediction uses tomorrow's answer.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "13",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 13 --solution --check`\nNumeric fitting, vocabulary, missingness and unknown-category checkpoint passed.\nSplit, training-only state, missingness, unknown-category and held-only perturbation checks passed.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "13",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 13 --check`\nGOAL_NOT_MET: Goal not met: training median4, imputed mean27.5, vocabulary[a,b], constant scale1; got Prep { median: [35.333333333333336, 2.0, 1.0], mean: [0.0, 0.0, 0.0], scale: [1.0, 1.0, 1.0], categories: [] }\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "14"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 14`\nMaintenance checkpoint: 48 training rows, 9 features, 18 future unseen-machine validation rows\nkNN k=1: n=18 accuracy=0.556 Brier=0.4444 cost(4FN+FP)/n=1.278 TP=2 FP=3 FN=5 TN=8\nkNN k=3: n=18 accuracy=0.556 Brier=0.4444 cost(4FN+FP)/n=1.278 TP=2 FP=3 FN=5 TN=8\nkNN k=7: n=18 accuracy=0.556 Brier=0.4444 cost(4FN+FP)/n=1.278 TP=2 FP=3 FN=5 TN=8\nGaussian model: n=18 accuracy=0.667 Brier=0.2166 cost(4FN+FP)/n=0.667 TP=5 FP=4 FN=2 TN=7\nNB priors [0.5, 0.5]; first sensor class means [-0.269,0.652], variances [1.000,1.000]\nkNN scans 48 stored rows per query; NB scores two class summaries. Neither normalized output is guaranteed calibrated.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "14",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 14 --solution --check`\nk-dependent voting, learned priors, unequal class spread, constant variance floor and new queries passed.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "14",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 14 --check`\nGOAL_NOT_MET: Goal not met: three-neighbor vote must be 1/3 despite nearest positive; got 1\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "15"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 15`\ntree depth1 nodes3: n=18 accuracy=0.611 Brier=0.2426 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11\n train Gini 0.4132; train accuracy 0.708\ntree depth3 nodes3: n=18 accuracy=0.611 Brier=0.2426 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11\n train Gini 0.4132; train accuracy 0.708\ntree depth6 nodes3: n=18 accuracy=0.611 Brier=0.2426 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11\n train Gini 0.4132; train accuracy 0.708\nbagging(all features): n=18 accuracy=0.611 Brier=0.2426 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11\nrandom forest: n=18 accuracy=0.611 Brier=0.2426 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11\nsquared-error boosting rounds1; clipped0/1 regression: n=18 accuracy=0.611 Brier=0.2471 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11\nsquared-error boosting rounds10; clipped0/1 regression: n=18 accuracy=0.611 Brier=0.2471 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11\nsquared-error boosting rounds30; clipped0/1 regression: n=18 accuracy=0.611 Brier=0.2471 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "15",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.016,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 15 --solution --check`\nRecursive interaction, randomized structure and negative/positive residual-target checks passed; MSE=0.000000\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "15",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 15 --check`\nGOAL_NOT_MET: Goal not met: a depth2 tree must learn the two-feature interaction; search weighted impurity then recurse\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "16"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 16`\nlinear decision lambda0.01: n=18 accuracy=0.611 Brier=0.3889 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11\n training hinge+penalty 0.9815; norm 0.0947\nlinear decision lambda0.2: n=18 accuracy=0.611 Brier=0.3889 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11\n training hinge+penalty 0.9824; norm 0.0947\nRBF decision gamma0.05: n=18 accuracy=0.722 Brier=0.2778 cost(4FN+FP)/n=0.444 TP=6 FP=4 FN=1 TN=7\n nonzero support coefficients 2\nRBF decision gamma0.5: n=18 accuracy=0.722 Brier=0.2778 cost(4FN+FP)/n=0.444 TP=6 FP=4 FN=1 TN=7\n nonzero support coefficients 2\nRBF decision gamma5: n=18 accuracy=0.722 Brier=0.2778 cost(4FN+FP)/n=0.444 TP=6 FP=4 FN=1 TN=7\n nonzero support coefficients 2\nBrier above uses hard0/1 decisions, not calibrated SVM probabilities. Nonlinear training goal is a kernel perceptron, not a kernel SVM dual solver.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "16",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 16 --solution --check`\nActive/inactive hinge updates, weight-only shrinkage, and perturbed nonlinear queries passed.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "16",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 16 --check`\nGOAL_NOT_MET: Goal not met: positive-but-small margin still updates; expected w0=.49375,b=.5, got Linear { weights: [0.25, 0.0], bias: 0.25 }\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "17"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 17`\nPCA reads the three training-standardized continuous sensors; excludes category/indicator columns and every label.\nk=1: eigenvalues=[1.0212765957446812], retained=0.3333, train squared reconstruction norm/row=2.0000, validation=2.1495\nk=2: eigenvalues=[1.0212765957446812, 1.0212765957446808], retained=0.6667, train squared reconstruction norm/row=1.0000, validation=1.0387\nk=3: eigenvalues=[1.0212765957446812, 1.0212765957446808, 1.0212765957446805], retained=1.0000, train squared reconstruction norm/row=0.0000, validation=0.0000\ncovariance=[[1.0212765957446805, 0.0, 0.0], [0.0, 1.0212765957446812, 0.0], [0.0, 0.0, 1.0212765957446808]]; condition number=1.0000000000000007; projection first validation=[-0.4651304327538394, -1.1813459814049325, -1.5154707800923732]\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "17",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 17 --solution --check`\nCovariance, eigenpair residuals, orthogonality, translation,3D rank deficiency and constant-data checks passed.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "17",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.014,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 17 --check`\nGOAL_NOT_MET: Goal not met: full centered covariance [[2,1],[1,2]] has eigenvalues[3,1]; got [2.0000000000000004, 2.0000000000000004]\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "18"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 18`\nk-means k2 inertia(sum)=199.4454 centers=[[-0.40265890141439115, 1.2432958342337654], [0.8195064064546648, 1.9814405340372794]] counts=[38, 10]\nk-means k3 inertia(sum)=152.5349 centers=[[-0.40265890141439115, 1.2432958342337654], [1.3328846663140816, 1.14271104553954], [0.8195064064546648, 1.9814405340372794]] counts=[29, 18, 1]\nEM summed log likelihood, first=-209.4742 last=-209.4742; weights=[0.5, 0.5]\nhighest development anomaly scores (validation index, score): [(13, 6.6114358973342355), (2, 6.007068090745601), (15, 5.568300981043151)]\nFirst validation responsibilities=[0.9587736449299864, 0.041226355070013675]. These operating-regime densities are not failure probabilities.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "18",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 18 --solution --check`\nCenter updates, final assignments, unequal-spread EM, likelihood, floors, and unfamiliar anomaly checks passed.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "18",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 18 --check`\nGOAL_NOT_MET: Goal not met: centers1.5,8.5 yield summed inertia1; got2\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "19"
+      ],
+      "returncode": 0,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 19`\nmaintenance-v1 FNV1a64=6dccde7b74debd05; split=early train<=day3; validation days5..7 on held machines; final machines18..23 days9..11\nFrozen metric=(4FN+FP)/n, threshold=.5, lower is better; candidate order=[Knn(3), Knn(7), Bayes(0.02), Bayes(0.2), Tree(2), Tree(4)]; no test-dependent choices.\nfold0 train IDs=[0, 1, 2, 3, 12, 13, 14, 15, 24, 25, 26, 27, 36, 37, 38, 39, 48, 49, 50, 51, 60, 61, 62, 63, 72, 73, 74, 75, 84, 85, 86, 87, 96, 97, 98, 99, 108, 109, 110, 111, 120, 121, 122, 123, 132, 133, 134, 135]; valid IDs=[149, 150, 151, 161, 162, 163, 173, 174, 175, 185, 186, 187, 197, 198, 199, 209, 210, 211]\ncandidate0 Knn(3): fold costs=[1.0]; pooled cost=1.0000; accuracy=0.6667; Brier=0.2346\nFrozen development choice: Knn(3)\nFinal rows remain unopened. After recording the protocol and selection, rerun19 --final (or19 --solution --final). Inspecting final errors begins a new development cycle.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "19",
+        "--solution",
+        "--check"
+      ],
+      "returncode": 0,
+      "seconds": 0.017,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 19 --solution --check`\nDevelopment protocol, six-candidate search and stable-order checks passed. Final outcomes remain unopened; use --final only after freezing selection.\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "run",
+        "--release",
+        "--offline",
+        "--manifest-path",
+        "labs/s03-tabular/Cargo.toml",
+        "--",
+        "19",
+        "--check"
+      ],
+      "returncode": 1,
+      "seconds": 0.015,
+      "output": "    Finished `release` profile [optimized] target(s) in 0.00s\n     Running `labs/s03-tabular/target/release/s03-tabular 19 --check`\nGOAL_NOT_MET: Goal not met: build three rotated machine-group folds, each with earlier training and later held-machine validation\n",
+      "learner_goal_met": false,
+      "delivery_ok": true,
+      "manual_review_required": false
+    }
+  ]
+}

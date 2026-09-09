@@ -6,12 +6,12 @@
     "Assign each retained whole document to one stable split without constructing token windows"
   ],
   "lessons": [
-    "Know what each document is",
-    "Clean with explicit rules",
-    "Remove repeated documents",
-    "Split complete documents and bound contamination claims",
-    "Produce and inspect the audit",
-    "Practice, debug, and transfer"
+    "What exactly are we allowed to call the training data?",
+    "What changed when we cleaned a document?",
+    "Which changed copies should count as duplicates?",
+    "Can we remove a copy and still explain the decision?",
+    "What does a clean split actually establish?",
+    "How do we select a threshold with evidence?"
   ],
   "terms": {
     "provenance": {
@@ -58,15 +58,89 @@
     }
   ],
   "checks": [
-    "Parsing, cleaning, deduplication, and split assignment produce separate document artifacts",
-    "Malformed metadata, empty cleaned text, and invalid thresholds return errors",
-    "The near-duplicate fixture removes the intended copy and records its retained-document link",
-    "The manifest retains source and license fields and gives each retained document exactly one split"
+    "just lab 37 runs the useful bounded learner baseline",
+    "just lab-check 37 calls the learner algorithms and fails until the full chapter goal is implemented",
+    "just lab 37 --solution --check checks the separate explained solution",
+    "Inspect cleaning and retain raw-source provenance through parsing",
+    "Implement near-duplicate Jaccard decisions with removal links",
+    "Review threshold choices and state document-split/contamination limits",
+    "Supplied package tests verify numerical and boundary behavior; learner-written explanations and independent experiment reports are self-assessed"
   ],
   "limitations": [
-    "Quadratic pair comparison is for small corpora",
-    "FNV identity is not cryptographic authentication",
-    "The fixture does not demonstrate language, personal-data, substring, or semantic-overlap filtering",
-    "The project does not tokenize, construct windows, train a model, or enforce how downstream consumers traverse document boundaries"
-  ]
+    "Quadratic whole-document shingle comparison misses embedded passages and semantic paraphrases",
+    "FNV identity is not cryptographic",
+    "The bundled hash-split fixture has three training records and no validation/test records; never report absent-split metrics",
+    "Pipeline produces records/audit only; capstone CLI accepts separate byte files and keeps its manifest separate"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "provenance",
+      "title": "What exactly are we allowed to call the training data?",
+      "session": 1,
+      "minutes": 15
+    },
+    {
+      "id": "cleaning",
+      "title": "What changed when we cleaned a document?",
+      "session": 1,
+      "minutes": 25
+    },
+    {
+      "id": "dedup",
+      "title": "Which changed copies should count as duplicates?",
+      "session": 2,
+      "minutes": 15
+    },
+    {
+      "id": "build-dedup",
+      "title": "Can we remove a copy and still explain the decision?",
+      "session": 2,
+      "minutes": 25
+    },
+    {
+      "id": "splits",
+      "title": "What does a clean split actually establish?",
+      "session": 3,
+      "minutes": 16
+    },
+    {
+      "id": "run",
+      "title": "How do we select a threshold with evidence?",
+      "session": 3,
+      "minutes": 24
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "What exactly are we allowed to call the training data?",
+      "goal": "Inspect cleaning and retain raw-source provenance through parsing"
+    },
+    {
+      "id": 2,
+      "title": "Which changed copies should count as duplicates?",
+      "goal": "Implement near-duplicate Jaccard decisions with removal links"
+    },
+    {
+      "id": 3,
+      "title": "What does a clean split actually establish?",
+      "goal": "Review threshold choices and state document-split/contamination limits"
+    }
+  ],
+  "lab": {
+    "package": "s07-language-models",
+    "chapter": "37",
+    "entry": "labs/s07-language-models/src/ch37.rs",
+    "goal": "Inspect cleaning and retain raw-source provenance through parsing; Implement near-duplicate Jaccard decisions with removal links; Review threshold choices and state document-split/contamination limits",
+    "check": "just lab-check 37"
+  },
+  "topic_coverage": {
+    "Provenance": "provenance",
+    "cleaning": "cleaning",
+    "deduplication": "dedup",
+    "document splits": "splits",
+    "contamination": "splits"
+  },
+  "interactives": []
 }

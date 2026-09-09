@@ -1,0 +1,218 @@
+[
+  {
+    "id": "01",
+    "title": "First principles",
+    "chapters": [
+      "01",
+      "02",
+      "03",
+      "04",
+      "05",
+      "06"
+    ],
+    "package": "s01-foundations",
+    "project": "Calibrate a sensor, then detect faults",
+    "artifact": "A trained predictor and a report of its mistakes",
+    "milestones": [
+      "Fit and inspect a line",
+      "Learn from multiple readings",
+      "Classify faults and choose a threshold",
+      "Evaluate and stabilize training"
+    ],
+    "prerequisites": []
+  },
+  {
+    "id": "02",
+    "title": "Build a neural network",
+    "chapters": [
+      "07",
+      "08",
+      "09",
+      "10",
+      "11"
+    ],
+    "package": "s02-neural-networks",
+    "project": "Build a neural network you can explain",
+    "artifact": "A tested digit classifier with gradients you can inspect",
+    "milestones": [
+      "Solve XOR",
+      "Build automatic differentiation",
+      "Work with tensors",
+      "Compare linear and neural digit classifiers"
+    ],
+    "prerequisites": [
+      "01"
+    ]
+  },
+  {
+    "id": "03",
+    "title": "Beyond neural networks",
+    "chapters": [
+      "12",
+      "13",
+      "14",
+      "15",
+      "16",
+      "17",
+      "18",
+      "19"
+    ],
+    "package": "s03-tabular",
+    "project": "Investigate an imperfect maintenance dataset",
+    "artifact": "A fair comparison of models and an error analysis",
+    "milestones": [
+      "Measure uncertainty",
+      "Prepare data without leakage",
+      "Compare different model families",
+      "Freeze evaluation and explain residual mistakes"
+    ],
+    "prerequisites": [
+      "02"
+    ]
+  },
+  {
+    "id": "04",
+    "title": "Broader deep learning",
+    "chapters": [
+      "20",
+      "21",
+      "22",
+      "23",
+      "24"
+    ],
+    "package": "s04-deep-learning",
+    "project": "Explore different kinds of data",
+    "artifact": "Small vision, sequence and recommendation experiments",
+    "milestones": [
+      "Recognize local image patterns",
+      "Learn useful representations",
+      "Carry information through a sequence",
+      "Recommend from learned neighborhoods"
+    ],
+    "prerequisites": [
+      "03"
+    ]
+  },
+  {
+    "id": "05",
+    "title": "Make the CPU faster",
+    "chapters": [
+      "25",
+      "26",
+      "27",
+      "28"
+    ],
+    "package": "s05-cpu",
+    "project": "Make one correct kernel faster",
+    "artifact": "A reproducible dense-kernel benchmark",
+    "milestones": [
+      "Establish a trustworthy measurement",
+      "Reuse data in memory",
+      "Divide work across threads",
+      "Use SIMD with a scalar reference"
+    ],
+    "prerequisites": [
+      "04"
+    ]
+  },
+  {
+    "id": "06",
+    "title": "Write GPU kernels",
+    "chapters": [
+      "29",
+      "30",
+      "31",
+      "32"
+    ],
+    "package": "s06-gpu",
+    "project": "Move a computation onto the GPU",
+    "artifact": "A verified GPU pipeline and measured performance report",
+    "milestones": [
+      "Map indices to workgroups",
+      "Reuse tiles safely",
+      "Train with real device computations",
+      "Measure transfers and kernel time"
+    ],
+    "prerequisites": [
+      "05"
+    ]
+  },
+  {
+    "id": "07",
+    "title": "Train your language model",
+    "chapters": [
+      "33",
+      "34",
+      "35",
+      "36",
+      "37",
+      "38",
+      "39"
+    ],
+    "package": "s07-language-models",
+    "project": "Train a small language model",
+    "artifact": "A byte-level decoder with reproducible training and checkpoints",
+    "milestones": [
+      "Predict the next byte",
+      "Implement and compare BPE",
+      "Build causal attention and a decoder",
+      "Prepare data and restore training state"
+    ],
+    "prerequisites": [
+      "06"
+    ]
+  },
+  {
+    "id": "08",
+    "title": "Efficient and adapted LLMs",
+    "chapters": [
+      "40",
+      "41",
+      "42",
+      "43",
+      "44",
+      "45",
+      "46"
+    ],
+    "package": "s08-adaptation",
+    "project": "Adapt and evaluate a language model",
+    "artifact": "Controlled experiments that compare quality, cost and behavior",
+    "milestones": [
+      "Cache and compress inference",
+      "Adapt parameters efficiently",
+      "Retrieve supporting information",
+      "Understand rewards and preferences"
+    ],
+    "prerequisites": [
+      "07"
+    ]
+  },
+  {
+    "id": "09",
+    "title": "Advanced architectures & engineering",
+    "chapters": [
+      "47",
+      "48",
+      "49",
+      "50",
+      "51",
+      "52",
+      "53",
+      "54",
+      "55",
+      "56"
+    ],
+    "package": "s09-advanced",
+    "project": "Study architectures and engineer a system",
+    "artifact": "A sparse MoE language model you can train, evaluate and serve",
+    "milestones": [
+      "Study sparse and alternative architectures",
+      "Coordinate workers and generate outputs",
+      "Connect modalities and evaluate systems",
+      "Train, inspect and serve a sparse MoE model"
+    ],
+    "prerequisites": [
+      "08"
+    ]
+  }
+]

@@ -7,12 +7,14 @@
     "Verify GPU training against the same scalar model operations and a falling-loss criterion"
   ],
   "lessons": [
-    "Why repeated host transfers stop being training",
-    "Work a nonlinear forward and backward pass",
-    "Order three device-resident kernels",
-    "Check gradients and training behavior",
-    "Run, debug, and extend the project",
-    "Review and transfer"
+    "Can the features learn the nonlinear task?",
+    "Follow one error through a hidden unit",
+    "Which derivative evidence rules out a wrong update?",
+    "Train the hidden features on the CPU first",
+    "Port the same update to three ordered kernels",
+    "Which version of each buffer is consumed?",
+    "Verify device-resident nonlinear training",
+    "Explain what the capstone does and does not prove"
   ],
   "terms": {
     "device-residency": {
@@ -37,22 +39,118 @@
     }
   },
   "sources": [
-    {"title": "wgpu 29 compute pass API", "url": "https://github.com/gfx-rs/wgpu/blob/v29/wgpu/src/api/compute_pass.rs", "note": "First-party compute pass and dispatch API."},
-    {"title": "wgpu 29 command encoder API", "url": "https://github.com/gfx-rs/wgpu/blob/v29/wgpu/src/api/command_encoder.rs", "note": "First-party command recording and ordering API."},
-    {"title": "WebGPU specification", "url": "https://www.w3.org/TR/webgpu/", "note": "Normative command-buffer and queue behavior."},
-    {"title": "On Calibration of Modern Neural Networks", "url": "https://proceedings.mlr.press/v70/guo17a.html", "note": "Primary source using logits, probabilities, and cross-entropy in neural-network evaluation."}
+    {
+      "title": "wgpu 29 compute pass API",
+      "url": "https://github.com/gfx-rs/wgpu/blob/v29/wgpu/src/api/compute_pass.rs",
+      "note": "First-party compute pass and dispatch API."
+    },
+    {
+      "title": "wgpu 29 command encoder API",
+      "url": "https://github.com/gfx-rs/wgpu/blob/v29/wgpu/src/api/command_encoder.rs",
+      "note": "First-party command recording and ordering API."
+    },
+    {
+      "title": "WebGPU specification",
+      "url": "https://www.w3.org/TR/webgpu/",
+      "note": "Normative command-buffer and queue behavior."
+    },
+    {
+      "title": "On Calibration of Modern Neural Networks",
+      "url": "https://proceedings.mlr.press/v70/guo17a.html",
+      "note": "Primary source using logits, probabilities, and cross-entropy in neural-network evaluation."
+    }
   ],
   "checks": [
-    "CPU analytical gradients match central differences for input, hidden, output, and bias parameters",
-    "Stable binary cross-entropy remains finite for logits of magnitude 1000",
-    "CPU training reduces nonlinear XOR loss by at least seventy percent",
-    "The ignored hardware test checks GPU loss decrease and all parameters against the CPU oracle",
-    "No training tensor is mapped between forward, backward, and update steps"
+    "Working CPU baseline trains only the readout and reports training loss plus four unseen probabilities",
+    "Actual learner gradient is compared at all17 indices to independent f64 central differences",
+    "Completed CPU training lowers mean BCE by at least70% and classifies the four held-out points",
+    "Explicit hardware checks compare all parameters/loss after1,80,800 steps and a three-row batch after3 steps",
+    "Stable logit BCE remains finite at±1000 and invalid data/rates are rejected"
   ],
   "limitations": [
-    "Backward accumulation uses one GPU invocation and is designed for clarity rather than throughput",
-    "The model is a fixed 2-4-1 tanh network on eight course-authored points",
-    "The host records each full-batch step, which is also one epoch for this fixed data; optimizer state is only plain gradient descent",
-    "Hardware validation is opt-in; the bundled ignored test was verified on the course RX 6950 XT"
-  ]
+    "Serial GPU batch-gradient accumulation establishes correctness but is not a throughput design",
+    "The fixed2–4–1 network and twelve course-authored points do not estimate real generalization",
+    "Host records one full-batch step per epoch and uses plain gradient descent",
+    "CPU completion leaves hardware unverified unless --gpu actually succeeds"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "question",
+      "title": "Can the features learn the nonlinear task?",
+      "session": 1,
+      "minutes": 7
+    },
+    {
+      "id": "math",
+      "title": "Follow one error through a hidden unit",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "checks",
+      "title": "Which derivative evidence rules out a wrong update?",
+      "session": 1,
+      "minutes": 6
+    },
+    {
+      "id": "cpu-build",
+      "title": "Train the hidden features on the CPU first",
+      "session": 1,
+      "minutes": 17
+    },
+    {
+      "id": "kernels",
+      "title": "Port the same update to three ordered kernels",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "residency-audit",
+      "title": "Which version of each buffer is consumed?",
+      "session": 2,
+      "minutes": 8
+    },
+    {
+      "id": "gpu-build",
+      "title": "Verify device-resident nonlinear training",
+      "session": 2,
+      "minutes": 20
+    },
+    {
+      "id": "review",
+      "title": "Explain what the capstone does and does not prove",
+      "session": 2,
+      "minutes": 5
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Derive and check full nonlinear training",
+      "goal": "Implement all17 batch gradients and verify nonlinear loss/transfer"
+    },
+    {
+      "id": 2,
+      "title": "Train with resident WGSL stages",
+      "goal": "Port backward, preserve buffer lifetimes, and check hardware agreement"
+    }
+  ],
+  "lab": {
+    "package": "s06-gpu",
+    "chapter": "31",
+    "entry": "labs/s06-gpu/src/ch31.rs",
+    "goal": "Complete CPU/WGSL backpropagation and train the 2–4–1 network with resident buffers",
+    "check": "just lab-check 31",
+    "manual_checks": [
+      "Review actual ch31.rs backward: clear every gradient, use old weights through all chain-rule contributions, average over the supplied batch once, then update.",
+      "Trace device buffer lifetimes and separate forward/backward/update passes in host.rs; require actual --check --gpu parity at1/80/800 steps and the different batch before recording GPU training completion."
+    ]
+  },
+  "interactives": [],
+  "topic_coverage": {
+    "Forward and backward kernels": "kernels",
+    "updates": "cpu-build",
+    "residency": "residency-audit"
+  }
 }

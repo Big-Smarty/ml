@@ -30,3 +30,12 @@ GPT-6 Astra High independently read the full lesson, metadata, research, referen
 Computed normalized responsibilities directly from max-shifted relative component masses, avoiding loss of the normalizer at huge common log offsets. Added a final-center reassignment fixture and overflow rejection. The reference now uses `squared_distance` consistently with its Rustlings primitive, names the summed likelihood `log_likelihood_sum`, and calls the unlabeled fixture `FEATURE_POINTS`. Diagonal covariance, dead-component handling, and held-out threshold requirements remain explicit.
 
 Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+
+
+## September 2026 section redesign
+
+The original lesson, metadata, and `projects/ch18` reference were read before replacement; the original source-tagged excerpt and reference project remain available. The new section route connects a disclosed maintenance dataset through uncertainty, preprocessing, classical learning, projection, clustering and a frozen evaluation capstone. Existing source claims above support the mathematical exposition; dataset-specific numbers come from the actual new Rust implementation, not from those papers.
+
+Learner goal: Implement Lloyd updates, stable EM and inspect changed-input density scores. The chapter has 4 sessions of approximately40 minutes. Topic coverage is recorded verbatim in meta.json. Each session includes implementation and an unfamiliar or controlled transfer, with native hints and explained completed-source checkpoints. Browser calculations are explicitly illustrations and never claim to execute Rust.
+
+Checks: Updated centers yield inertia1; final reassignment uses returned centers; Unequal-spread EM improves likelihood and respects variance floors; Stable huge-offset responsibilities and unfamiliar distant anomaly score. Limitations: Diagonal mixtures cannot represent arbitrary covariance orientation; Empty k-means centers are retained; near-zero EM components are dropped; Density anomalies depend on units and projection and are not failure probabilities. Full execution evidence, algorithm scope and prerequisite audit are in guidance/redesign/section-03.md. The original reference may use a simpler fixture or a different algorithm variant; its preserved results are labelled separately from the shared lab.

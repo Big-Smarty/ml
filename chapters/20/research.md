@@ -1,19 +1,34 @@
-# Chapter 20 research notes
+# Chapter 20: redesign research and implementation record
 
-Route: chapter authored by the assigned high-reasoning author after bounded source verification by `gpt-5.6-luna` at high reasoning. Sources were checked as primary papers or the official dataset page on 2026-09-08. The lecture code and numerical examples are original course material.
+Author route: one GPT-6 Astra High section owner, 2026-09-09. Read the complete previous lesson, metadata, research notes, reference and starter sources before redesign. The active AUTHORING/CHAPTER_TEMPLATE/ASSIGNMENTS/NUMERICS contract replaces historical Rustlings and broken-starter requirements. Reference projects remain unchanged; tested numerical algorithms are adapted into labs/s04-deep-learning with learner-selected cores and separate explained solutions.
 
-- Rumelhart, Hinton, and Williams, “Learning representations by back-propagating errors,” Nature 323 (1986), https://doi.org/10.1038/323533a0. Supports the general claim that hidden weights can be adjusted by backpropagated error derivatives.
-- Fukushima, “Neocognitron,” Biological Cybernetics 36 (1980), https://doi.org/10.1007/BF00344251. Supports historical context for hierarchical local pattern recognition and position tolerance; its learning procedure is not the supervised backpropagation used here.
-- LeCun et al., “Gradient-Based Learning Applied to Document Recognition,” Proceedings of the IEEE 86(11) (1998), https://doi.org/10.1109/5.726791. Supports local receptive fields, shared weights, spatial subsampling, and end-to-end digit recognition.
-- LeCun, Cortes, and Burges, official MNIST page, https://yann.lecun.org/exdb/mnist/. Supports the 60,000/10,000 counts, 28×28 grayscale images, and IDX representation. The local preparation workflow uses a documented mirror and preserves a validation split from training; it does not claim new dataset terms.
+## Evidence and source claims
 
-Claims deliberately avoided: competitive accuracy, shift invariance from architecture alone, or equivalence between the seven-segment fixture and handwriting.
+The following primary sources were previously verified in the course's 2026-09-08 research and independent review. This redesign reuses those bounded claims; it does not claim a new literature search or reproduction of the papers' full experiments.
 
+- Learning representations by back-propagating errors — https://doi.org/10.1038/323533a0
+  Original concise account of learning hidden representations by backpropagation.
+- Neocognitron — https://doi.org/10.1007/BF00344251
+  Early hierarchical local-feature and position-tolerance architecture.
+- Gradient-Based Learning Applied to Document Recognition — https://doi.org/10.1109/5.726791
+  Primary LeNet account of local receptive fields, shared weights, subsampling, and digit recognition.
+- The MNIST Database of Handwritten Digits — https://yann.lecun.org/exdb/mnist/
+  Official dataset description and IDX format source.
 
-## Independent Astra review, 2026-09-08
+## Active learning route
 
-GPT-6 Astra High independently read the full lesson, metadata, research, reference, starter, and Rustlings exercise/solution. Bounded GPT-5.6 Luna High primary-source and technical verification covered chapters 20–24; the researcher supplied checks and source findings, while Astra implemented the corrections.
+- Session 1: Compute a complete padded response map and explain a rectangular boundary case.
+- Session 2: Implement max pooling and preserve the correct winner indices on odd dimensions.
+- Session 3: Accumulate all nine shared derivatives and verify complete training.
+- Session 4: Run a controlled reduction comparison and trace a new image.
 
-Reordered stable cross-entropy subtraction and tested a common 1e16 logit offset. Added valid/truncated/invalid-label IDX cases, finite training checks, and padded asymmetric-kernel starter checks. Actual convolution and full backward remain intact. The Luna researcher independently reran the existing local 2000-fit/2000-validation, one-epoch MNIST command and reproduced loss 2.3018 to 0.4614 and accuracy 10.2% to 86.7%; no download or official test scoring occurred. This was an extra local verification, not a new long training study.
+Every session has worked values, named Rust work, a checkpoint or controlled experiment, optional explanation and a changed-input transfer task. Baseline success demonstrates a functioning earlier model, not the completed learning goal. The chapter's --check calls the selected learner core. Intentional numerical mismatches return GOAL_NOT_MET; malformed CLI/data errors remain ordinary errors. Cargo tests cover the supplied machinery and completed solution without requiring unfinished learner goals to pass.
 
-Final scoped formatting, offline strict Clippy, reference tests, and small release runs pass. The runnable starter passes its run and intentionally fails its new TODO test; the corresponding solved Rustlings exercise passes. See `guidance/astra-review-15-28.md` for exact gates and limitations.
+## Boundaries
+
+- Two filters and sample-at-a-time scalar CPU SGD
+- Procedural seven-segment training and validation share a source; no population accuracy claim
+- Stride-one padding-one convolution and floor-sized2×2 pooling are fixed in the local classifier
+- MNIST requires explicit local paths and limits fitting/validation to2000 images each; no new MNIST result claimed
+
+The numerical handoff and actual commands/results are in guidance/redesign/section-04.md. Browser tools are arithmetic illustrations and never execute Rust or certify completion. Source snippets carry exact data-source paths. The learning design follows the provided worked-example, retrieval and interactive research synthesis as a design inference, not evidence of measured learning gains in this course.

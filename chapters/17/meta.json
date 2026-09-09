@@ -1,17 +1,19 @@
 {
   "outcomes": [
-    "Center a two-feature dataset and compute sample covariance",
-    "Find a leading eigenvector with checked power iteration",
-    "Fit PCA state, transform rows into projection scores, and reconstruct them",
-    "Interpret explained variance, eigengaps, and covariance conditioning"
+    "Compute centered full covariance with declared shapes and denominator",
+    "Recover orthogonal eigenvectors with bounded power iteration",
+    "Project and reconstruct rows with a training-fitted PCA model",
+    "Diagnose conditioning, eigengap sensitivity and representation-dependent variance"
   ],
   "lessons": [
-    "Turn correlated columns into a matrix",
-    "Variance chooses an eigenvector",
-    "Find the direction by repeated multiplication",
-    "Conditioning tells you when answers wobble",
-    "Run the compressor and practice",
-    "Review and transfer"
+    "How much independent variation is in three sensors?",
+    "Fit the center and the full matrix",
+    "Which direction keeps the most variance?",
+    "Recover a direction through repeated multiplication",
+    "How do several coordinates reconstruct a row?",
+    "Keep new components independent of earlier ones",
+    "When can a correct answer still wobble?",
+    "Stress the compressor before interpreting its axes"
   ],
   "terms": {
     "pca": {
@@ -46,25 +48,128 @@
     }
   },
   "sources": [
-    {"title": "On Lines and Planes of Closest Fit", "url": "https://doi.org/10.1080/14786440109462720", "note": "Pearson's original geometric formulation."},
-    {"title": "Analysis of a Complex of Statistical Variables into Principal Components", "url": "https://doi.org/10.1037/h0071325", "note": "Hotelling's statistical formulation."},
-    {"title": "MIT OpenCourseWare Lecture 17: PCA", "url": "https://ocw.mit.edu/courses/9-40-introduction-to-neural-computation-spring-2018/resources/mit9_40s18_lec17/", "note": "University teaching source for covariance and PCA."},
-    {"title": "University of Illinois CS 357: Eigenvalues and Eigenvectors", "url": "https://courses.physics.illinois.edu/cs357/sp2020/notes/ref-12-eigen.html", "note": "University numerical linear algebra source for power iteration."},
-    {"title": "UCI Wine", "url": "https://archive.ics.uci.edu/dataset/109/wine", "note": "Optional extension dataset; UCI lists CC BY 4.0."}
+    {
+      "title": "On Lines and Planes of Closest Fit",
+      "url": "https://doi.org/10.1080/14786440109462720",
+      "note": "Pearson's original geometric formulation."
+    },
+    {
+      "title": "Analysis of a Complex of Statistical Variables into Principal Components",
+      "url": "https://doi.org/10.1037/h0071325",
+      "note": "Hotelling's statistical formulation."
+    },
+    {
+      "title": "MIT OpenCourseWare Lecture 17: PCA",
+      "url": "https://ocw.mit.edu/courses/9-40-introduction-to-neural-computation-spring-2018/resources/mit9_40s18_lec17/",
+      "note": "University teaching source for covariance and PCA."
+    },
+    {
+      "title": "University of Illinois CS 357: Eigenvalues and Eigenvectors",
+      "url": "https://courses.physics.illinois.edu/cs357/sp2020/notes/ref-12-eigen.html",
+      "note": "University numerical linear algebra source for power iteration."
+    },
+    {
+      "title": "UCI Wine",
+      "url": "https://archive.ics.uci.edu/dataset/109/wine",
+      "note": "Optional extension dataset; UCI lists CC BY 4.0."
+    }
   ],
   "checks": [
-    "Power iteration recovers eigenvalue 3 for the matrix [[2,1],[1,2]]",
-    "The returned component has unit norm and a small eigenpair residual",
-    "Translating all rows preserves eigenvalues, directions, and reconstruction error",
-    "Rank-one data reconstructs with negligible one-component error",
-    "Mean squared reconstruction norm divides summed squared row norms by the number of rows",
-    "Too few or nonfinite rows are rejected"
+    "Known covariance eigenvalue3, norm and eigenpair residual tolerances",
+    "Two components are orthogonal; translated and rank-one3D reconstruction",
+    "Constant observations, feature width and finite arithmetic"
   ],
   "limitations": [
-    "The reference supports two features and one retained component",
-    "Two fixed independent starts are not a general eigensolver",
-    "Explicit covariance can lose accuracy on badly conditioned data",
-    "The reported reconstruction statistic averages squared Euclidean norms per row rather than squared residuals per coordinate",
-    "The Wine extension requires a user-prepared attributed dataset"
-  ]
+    "Covariance formation squares the data matrix condition number",
+    "Fixed power iterations may converge slowly near tied eigenvalues",
+    "Sensor-only PCA discards categorical/missingness bits and can lose predictive directions"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "covariance",
+      "title": "How much independent variation is in three sensors?",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "covariance-build",
+      "title": "Fit the center and the full matrix",
+      "session": 1,
+      "minutes": 22
+    },
+    {
+      "id": "eigenvectors",
+      "title": "Which direction keeps the most variance?",
+      "session": 2,
+      "minutes": 15
+    },
+    {
+      "id": "power",
+      "title": "Recover a direction through repeated multiplication",
+      "session": 2,
+      "minutes": 25
+    },
+    {
+      "id": "projections",
+      "title": "How do several coordinates reconstruct a row?",
+      "session": 3,
+      "minutes": 18
+    },
+    {
+      "id": "multi-component",
+      "title": "Keep new components independent of earlier ones",
+      "session": 3,
+      "minutes": 22
+    },
+    {
+      "id": "conditioning",
+      "title": "When can a correct answer still wobble?",
+      "session": 4,
+      "minutes": 18
+    },
+    {
+      "id": "review",
+      "title": "Stress the compressor before interpreting its axes",
+      "session": 4,
+      "minutes": 22
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "How much independent variation is in three sensors?",
+      "goal": "Fit centered full covariance and verify translation invariance"
+    },
+    {
+      "id": 2,
+      "title": "Which direction keeps the most variance?",
+      "goal": "Implement power iteration and check known eigenpairs plus rank-one three-dimensional inputs"
+    },
+    {
+      "id": 3,
+      "title": "How do several coordinates reconstruct a row?",
+      "goal": "Retain orthogonal components and verify multicomponent reconstruction after translation"
+    },
+    {
+      "id": 4,
+      "title": "When can a correct answer still wobble?",
+      "goal": "Implement residual diagnostics and distinguish slow iteration from near-tied-axis sensitivity"
+    }
+  ],
+  "lab": {
+    "package": "s03-tabular",
+    "chapter": "17",
+    "entry": "labs/s03-tabular/src/ch17.rs",
+    "goal": "Implement full covariance, orthogonal power components and reconstruction diagnostics",
+    "check": "just lab-check 17"
+  },
+  "topic_coverage": {
+    "Covariance": "covariance",
+    "eigenvectors": "eigenvectors",
+    "power iteration": "power",
+    "projections": "projections",
+    "conditioning": "conditioning"
+  },
+  "interactives": []
 }

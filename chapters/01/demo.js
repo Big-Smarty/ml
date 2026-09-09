@@ -1,11 +1,19 @@
 (() => {
- const xs=[-2,-1,0,1,2],ys=[-3,-1,1,3,5],get=id=>document.getElementById(id),svg=get('neuron-plot');if(!svg)return;
- let w=0,b=0,steps=0;
- const loss=(a,c)=>xs.reduce((s,x,i)=>s+(a*x+c-ys[i])**2,0)/xs.length;
- const sx=x=>60+(x+3)/6*530,sy=y=>300-(y+5)/12*260;
- const node=(tag,attrs,text)=>{const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v]of Object.entries(attrs))el.setAttribute(k,v);if(text)el.textContent=text;return el;};
- function draw(){svg.replaceChildren();const ink='var(--muted)',line='var(--line)';for(let x=-3;x<=3;x++){svg.append(node('line',{x1:sx(x),x2:sx(x),y1:40,y2:300,stroke:line}),node('text',{x:sx(x),y:324,fill:ink,'text-anchor':'middle','font-size':12},String(x)));}for(let y=-4;y<=6;y+=2){svg.append(node('line',{x1:60,x2:590,y1:sy(y),y2:sy(y),stroke:line}),node('text',{x:43,y:sy(y)+4,fill:ink,'text-anchor':'end','font-size':12},String(y)));}svg.append(node('text',{x:609,y:324,fill:ink,'font-size':12},'x'),node('text',{x:30,y:29,fill:ink,'font-size':12},'y'));const defs=node('defs',{}),clip=node('clipPath',{id:'plot-clip'});clip.append(node('rect',{x:60,y:40,width:530,height:260}));defs.append(clip);svg.append(defs,node('line',{x1:sx(-3),y1:sy(w*-3+b),x2:sx(3),y2:sy(w*3+b),stroke:'var(--accent)','stroke-width':3,'clip-path':'url(#plot-clip)'}));xs.forEach((x,i)=>{svg.append(node('line',{x1:sx(x),x2:sx(x),y1:sy(ys[i]),y2:sy(w*x+b),stroke:'var(--accent)','stroke-dasharray':'3 4',opacity:.5,'clip-path':'url(#plot-clip)'}),node('circle',{cx:sx(x),cy:sy(ys[i]),r:5,fill:'var(--ink)'}));});get('weight-value').textContent=w.toFixed(3);get('bias-value').textContent=b.toFixed(3);get('weight').value=w;get('bias').value=b;get('neuron-readout').textContent=`Step ${steps} · mean squared error ${loss(w,b).toPrecision(5)} · prediction at x=0.5: ${(w*.5+b).toFixed(4)}`;}
- function step(){const h=1e-5,learningRate=Number(get('learning-rate').value),dw=(loss(w+h,b)-loss(w-h,b))/(2*h),db=(loss(w,b+h)-loss(w,b-h))/(2*h);const nw=w-learningRate*dw,nb=b-learningRate*db;if(!Number.isFinite(nw+nb)||Math.abs(nw)+Math.abs(nb)>1e8){get('neuron-readout').textContent='The updates diverged. Reset, then choose a smaller learning rate.';return false;}w=nw;b=nb;steps++;return true;}
- for(const id of ['weight','bias'])get(id).addEventListener('input',()=>{w=Number(get('weight').value);b=Number(get('bias').value);steps=0;draw();});
- get('step-neuron').addEventListener('click',()=>{if(step())draw();});get('train-neuron').addEventListener('click',()=>{for(let i=0;i<20;i++)if(!step())return;draw();});get('reset-neuron').addEventListener('click',()=>{w=0;b=0;steps=0;draw();});draw();
+  const root = document.querySelector('#neuron-fit'); if (!root) return;
+  const q = s => root.querySelector(s), xs = [-2,-1,0,1,2], ys = [-3,-1,1,3,5];
+  const sx = x => 60+(x+3)*85, sy = y => 285-(y+5)*20;
+  const node = (tag, attrs, text) => { const n=document.createElementNS('http://www.w3.org/2000/svg',tag); for(const [k,v] of Object.entries(attrs)) n.setAttribute(k,v); if(text) n.textContent=text; return n; };
+  function draw() {
+    const w=Number(q('[data-w]').value), b=Number(q('[data-b]').value), svg=q('svg');
+    svg.replaceChildren(node('title',{id:'fit-title'},'Sensor calibration'),node('desc',{id:'fit-desc'},'Solid model line, target dots and dashed residuals. Exact values follow the plot.'));
+    for(let x=-3;x<=3;x++) svg.append(node('line',{x1:sx(x),x2:sx(x),y1:25,y2:285,stroke:'var(--line)'}),node('text',{x:sx(x),y:312,fill:'currentColor','text-anchor':'middle'},String(x)));
+    for(let y=-4;y<=8;y+=2) svg.append(node('text',{x:45,y:sy(y)+5,fill:'currentColor','text-anchor':'end'},String(y)));
+    const defs=node('defs',{}),clip=node('clipPath',{id:'fit-clip'});clip.append(node('rect',{x:60,y:25,width:510,height:260}));defs.append(clip);svg.append(defs);
+    svg.append(node('line',{x1:sx(-3),y1:sy(-3*w+b),x2:sx(3),y2:sy(3*w+b),stroke:'var(--accent)','stroke-width':3,'clip-path':'url(#fit-clip)'}));
+    xs.forEach((x,i)=>svg.append(node('line',{x1:sx(x),x2:sx(x),y1:sy(ys[i]),y2:sy(w*x+b),stroke:'currentColor','stroke-dasharray':'4 4','clip-path':'url(#fit-clip)'}),node('circle',{cx:sx(x),cy:sy(ys[i]),r:5,fill:'currentColor'})));
+    const loss=xs.reduce((s,x,i)=>s+(w*x+b-ys[i])**2,0)/5;
+    q('[data-readout]').textContent=`w = ${w.toFixed(1)}; b = ${b.toFixed(1)}; MSE = ${loss.toFixed(4)}; prediction at x = 0.5: ${(w*0.5+b).toFixed(3)}. Lines outside the plot are clipped; values remain in the table.`;
+    q('[data-table]').innerHTML='<table><caption>Predictions and residuals (prediction minus target)</caption><thead><tr><th>x</th><th>Target</th><th>Prediction</th><th>Residual</th></tr></thead><tbody>'+xs.map((x,i)=>`<tr><td>${x}</td><td>${ys[i]}</td><td>${(w*x+b).toFixed(2)}</td><td>${(w*x+b-ys[i]).toFixed(2)}</td></tr>`).join('')+'</tbody></table>';
+  }
+  root.addEventListener('input',draw);q('[data-reset]').addEventListener('click',()=>{q('[data-w]').value=0;q('[data-b]').value=0;draw();});draw();
 })();

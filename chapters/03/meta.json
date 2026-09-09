@@ -1,18 +1,138 @@
 {
-  "outcomes": ["Represent one example as a fixed-length feature vector", "Compute an affine prediction with a dot product", "Derive multifeature linear-regression gradients", "Fit and reuse training-set scaling statistics"],
-  "lessons": ["Why one input is insufficient", "Vectors and dot products", "Multifeature gradients", "Feature scaling", "Run, practice, and transfer"],
+  "outcomes": [
+    "Trace an ordered feature vector into one prediction",
+    "Implement every weight and bias derivative",
+    "Fit and reuse training-only scaling statistics"
+  ],
+  "lessons": [
+    "Why do equal sensor readings need different answers?",
+    "How do several measurements become one prediction?",
+    "Can one error update every relevant weight?",
+    "Why can the unit of load break a correct update?",
+    "Can you change units without changing the answer?",
+    "What can an extra feature represent, and what can it not?"
+  ],
   "terms": {
-    "vector": {"name": "Vector", "definition": "An ordered collection of numbers treated as one mathematical object.", "explanation": "A feature vector stores several measurements for one example in a fixed order. Position gives meaning: the first entry may be area, the second room count, and the third age. A weight vector uses the same order so corresponding values can be multiplied. Vectors have a dimension, the number of entries. Mixing dimensions or changing the order silently changes the model, so the Rust project uses fixed-size arrays to make the three-feature shape explicit."},
-    "dot-product": {"name": "Dot product", "definition": "The sum of products of corresponding entries in two equal-length vectors.", "explanation": "For weights w and features x, their dot product is w₁x₁ + w₂x₂ + and so on. It converts two vectors of the same dimension into one scalar weighted sum. Adding a bias produces a multifeature affine prediction. The order and length must agree. A dot product is not elementwise output: the individual products are reduced by addition. This compact operation will reappear inside every dense neural-network layer."},
-    "linear-regression": {"name": "Linear regression", "definition": "A model that predicts a numeric target from a weighted sum of features.", "explanation": "Linear regression chooses one coefficient per feature plus an intercept, usually by minimizing squared error. The model is linear in its parameters even when preprocessing transforms the raw features. Coefficients describe changes only under the chosen units and with other features held fixed; correlated features can make causal interpretations unsafe. Here gradient descent fits the coefficients so learners can reuse Chapter 2's machinery, though other solvers can fit the same objective."},
-    "feature-scaling": {"name": "Feature scaling", "definition": "Transforming feature values to comparable numerical ranges using training statistics.", "explanation": "Standardization subtracts each feature's training mean and divides by its training standard deviation. This gives centered, similarly scaled coordinates, so one learning rate can move different weights sensibly. The statistics are fitted on training data and then reused unchanged for validation, test, and inference. Recomputing them on held-out examples leaks information. Scaling affects optimization and coefficient units; it does not create information that the original measurements lacked."}
+    "vector": {
+      "name": "Vector",
+      "definition": "An ordered collection of numbers treated as one mathematical object.",
+      "explanation": "A feature vector stores several measurements in a fixed order. Here positions mean raw sensor, load and vibration. A weight vector uses that same schema. Its dot product with one feature vector produces one scalar before bias is added. Fixed arrays enforce the number of entries, but cannot detect a swapped meaning or mismatched units."
+    },
+    "dot-product": {
+      "name": "Dot product",
+      "definition": "The sum of products of corresponding entries in two equal-length vectors.",
+      "explanation": "For weights w and features x, their dot product is w₁x₁ + w₂x₂ + and so on. It converts two vectors of the same dimension into one scalar weighted sum. Adding a bias produces a multifeature affine prediction. The order and length must agree. A dot product is not elementwise output: the individual products are reduced by addition. This compact operation will reappear inside every dense neural-network layer."
+    },
+    "linear-regression": {
+      "name": "Linear regression",
+      "definition": "A model that predicts a numeric target from a weighted sum of features.",
+      "explanation": "Linear regression chooses one coefficient per feature plus an intercept, usually by minimizing squared error. The model is linear in its parameters even when preprocessing transforms the raw features. Coefficients describe changes only under the chosen units and with other features held fixed; correlated features can make causal interpretations unsafe. Here gradient descent fits the coefficients so learners can reuse Chapter 2's machinery, though other solvers can fit the same objective."
+    },
+    "feature-scaling": {
+      "name": "Feature scaling",
+      "definition": "Transforming feature values to comparable numerical ranges using training statistics.",
+      "explanation": "Standardization subtracts each feature's training mean and divides by its training standard deviation. This gives centered, similarly scaled coordinates, so one learning rate can move different weights sensibly. The statistics are fitted on training data and then reused unchanged for validation, test, and inference. Recomputing them on held-out examples leaks information. Scaling affects optimization and coefficient units; it does not create information that the original measurements lacked."
+    }
   },
   "sources": [
-    {"title": "MIT 18.06 Linear Algebra", "url": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/", "note": "Vectors and dot products"},
-    {"title": "Google linear regression", "url": "https://developers.google.com/machine-learning/crash-course/linear-regression", "note": "Multi-feature linear models"},
-    {"title": "scikit-learn LinearRegression", "url": "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html", "note": "Ordinary least-squares conventions"},
-    {"title": "scikit-learn StandardScaler", "url": "https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html", "note": "Training-set centering and scaling"}
+    {
+      "title": "MIT 18.06 Linear Algebra",
+      "url": "https://ocw.mit.edu/courses/18-06-linear-algebra-spring-2010/",
+      "note": "Vectors and dot products"
+    },
+    {
+      "title": "Google linear regression",
+      "url": "https://developers.google.com/machine-learning/crash-course/linear-regression",
+      "note": "Multi-feature linear models"
+    },
+    {
+      "title": "scikit-learn LinearRegression",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html",
+      "note": "Ordinary least-squares conventions"
+    },
+    {
+      "title": "scikit-learn StandardScaler",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html",
+      "note": "Training-set centering and scaling"
+    }
   ],
-  "checks": ["Each standardized feature has training mean near zero", "Constant features are rejected", "Training MSE falls below 2.1 on the deterministic fixture", "A three-feature held-out prediction lies between 240 and 260", "Every weight and bias derivative matches central differences"],
-  "limitations": ["The tiny synthetic data is not a housing-price dataset", "Linear regression cannot represent arbitrary nonlinear interactions", "Scaling statistics must be saved with the model for real deployment"]
+  "checks": [
+    "Learner baseline reaches MSE10; complete vector model fits the exact fixture",
+    "All four gradient components agree with central differences at a nonzero model",
+    "Unfamiliar raw input[0.5,500,-0.5] predicts4 within1e-5",
+    "Constant features and invalid data are rejected; standardized feature sums are near zero"
+  ],
+  "limitations": [
+    "Fixed arrays check dimensions but not semantic feature order",
+    "Scaling improves coordinates without creating missing information",
+    "Linear coefficients do not establish causation and an additive model misses interactions"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "missing-measurements",
+      "title": "Why do equal sensor readings need different answers?",
+      "session": 1,
+      "minutes": 7
+    },
+    {
+      "id": "vectors",
+      "title": "How do several measurements become one prediction?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "vector-gradient",
+      "title": "Can one error update every relevant weight?",
+      "session": 1,
+      "minutes": 20
+    },
+    {
+      "id": "scaling",
+      "title": "Why can the unit of load break a correct update?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "coordinate-experiment",
+      "title": "Can you change units without changing the answer?",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "interactions",
+      "title": "What can an extra feature represent, and what can it not?",
+      "session": 2,
+      "minutes": 10
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Use all sensor measurements",
+      "goal": "Implement a complete three-feature mean gradient"
+    },
+    {
+      "id": 2,
+      "title": "Keep the model consistent when units change",
+      "goal": "Run a train-only scaling experiment and construct an interaction feature"
+    }
+  ],
+  "lab": {
+    "package": "s01-foundations",
+    "chapter": "03",
+    "entry": "labs/s01-foundations/src/ch03.rs",
+    "goal": "Extend one-feature gradients to all three inputs and verify scaled inference",
+    "check": "just lab-check 03",
+    "manual_checks": [
+      "Explain the prediction and independent variation in your own words; numeric checks do not grade prose."
+    ]
+  },
+  "interactives": [],
+  "topic_coverage": {
+    "Vectors": "vectors",
+    "dot products": "vectors",
+    "linear regression": "vector-gradient",
+    "feature scaling": "scaling"
+  }
 }

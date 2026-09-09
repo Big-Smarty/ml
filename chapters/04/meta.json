@@ -1,22 +1,22 @@
 {
   "outcomes": [
-    "Distinguish an unbounded logit, a positive-class probability, and a discrete class prediction",
-    "Explain why binary classification replaces regression MSE with mean binary cross-entropy",
-    "Compute stable binary cross-entropy directly from logits",
-    "Train a binary logistic classifier with a separate parameter Gradient"
+    "Distinguish scores, probabilities and decisions",
+    "Explain likelihood and stable cross-entropy from logits",
+    "Train a classifier and test unfamiliar inputs and reversed labels"
   ],
   "lessons": [
-    "What carries forward from linear regression",
-    "From logits to probabilities and classes",
-    "Likelihood and binary cross-entropy",
-    "Stable loss and gradients in Rust",
-    "Practice and transfer"
+    "How does a measurement become evidence of a fault?",
+    "What is the difference between a score, a probability and a decision?",
+    "Which probability should the observed answer receive?",
+    "Why keep the logit even after computing probability?",
+    "Can the model learn which measurements support a fault?",
+    "What remains unresolved after every training label is right?"
   ],
   "terms": {
     "probability": {
       "name": "Probability",
       "definition": "A number from zero to one representing uncertainty about an event.",
-      "explanation": "In this binary classifier, the probability method returns a conditional probability estimate for the positive class given an input. Zero and one are the endpoints; 0.5 represents equal modeled odds. A probability is not a class decision. The separate predict method applies the chapter's 0.5 threshold and returns class zero or one, while another application may choose a different threshold. Model probabilities can also be poorly calibrated, so a value such as 0.8 should not be trusted as an observed 80 percent frequency without separate evaluation."
+      "explanation": "This binary model estimates a conditional probability of fault from a logit through sigmoid. It is distinct from a discrete decision, which additionally requires a threshold. Probability0.8 does not establish an observed80percent fault frequency without calibration evidence on relevant held-out data. The likelihood uses the probability assigned to the observed label: p for class1 and1-p for class0."
     },
     "logit": {
       "name": "Logit",
@@ -36,7 +36,7 @@
     "binary-cross-entropy": {
       "name": "Binary cross-entropy",
       "definition": "The negative log-likelihood loss for a binary target.",
-      "explanation": "For target y and probability p, binary cross-entropy is −[y log p + (1−y) log(1−p)]. It replaces mean squared error because this chapter models a binary outcome rather than numerical distance. Computing the expression from a probability that rounded to zero or one can produce infinities. The equivalent logits formula max(z,0) − zy + log(1 + exp(−|z|)) remains finite for large finite logits. The model's loss and loss_and_gradient methods average it over supplied examples."
+      "explanation": "Binary cross-entropy is minus the logarithm of the probability assigned to the observed binary target. Averaging it over rows gives the Bernoulli negative-log-likelihood objective under the stated conditional-independence model. Combining it algebraically with sigmoid gives a stable logit formula that avoids logs of rounded-zero probabilities. The lab preserves logits for loss calculation and uses probabilities for interpretation and decisions."
     }
   },
   "sources": [
@@ -67,15 +67,90 @@
     }
   ],
   "checks": [
-    "logit, probability, and predict return a score, probability, and class respectively",
-    "BCE at logit zero equals ln 2 and remains finite at logits plus and minus 1000",
-    "The separate analytical Gradient matches central differences on the same mean BCE objective",
-    "Training mean BCE falls below 0.04",
-    "predict classifies every fixture point correctly at its documented 0.5 threshold"
+    "Mean BCE falls below0.04 on the separable fixture",
+    "Unfamiliar points are classified correctly before and after reversing all labels",
+    "One positive[2,1] row gives first step[0.1,0.05,0.05]",
+    "All three solution gradients match central differences; stable BCE gives1000 for confident wrong logits±1000"
   ],
   "limitations": [
-    "Training accuracy on separable synthetic points does not establish calibration",
-    "The project covers binary rather than multiclass classification",
-    "predict uses an illustrative fixed 0.5 threshold; application thresholds must be chosen from validation data and decision costs"
-  ]
+    "Perfect training classes do not establish probability calibration",
+    "Separable unregularized BCE may keep reducing as weight magnitudes grow",
+    "Tiny two-feature binary fixtures omit multiclass and real-world label quality"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "fault-question",
+      "title": "How does a measurement become evidence of a fault?",
+      "session": 1,
+      "minutes": 7
+    },
+    {
+      "id": "scores",
+      "title": "What is the difference between a score, a probability and a decision?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "likelihood",
+      "title": "Which probability should the observed answer receive?",
+      "session": 1,
+      "minutes": 20
+    },
+    {
+      "id": "stable-loss",
+      "title": "Why keep the logit even after computing probability?",
+      "session": 2,
+      "minutes": 8
+    },
+    {
+      "id": "train-classifier",
+      "title": "Can the model learn which measurements support a fault?",
+      "session": 2,
+      "minutes": 20
+    },
+    {
+      "id": "decisions-and-transfer",
+      "title": "What remains unresolved after every training label is right?",
+      "session": 2,
+      "minutes": 10
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Give outcomes probability",
+      "goal": "Construct a complete score/probability/loss diagnostic for candidate models"
+    },
+    {
+      "id": 2,
+      "title": "Train and inspect a stable classifier",
+      "goal": "Implement logistic gradients and training, then test altered labels and thresholds"
+    }
+  ],
+  "lab": {
+    "package": "s01-foundations",
+    "chapter": "04",
+    "entry": "labs/s01-foundations/src/ch04.rs",
+    "goal": "Replace a constant prior with a full stable logistic-gradient trainer",
+    "check": "just lab-check 04",
+    "manual_checks": [
+      "Explain the prediction and independent variation in your own words; numeric checks do not grade prose."
+    ]
+  },
+  "interactives": [
+    {
+      "id": "classifier-evidence",
+      "title": "Follow probability into decisions",
+      "file": "demo.js",
+      "anchor": "classifier-evidence",
+      "illustration": true
+    }
+  ],
+  "topic_coverage": {
+    "Probability": "scores",
+    "sigmoid": "scores",
+    "likelihood": "likelihood",
+    "stable binary cross-entropy": "stable-loss"
+  }
 }

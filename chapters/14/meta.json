@@ -1,20 +1,164 @@
 {
-  "outcomes": ["Compute squared Euclidean distance between two-feature vectors", "Fit a scaler on training features and transform later features without refitting", "Fit k-nearest neighbors and predict a discrete label by deterministic voting", "Fit Gaussian naive Bayes and distinguish its raw log scores from its predicted label"],
-  "lessons": ["Distance turns similarity into arithmetic", "Scale before measuring neighbors", "k-nearest neighbors votes from memory", "Gaussian naive Bayes models each class", "Run a fair small comparison", "Practice, debugging, and transfer"],
+  "outcomes": [
+    "Calculate full-vector distances and explain the effect of feature scaling",
+    "Implement deterministic nearest-neighbor voting for general k",
+    "Estimate Gaussian class priors, means and variances and explain conditional-independence limits"
+  ],
+  "lessons": [
+    "Which machine reading is actually close?",
+    "What do feature units do to a neighbor?",
+    "Build a vote from several neighbors",
+    "Can each class be represented by a distribution?",
+    "Estimate priors, means and unequal spreads",
+    "Which assumption explains the mistakes?",
+    "Read a model’s geometry before choosing it"
+  ],
   "terms": {
-    "squared-euclidean-distance": {"name":"Squared Euclidean distance","definition":"The sum of squared coordinate differences between two vectors.","explanation":"Squared distance ranks neighbors in the same order as Euclidean distance because square root is increasing. It avoids an unnecessary square root during search. Distance depends on feature units and representation, so scaling and category encoding define what the algorithm treats as similar. Nonfinite coordinates must be rejected before sorting. Equal feature weights remain a modeling choice. Document the chosen geometry."},
-    "standardization": {"name":"Standardization","definition":"Centering a feature by its training mean and scaling by its training standard deviation.","explanation":"Standardization puts numeric features on comparable scales, which is crucial for distance-based models. Scaler::fit estimates mean and deviation only from training rows; Scaler::transform applies those stored values without refitting. A constant feature has zero deviation, so the project uses scale one and maps its training values to zero. A differing query then adds the same distance contribution to every training point and cannot distinguish neighbors. Validation, test, and inference features never update the fitted scaler."},
-    "knn": {"name":"k-nearest neighbors","definition":"A classifier that votes among the k closest labeled training points.","explanation":"Knn::fit validates and stores labeled training vectors, k, and the class count; it does not perform optimizer steps or estimate weights. Knn::predict calculates squared distances, selects the k closest rows, and returns a discrete label. Distances are raw ranking quantities, not probabilities or task predictions. Small k follows local detail and noise; larger k smooths boundaries. Validation should choose k. Direct inference grows with the number of stored rows, and tie handling must be deterministic."},
-    "naive-bayes": {"name":"Naive Bayes","definition":"A probabilistic classifier assuming features are conditionally independent given the class.","explanation":"The assumption factorizes a joint class likelihood into a product of per-feature likelihoods. This makes fitting and prediction cheap even when the independence claim is approximate. Correlated features can count the same evidence more than once and produce overconfident scores, so held-out accuracy and calibration should be checked. Class priors also change when training prevalence changes. Use logarithms for stable products."},
-    "gaussian-naive-bayes": {"name":"Gaussian naive Bayes","definition":"Naive Bayes using a Gaussian likelihood for each numeric feature within each class.","explanation":"GaussianNb::fit estimates a prior, mean, and population variance for every class-feature pair. GaussianNb::predict adds log Gaussian densities and the log prior, then returns the discrete label with the greatest raw log score. The project does not normalize those scores into probabilities. A variance floor prevents division by zero for constant features. This compact model may poorly describe skewed, multimodal, or correlated data. A probability-returning extension would need stable normalization and held-out calibration checks."}
+    "squared-euclidean-distance": {
+      "name": "Squared Euclidean distance",
+      "definition": "The sum of squared coordinate differences between two vectors.",
+      "explanation": "Squared distance ranks neighbors in the same order as Euclidean distance because square root is increasing. It avoids an unnecessary square root during search. Distance depends on feature units and representation, so scaling and category encoding define what the algorithm treats as similar. Nonfinite coordinates must be rejected before sorting. Equal feature weights remain a modeling choice. Document the chosen geometry."
+    },
+    "standardization": {
+      "name": "Standardization",
+      "definition": "Centering a feature by its training mean and scaling by its training standard deviation.",
+      "explanation": "Standardization puts numeric features on comparable scales, which is crucial for distance-based models. Scaler::fit estimates mean and deviation only from training rows; Scaler::transform applies those stored values without refitting. A constant feature has zero deviation, so the project uses scale one and maps its training values to zero. A differing query then adds the same distance contribution to every training point and cannot distinguish neighbors. Validation, test, and inference features never update the fitted scaler."
+    },
+    "knn": {
+      "name": "k-nearest neighbors",
+      "definition": "A classifier that votes among the k closest labeled training points.",
+      "explanation": "Knn::fit validates and stores labeled training vectors, k, and the class count; it does not perform optimizer steps or estimate weights. Knn::predict calculates squared distances, selects the k closest rows, and returns a discrete label. Distances are raw ranking quantities, not probabilities or task predictions. Small k follows local detail and noise; larger k smooths boundaries. Validation should choose k. Direct inference grows with the number of stored rows, and tie handling must be deterministic."
+    },
+    "naive-bayes": {
+      "name": "Naive Bayes",
+      "definition": "A probabilistic classifier assuming features are conditionally independent given the class.",
+      "explanation": "The assumption factorizes a joint class likelihood into a product of per-feature likelihoods. This makes fitting and prediction cheap even when the independence claim is approximate. Correlated features can count the same evidence more than once and produce overconfident scores, so held-out accuracy and calibration should be checked. Class priors also change when training prevalence changes. Use logarithms for stable products."
+    },
+    "gaussian-naive-bayes": {
+      "name": "Gaussian naive Bayes",
+      "definition": "Naive Bayes using a Gaussian likelihood for each numeric feature within each class.",
+      "explanation": "GaussianNb::fit estimates a prior, mean, and population variance for every class-feature pair. GaussianNb::predict adds log Gaussian densities and the log prior, then returns the discrete label with the greatest raw log score. The project does not normalize those scores into probabilities. A variance floor prevents division by zero for constant features. This compact model may poorly describe skewed, multimodal, or correlated data. A probability-returning extension would need stable normalization and held-out calibration checks."
+    }
   },
   "sources": [
-    {"title":"Cover and Hart: Nearest Neighbor Pattern Classification","url":"https://isl.stanford.edu/~cover/papers/transIT/0021cove.pdf","note":"Original nearest-neighbor classification paper."},
-    {"title":"scikit-learn Nearest Neighbors","url":"https://scikit-learn.org/stable/modules/neighbors.html","note":"Official kNN algorithms and voting variants."},
-    {"title":"StandardScaler API","url":"https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html","note":"Scaling definition and behavior."},
-    {"title":"scikit-learn Naive Bayes","url":"https://scikit-learn.org/stable/modules/naive_bayes.html","note":"Conditional independence and Gaussian NB formulation."},
-    {"title":"UCI Iris","url":"https://archive.ics.uci.edu/dataset/53/iris","note":"Optional CC BY 4.0 extension dataset."}
+    {
+      "title": "Cover and Hart: Nearest Neighbor Pattern Classification",
+      "url": "https://isl.stanford.edu/~cover/papers/transIT/0021cove.pdf",
+      "note": "Original nearest-neighbor classification paper."
+    },
+    {
+      "title": "scikit-learn Nearest Neighbors",
+      "url": "https://scikit-learn.org/stable/modules/neighbors.html",
+      "note": "Official kNN algorithms and voting variants."
+    },
+    {
+      "title": "StandardScaler API",
+      "url": "https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html",
+      "note": "Scaling definition and behavior."
+    },
+    {
+      "title": "scikit-learn Naive Bayes",
+      "url": "https://scikit-learn.org/stable/modules/naive_bayes.html",
+      "note": "Conditional independence and Gaussian NB formulation."
+    },
+    {
+      "title": "UCI Iris",
+      "url": "https://archive.ics.uci.edu/dataset/53/iris",
+      "note": "Optional CC BY 4.0 extension dataset."
+    }
   ],
-  "checks": ["The squared-distance primitive receives the same two-feature arrays stored by Point and passed to prediction", "Knn::fit rejects invalid k or training labels and both predictors reject nonfinite inputs", "Both fitted estimators predict label 1 for the middle fixture cluster", "Gaussian likelihoods are accumulated as raw log scores", "Scaler::fit runs once on training rows and Scaler::transform reuses its state", "Overflowed fitted statistics, distances, or Gaussian scores return errors"],
-  "limitations": ["Reference estimators support exactly two numeric features rather than Chapter 13's variable encoded width", "kNN stores borrowed training rows and uses a full sort rather than a spatial index", "Gaussian NB returns a winning label but not normalized probabilities", "Tiny fixture measures mechanism rather than predictive quality"]
+  "checks": [
+    "Changed nearest-neighbor majority differs from nearest label",
+    "Unequal class priors/spreads and variance floor are fitted correctly",
+    "Full width and finite input boundaries; probabilities remain normalized"
+  ],
+  "limitations": [
+    "Full scans and sorts are expensive on large high-dimensional tables",
+    "Correlated sensors violate NB conditional independence; binary coordinates use a Gaussian approximation",
+    "Neighbor fractions and NB posterior outputs may be poorly calibrated"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "distance",
+      "title": "Which machine reading is actually close?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "scaling",
+      "title": "What do feature units do to a neighbor?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "knn",
+      "title": "Build a vote from several neighbors",
+      "session": 1,
+      "minutes": 18
+    },
+    {
+      "id": "gnb",
+      "title": "Can each class be represented by a distribution?",
+      "session": 2,
+      "minutes": 18
+    },
+    {
+      "id": "bayes-build",
+      "title": "Estimate priors, means and unequal spreads",
+      "session": 2,
+      "minutes": 22
+    },
+    {
+      "id": "compare",
+      "title": "Which assumption explains the mistakes?",
+      "session": 3,
+      "minutes": 18
+    },
+    {
+      "id": "classical-geometry",
+      "title": "Read a model’s geometry before choosing it",
+      "session": 3,
+      "minutes": 22
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Which machine reading is actually close?",
+      "goal": "Implement deterministic k-neighbor voting and predict a changed majority after scaling"
+    },
+    {
+      "id": 2,
+      "title": "Can each class be represented by a distribution?",
+      "goal": "Fit unequal Gaussian class priors and spreads and check local unfamiliar queries"
+    },
+    {
+      "id": 3,
+      "title": "Which assumption explains the mistakes?",
+      "goal": "Implement a matched sensor ablation and compare assumptions and storage/query costs"
+    }
+  ],
+  "lab": {
+    "package": "s03-tabular",
+    "chapter": "14",
+    "entry": "labs/s03-tabular/src/ch14.rs",
+    "goal": "Implement complete kNN voting and fitted Gaussian priors/variances",
+    "check": "just lab-check 14"
+  },
+  "topic_coverage": {
+    "Distance": "distance",
+    "scaling": "scaling",
+    "nearest neighbors": "knn",
+    "Gaussian naive Bayes": "gnb"
+  },
+  "interactives": [
+    {
+      "id": "geometry-tool",
+      "title": "Classical model geometry",
+      "file": "demo.js",
+      "anchor": "geometry-tool",
+      "illustration": true
+    }
+  ]
 }

@@ -1,31 +1,48 @@
+// Run: node tools/test_glossary.cjs. Exercise the actual shared-reader handlers.
 const fs = require('node:fs'), vm = require('node:vm'), assert = require('node:assert/strict');
-const handlers = {};
 class Element {
-  constructor() { this.events={}; this.dataset={term:'demo'}; this.style={}; this.hidden=true; this.attrs={}; this.value=''; this.offsetWidth=280; this.offsetHeight=80; this.classList={toggle(){},remove(){},contains(){return false;}}; }
-  addEventListener(name, fn) { this.events[name]=fn; }
-  fire(name,event={}) { this.events[name]?.(event); }
-  setAttribute(k,v) {this.attrs[k]=v;}
-  removeAttribute(k) {delete this.attrs[k];}
-  replaceChildren() {}
-  append() {}
-  getBoundingClientRect() {return {left:100,top:100,bottom:120};}
-  focus() {document.activeElement=this;this.fire('focus');}
+  constructor() {
+    this.events = {}; this.dataset = {}; this.style = {}; this.attrs = {};
+    this.hidden = true; this.offsetHeight = 80; this.hover = false; this.focused = false;
+    const classes = new Set();
+    this.classList = {add: value => classes.add(value), remove: value => classes.delete(value), contains: value => classes.has(value), toggle(value) {if (classes.has(value)) {classes.delete(value); return false;} classes.add(value); return true;}};
+  }
+  addEventListener(name, fn) {this.events[name] = fn;}
+  fire(name, event = {}) {return this.events[name]?.(event);}
+  setAttribute(name, value) {this.attrs[name] = value;}
+  removeAttribute(name) {delete this.attrs[name];}
+  matches() {return this.hover || this.focused;}
+  getBoundingClientRect() {return {left: 100, bottom: 120};}
+  focus() {this.focused = true; return this.fire('focus');}
 }
-const anchor = new Element(), preview = new Element(), elements = {};
-const document={body:{dataset:{},classList:new Element().classList},activeElement:null,
- querySelector(s){if(s==='#mark-complete'||s==='.chapter-link.current')return null;if(s==='#term-preview')return preview;return elements[s]??=new Element();},
- querySelectorAll(s){return s==='a.term'?[anchor]:[];},createElement(){return new Element();},createTextNode(s){return s;},addEventListener(n,f){handlers[n]=f;}};
-const context={document,localStorage:{getItem(){return null;},setItem(){}},matchMedia(){return {matches:false};},
- fetch:async url=>({ok:true,json:async()=>url.includes('terms')?{demo:{name:'Example',definition:'A definition.'}}:[]}),
- addEventListener(n,f){handlers[n]=f;},innerWidth:800,innerHeight:600,setTimeout, navigator:{}};
-vm.runInNewContext(fs.readFileSync('site/assets/app.js','utf8'),context);
-setImmediate(()=>{
- function tap(){let prevented=false;anchor.fire('mouseenter');anchor.fire('pointerdown',{pointerType:'touch'});anchor.focus();anchor.fire('click',{preventDefault(){prevented=true;}});return prevented;}
- assert.equal(tap(),true,'first touch previews instead of navigating');
- assert.equal(preview.hidden,false);assert.equal(anchor.attrs['aria-describedby'],'term-preview');
- assert.equal(tap(),false,'second touch follows glossary link');
- handlers.keydown({key:'Escape'});assert.equal(preview.hidden,true);assert.equal(anchor.attrs['aria-describedby'],undefined);
- assert.equal(tap(),true,'dismissed preview opens again on touch');
- anchor.fire('blur');anchor.fire('pointerdown',{pointerType:'mouse'});anchor.focus();let prevented=false;anchor.fire('click',{preventDefault(){prevented=true;}});assert.equal(prevented,false,'mouse link remains normal');
- console.log('PASS: actual glossary handlers support touch preview, second-tap navigation, focus description, Escape, and ordinary mouse links.');
+const anchor = new Element(), preview = new Element(), main = new Element(), menu = new Element(), sidebar = new Element(), search = new Element();
+anchor.dataset.term = 'demo';
+const elements = {'#term-preview': preview, '#main': main, '#menu-button': menu, '#sidebar': sidebar, '#course-search': search};
+const handlers = {};
+const document = {documentElement: new Element(), body: new Element(),
+  querySelector: selector => elements[selector] || null,
+  querySelectorAll: selector => selector === 'a.term[data-term]' ? [anchor] : [],
+  addEventListener: (name, fn) => {handlers[name] = fn;}};
+const mobile = {matches: true, addEventListener() {}};
+vm.runInNewContext(fs.readFileSync('site/assets/app.js', 'utf8'), {
+  document, localStorage: {getItem: () => null, setItem() {}}, matchMedia: () => mobile,
+  fetch: async () => ({json: async () => ({demo: {name: 'Example', definition: 'A definition.'}})}),
+  innerWidth: 800, innerHeight: 600
 });
+(async () => {
+  assert.equal(sidebar.inert, true);
+  menu.fire('click');
+  assert.equal(sidebar.inert, false); assert.equal(main.inert, true); assert.equal(search.focused, true);
+  handlers.keydown({key: 'Escape'});
+  assert.equal(sidebar.inert, true); assert.equal(main.inert, false); assert.equal(menu.focused, true);
+  await anchor.focus();
+  assert.equal(preview.hidden, false); assert.equal(preview.textContent, 'Example: A definition.');
+  assert.equal(anchor.attrs['aria-describedby'], 'term-preview');
+  anchor.fire('keydown', {key: 'Escape'});
+  assert.equal(preview.hidden, true); assert.equal(anchor.attrs['aria-describedby'], undefined);
+  anchor.focused = false; anchor.hover = true; await anchor.fire('mouseenter');
+  assert.equal(preview.hidden, false);
+  anchor.hover = false; anchor.fire('mouseleave'); assert.equal(preview.hidden, true);
+  assert.equal(anchor.events.click, undefined, 'ordinary glossary links remain navigable');
+  console.log('PASS: glossary focus/hover, Escape, ordinary links, and mobile navigation focus/inert state.');
+})().catch(error => {console.error(error); process.exitCode = 1;});

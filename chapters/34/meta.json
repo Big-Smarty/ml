@@ -7,13 +7,11 @@
     "Serialize merge order and reject malformed tokenizer files"
   ],
   "lessons": [
-    "Code and terminology carried forward",
-    "Text arrives as UTF-8 bytes",
-    "Learn merges from adjacent pairs",
-    "Apply the learned ranks",
-    "Save enough information",
-    "Practice, debug, and extend",
-    "Review and transfer"
+    "Which text units does a model actually receive?",
+    "Which pair should become a new token?",
+    "Can every learned ID return to the original bytes?",
+    "Can a reload reproduce exactly the same segmentation?",
+    "Is compression useful beyond the training snippet?"
   ],
   "terms": {
     "utf-8": {
@@ -55,15 +53,81 @@
     }
   ],
   "checks": [
-    "The default fixture requests at most 24 merge rules, learns 12, and produces a 268-entry vocabulary",
-    "Multilingual byte round trips pass for ASCII, accented text, CJK, and emoji",
-    "Saved and reloaded merge tables are equal",
-    "Malformed headers, forward references, oversized expansion, and unknown token IDs return errors",
-    "Starter prints Unicode scalar-value and UTF-8 byte counts before its guided test"
+    "just lab 34 runs the useful bounded learner baseline",
+    "just lab-check 34 calls the learner algorithms and fails until the full chapter goal is implemented",
+    "just lab 34 --solution --check checks the separate explained solution",
+    "Fit deterministic document-aware merge rules with overlaps and ties",
+    "Implement ranked encoding and verify byte-exact serialization round trips",
+    "Measure byte/BPE compression on multilingual held-out text",
+    "Supplied package tests verify numerical and boundary behavior; learner-written explanations and independent experiment reports are self-assessed"
   ],
   "limitations": [
-    "Repeated scans are O(merge rules × current tokens)",
-    "The fitting API treats one supplied byte slice as one document and omits production pre-tokenization",
-    "The text serialization has no checksum"
-  ]
+    "Repeated scans are O(merges × bytes), bounded to 64 KiB input and 768 merges",
+    "Serialization is lab-specific S07BPE1; no production pre-tokenization or Unicode normalization",
+    "BPE is a complete comparison lab; byte capstone integration is deliberately not required"
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "utf8",
+      "title": "Which text units does a model actually receive?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "training",
+      "title": "Which pair should become a new token?",
+      "session": 1,
+      "minutes": 28
+    },
+    {
+      "id": "encoding",
+      "title": "Can every learned ID return to the original bytes?",
+      "session": 2,
+      "minutes": 16
+    },
+    {
+      "id": "serialization",
+      "title": "Can a reload reproduce exactly the same segmentation?",
+      "session": 2,
+      "minutes": 24
+    },
+    {
+      "id": "comparison",
+      "title": "Is compression useful beyond the training snippet?",
+      "session": 3,
+      "minutes": 35
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Which text units does a model actually receive?",
+      "goal": "Fit deterministic document-aware merge rules with overlaps and ties"
+    },
+    {
+      "id": 2,
+      "title": "Can every learned ID return to the original bytes?",
+      "goal": "Implement ranked encoding and verify byte-exact serialization round trips"
+    },
+    {
+      "id": 3,
+      "title": "Is compression useful beyond the training snippet?",
+      "goal": "Measure byte/BPE compression on multilingual held-out text"
+    }
+  ],
+  "lab": {
+    "package": "s07-language-models",
+    "chapter": "34",
+    "entry": "labs/s07-language-models/src/ch34.rs",
+    "goal": "Fit deterministic document-aware merge rules with overlaps and ties; Implement ranked encoding and verify byte-exact serialization round trips; Measure byte/BPE compression on multilingual held-out text",
+    "check": "just lab-check 34"
+  },
+  "topic_coverage": {
+    "UTF-8": "utf8",
+    "byte tokens": "utf8",
+    "BPE training": "training",
+    "serialization": "serialization"
+  },
+  "interactives": []
 }

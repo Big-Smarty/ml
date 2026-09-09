@@ -1,8 +1,8 @@
 # Numerical and Rust conventions
 
-API names, terms, and chapter transitions follow `guidance/CONSISTENCY.md`.
+The active redesign contract is `guidance/AUTHORING.md`; older consistency conventions describe preserved reference code.
 
-- Stable Rust; standard library first. Tools for website generation may use Python stdlib; ML implementations are Rust plus WGSL for GPU kernels. Rustlings is authoring/exercise tooling, not an ML dependency.
+- Stable Rust; standard library first. Tools for website generation may use Python stdlib; ML implementations are Rust plus WGSL for GPU kernels. New practice lives in the nine labs packages; Rustlings is retired from the active course.
 - Initial scalar examples use f64, sum-of-squared-error / sample count, central differences with epsilon 1e-5, and simultaneous weight/bias updates. Teach half-MSE separately if used; state its factor explicitly.
 - Later arrays are contiguous row-major, activations [batch,features], dense weights [out_features,in_features]; explain every change of layout. No general tensor abstraction until chapter 9.
 - Check analytic derivatives on tiny smooth inputs with f64 central differences, typically atol 1e-6 + rtol 1e-4. Avoid nondifferentiable ReLU points. Float32/GPU tolerances depend on accumulation length; document them, not universal exact equality.

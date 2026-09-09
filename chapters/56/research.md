@@ -1,3 +1,9 @@
+## Active redesign route (Section 09)
+
+The active learner route is `just lab 56` → edit `labs/s09-advanced/src/ch56.rs` → `just lab-check 56`. The lesson now contains 4 sessions and 12 ordered question-led steps. Goal: Implement and verify the full sparse decoder block, train against a dense baseline, evaluate, resume, and serve a bounded real request. The separately explained solution is `labs/s09-advanced/src/solutions/ch56.rs`; supplied validation, fixtures, and I/O are in `src/common/ch56.rs`. Original `projects/ch56` implementations remain preserved reference evidence. Earlier workflow descriptions below are historical reference notes and do not replace this active route.
+
+Every session includes a concrete worked calculation, implementation checkpoint, graduated hints, an explained answer, and a changed-input transfer task. The browser illustration in chapter 48 executes only a fixed local arithmetic fixture; no browser control claims to run Rust. Executable goal checks and source-review limits are recorded in `guidance/redesign/section-09.md`.
+
 # Chapter 56 research and implementation verification
 
 ## Primary sources

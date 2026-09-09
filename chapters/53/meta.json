@@ -6,11 +6,12 @@
     "Detect a mean shift and roll back a failed canary to a prior artifact"
   ],
   "lessons": [
-    "The model is a pipeline artifact",
-    "Version and validate checkpoints",
-    "Serve through a bounded contract",
-    "Monitor drift and roll back",
-    "Operate, debug, and transfer"
+    "How can correct weights produce a wrong served prediction?",
+    "Which version number answers which compatibility question?",
+    "Can a request reach the same numerical function?",
+    "What work is allowed before a request becomes a prediction?",
+    "How can a recent change disappear inside a correct average?",
+    "Can you promote an equivalent release and detect a recent shift?"
   ],
   "terms": {
     "training-serving-skew": {
@@ -35,24 +36,113 @@
     }
   },
   "sources": [
-    {"title": "TFX User Guide", "url": "https://www.tensorflow.org/tfx/guide", "note": "Pipeline validation, shared preprocessing, and drift monitoring"},
-    {"title": "DVC command reference", "url": "https://dvc.org/doc/command-reference/", "note": "Versioned data and reproducible pipeline dependencies"},
-    {"title": "PyTorch Saving and Loading Models", "url": "https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html", "note": "Checkpoint state beyond weights"},
-    {"title": "RFC 9110 HTTP Semantics", "url": "https://datatracker.ietf.org/doc/html/rfc9110", "note": "HTTP method and response semantics"},
-    {"title": "JSON Schema Validation 2020-12", "url": "https://json-schema.org/draft/2020-12/json-schema-validation", "note": "Structural validation vocabulary"},
-    {"title": "MLflow Model Registry Workflows", "url": "https://mlflow.org/docs/latest/ml/model-registry/workflow", "note": "Immutable versions and release aliases"}
+    {
+      "title": "TFX User Guide",
+      "url": "https://www.tensorflow.org/tfx/guide",
+      "note": "Pipeline validation, shared preprocessing, and drift monitoring"
+    },
+    {
+      "title": "DVC command reference",
+      "url": "https://dvc.org/doc/command-reference/",
+      "note": "Versioned data and reproducible pipeline dependencies"
+    },
+    {
+      "title": "PyTorch Saving and Loading Models",
+      "url": "https://docs.pytorch.org/tutorials/beginner/saving_loading_models.html",
+      "note": "Checkpoint state beyond weights"
+    },
+    {
+      "title": "RFC 9110 HTTP Semantics",
+      "url": "https://datatracker.ietf.org/doc/html/rfc9110",
+      "note": "HTTP method and response semantics"
+    },
+    {
+      "title": "JSON Schema Validation 2020-12",
+      "url": "https://json-schema.org/draft/2020-12/json-schema-validation",
+      "note": "Structural validation vocabulary"
+    },
+    {
+      "title": "MLflow Model Registry Workflows",
+      "url": "https://mlflow.org/docs/latest/ml/model-registry/workflow",
+      "note": "Immutable versions and release aliases"
+    }
   ],
   "checks": [
-    "A checkpoint round trip preserves every model and preprocessing field",
-    "Unsupported formats, nonfinite values, duplicate Content-Length, Transfer-Encoding, extra fields, and oversized requests are rejected",
-    "The default demo detects drift and selects model version one after version two fails its canary",
-    "The explicit train command writes a loadable artifact",
-    "The host-only HTTP test returns a successful response for one valid local POST"
+    "Run the working learner baseline with just lab 53; implement the complete named algorithms and run just lab-check 53.",
+    "Run the separate solution goal checks and package tests; compare actual numerical intermediates described in each session.",
+    "Complete each session’s changed-input explanation; passing executable checks does not grade explanatory reasoning."
   ],
   "limitations": [
     "The local sequential HTTP server has no TLS, authentication, durable metrics, or production concurrency",
     "Mean drift is a teaching statistic and does not establish model degradation",
     "Rollback selects an artifact for process restart; it is not a live fleet-wide atomic swap",
     "The loopback integration test is ignored in sandboxed runs and must be run on a host that permits local sockets"
-  ]
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "pipeline",
+      "title": "How can correct weights produce a wrong served prediction?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "artifact",
+      "title": "Which version number answers which compatibility question?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "contract-check",
+      "title": "Can a request reach the same numerical function?",
+      "session": 1,
+      "minutes": 16
+    },
+    {
+      "id": "serving",
+      "title": "What work is allowed before a request becomes a prediction?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "drift",
+      "title": "How can a recent change disappear inside a correct average?",
+      "session": 2,
+      "minutes": 12
+    },
+    {
+      "id": "practice",
+      "title": "Can you promote an equivalent release and detect a recent shift?",
+      "session": 2,
+      "minutes": 16
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Make training and serving share one contract",
+      "goal": "Trace raw inputs through versioned preprocessing and a bounded request parser."
+    },
+    {
+      "id": 2,
+      "title": "Decide when a release should change",
+      "goal": "Implement canary comparison and a rolling drift monitor with explicit limits."
+    }
+  ],
+  "lab": {
+    "package": "s09-advanced",
+    "chapter": "53",
+    "entry": "labs/s09-advanced/src/ch53.rs",
+    "goal": "Verify train/serve artifact parity; implement explicit canary promotion and a bounded recent-input drift window.",
+    "check": "just lab-check 53"
+  },
+  "topic_coverage": {
+    "Pipelines": "pipeline",
+    "serving": "serving",
+    "monitoring": "drift",
+    "drift": "drift",
+    "versioning": "artifact",
+    "rollback": "practice"
+  },
+  "interactives": []
 }

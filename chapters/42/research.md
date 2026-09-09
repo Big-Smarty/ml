@@ -1,3 +1,13 @@
+# Chapter 42: September 2026 redesign verification
+
+Route: one GPT-6 Astra High section owner read the complete original lesson, metadata, research and reference implementations, plus the supplied advanced/interactive/learning-science evidence synthesis. No chapter subauthors or new research delegation. The original source verification below is retained as historical provenance; this current record supersedes old starter/exercise and implementation-scope statements.
+
+Online m/l/o recurrence, exact causal coverage and GQA grouping. Peak score count is recorded at the actual tile-vector construction. Scalar oracle holds one row, not a quadratic tensor. CPU timings do not establish FlashAttention GPU performance.
+
+The author rechecked the primary PPO and InstructGPT records for the added algorithm/pipeline attribution. New numeric claims come from executable course fixtures, not borrowed benchmark outcomes. See `guidance/redesign/section-08.md` for actual commands, values, prerequisite audit and limits.
+
+## Preserved source-verification history
+
 # Chapter 42 research notes
 
 Route: Sol High author with bounded GPT-5.6 Luna High research. Primary sources verified 2026-09-08.

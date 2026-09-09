@@ -1,14 +1,24 @@
-# Chapter 1 research
+# Chapter 01 redesign provenance
 
-Authored directly by the lead, following the six Luna High research reports summarized in guidance/RESEARCH.md. Numerical examples were checked by executing the Rust reference. The synthetic line, text and visualization are original. Google ML Crash Course supports the linear-regression framing; Rust documentation supports implementation and tooling.
+Author route: one GPT-6 Astra High owner for the complete First principles section, under the approved September2026 redesign. The owner read each original lesson, metadata, research note and preserved reference implementation before creating the new labs. Original reference projects remain untouched.
 
+## Source-grounded content
 
-## Astra High review — 2026-09-08
+- [Google linear regression](https://developers.google.com/machine-learning/crash-course/linear-regression): Weights, bias, and regression framing.
+- [Rust Book](https://doc.rust-lang.org/book/): Language reference.
 
-GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (01–07). Reviewed the full quality-reference lesson, numerical-gradient implementation, browser demo source, starter, and Rustlings pair. Preserved initial MSE 9 and first update (0.8, 0.2) with loss 3.52. The starter now also tests different weight, bias, and input values. Google’s own regression documentation and the existing language/tool documentation remain the directly relevant sources.
+The prior foundations source audit verified these primary-source roles. No course-popularity, ratings or enrollment claim is used as evidence of learning.
 
-See [the per-chapter review and validation record](../../guidance/astra-review-01-14.md) for evidence, gate results, and limitations.
+## Original contribution and numerical evidence
 
-## Consistency revision — 2026-09-08
+The sensor fixtures, worked arithmetic, lesson prose, experiment tasks, CLI, code and three browser illustrations are course-authored. New labs reuse narrow mathematical patterns from preserved references, not their old exercise workflow. The section report records executed checks and measured outputs. Baseline runs and ordinary tests pass; explicit learner-goal comparisons truthfully report remaining work. Checks call the learner implementations on inspectable data, including independent variations. They cannot establish that a particular derivation was authored or grade a free-text explanation.
 
-No new online research was needed. The revision follows the local `guidance/CONSISTENCY.md`, `guidance/AUTHORING.md`, and `guidance/NUMERICS.md` contracts. It makes the reference, starter, lesson snippets, and Rustlings pair use the same `Neuron` method vocabulary and keeps the existing synthetic fixture and numerical results. The learner's completed prediction and 1,000-step starter experiment were preserved while their free functions were mapped to the canonical methods. An asymmetric regression fixture now detects sequential weight/bias updates that the symmetric course data can mask.
+## Learning-design basis and limits
+
+Worked examples precede substantial algorithm changes; learners predict a result, compare a working baseline, implement, inspect discrepancies and transfer to changed inputs. This applies the verified research synthesis on worked examples, retrieval and guided active tasks. It is a design inference for everyday Rust programmers who are new to ML, not a controlled result for this complete curriculum. Short sessions are planning estimates; no navigation or mastery gate is inferred from clicks or baseline success.
+
+## Chapter-specific limits
+
+- Exact synthetic fixtures demonstrate mechanics, not real-sensor generalization.
+- Numerical gradients need two complete loss probes per parameter.
+- A passing behavioral check cannot establish that numerical probing rather than another equivalent method was authored.

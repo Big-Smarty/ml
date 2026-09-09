@@ -1,0 +1,272 @@
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 12
+Maintenance v1: fixed sensor-rule predictions on 18 development readings from 6 machines; no model fitting.
+frozen heuristic: n=18 accuracy=0.667 Brier=0.1859 cost(4FN+FP)/n=0.833 TP=4 FP=3 FN=3 TN=8
+95% interval (0.44888888888888884, 0.8844444444444444); seed=7; 2000 repetitions requested
+bin 0: n=18 mean p=0.4471, frequency=0.3889
+A working report is not a learning-goal pass. --check inspects groups, pairs, endpoints and bin arithmetic.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 12 --check
+two machines (one always correct, one always wrong): interval=(0.010000000000000009, 0.99); expected [0,1]
+GOAL_NOT_MET: Goal not met: sample whole machine groups with replacement and recompute accuracy; row-count standard errors invent independence
+EXIT=1
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 12 --solution
+Maintenance v1: fixed sensor-rule predictions on 18 development readings from 6 machines; no model fitting.
+frozen heuristic: n=18 accuracy=0.667 Brier=0.1859 cost(4FN+FP)/n=0.833 TP=4 FP=3 FN=3 TN=8
+95% interval (0.5, 0.8333333333333334); seed=7; 2000 repetitions requested
+bin 0: n=5 mean p=0.1431, frequency=0.2000
+bin 1: n=6 mean p=0.4044, frequency=0.3333
+bin 2: n=5 mean p=0.6508, frequency=0.4000
+bin 3: n=2 mean p=0.8255, frequency=1.0000
+A working report is not a learning-goal pass. --check inspects groups, pairs, endpoints and bin arithmetic.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 12 --solution --check
+two machines (one always correct, one always wrong): interval=(0.0, 1.0); expected [0,1]
+Goal checks passed. Explain why six machines still cannot establish nominal 95% coverage.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 13
+Maintenance v1; prediction at day d, target/repair known at d+1. Candidate features: 3 sensors, missingness, regime.
+Row k=3: n=36 accuracy=0.667 Brier=0.1728 cost(4FN+FP)/n=0.833 TP=8 FP=6 FN=6 TN=16
+ train=108 valid=36 validation rows with known machines=36 median=[61.89788888888889, 2.331558823529413, 0.5441111111111112] vocabulary=[]
+Group k=3: n=36 accuracy=0.667 Brier=0.1728 cost(4FN+FP)/n=0.833 TP=8 FP=6 FN=6 TN=16
+ train=108 valid=36 validation rows with known machines=36 median=[61.89788888888889, 2.331558823529413, 0.5441111111111112] vocabulary=[]
+Time k=3: n=36 accuracy=0.667 Brier=0.1728 cost(4FN+FP)/n=0.833 TP=8 FP=6 FN=6 TN=16
+ train=108 valid=36 validation rows with known machines=36 median=[61.89788888888889, 2.331558823529413, 0.5441111111111112] vocabulary=[]
+FutureGroup k=3: n=36 accuracy=0.667 Brier=0.1728 cost(4FN+FP)/n=0.833 TP=8 FP=6 FN=6 TN=16
+ train=108 valid=36 validation rows with known machines=36 median=[61.89788888888889, 2.331558823529413, 0.5441111111111112] vocabulary=[]
+FORBIDDEN repair_after feature: n=18 accuracy=1.000 Brier=0.0000 cost(4FN+FP)/n=0.000 TP=7 FP=0 FN=0 TN=11
+Train-only temperature center 0.000; fit-before-split center 0.000. Perfect repair prediction uses tomorrow's answer.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 13 --check
+GOAL_NOT_MET: Goal not met: training median4, imputed mean27.5, vocabulary[a,b], constant scale1; got Prep { median: [35.333333333333336, 2.0, 1.0], mean: [0.0, 0.0, 0.0], scale: [1.0, 1.0, 1.0], categories: [] }
+EXIT=1
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 13 --solution
+Maintenance v1; prediction at day d, target/repair known at d+1. Candidate features: 3 sensors, missingness, regime.
+Row k=3: n=36 accuracy=0.722 Brier=0.1636 cost(4FN+FP)/n=0.778 TP=8 FP=4 FN=6 TN=18
+ train=108 valid=36 validation rows with known machines=36 median=[61.903499999999994, 2.366, 0.5445] vocabulary=["idle", "loaded"]
+Group k=3: n=48 accuracy=0.688 Brier=0.2130 cost(4FN+FP)/n=0.625 TP=18 FP=10 FN=5 TN=15
+ train=96 valid=48 validation rows with known machines=0 median=[61.554500000000004, 2.244, 0.5475] vocabulary=["idle", "loaded"]
+Time k=3: n=54 accuracy=0.667 Brier=0.2860 cost(4FN+FP)/n=1.056 TP=14 FP=5 FN=13 TN=22
+ train=72 valid=54 validation rows with known machines=54 median=[61.402, 2.114, 0.547] vocabulary=["idle", "loaded"]
+FutureGroup k=3: n=18 accuracy=0.667 Brier=0.2346 cost(4FN+FP)/n=1.000 TP=3 FP=2 FN=4 TN=9
+ train=48 valid=18 validation rows with known machines=0 median=[61.6075, 2.244, 0.547] vocabulary=["idle", "loaded"]
+FORBIDDEN repair_after feature: n=18 accuracy=1.000 Brier=0.0000 cost(4FN+FP)/n=0.000 TP=7 FP=0 FN=0 TN=11
+Train-only temperature center 61.137; fit-before-split center 61.721. Perfect repair prediction uses tomorrow's answer.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 13 --solution --check
+Numeric fitting, vocabulary, missingness and unknown-category checkpoint passed.
+Split, training-only state, missingness, unknown-category and held-only perturbation checks passed.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 14
+Maintenance checkpoint: 48 training rows, 9 features, 18 future unseen-machine validation rows
+kNN k=1: n=18 accuracy=0.556 Brier=0.4444 cost(4FN+FP)/n=1.278 TP=2 FP=3 FN=5 TN=8
+kNN k=3: n=18 accuracy=0.556 Brier=0.4444 cost(4FN+FP)/n=1.278 TP=2 FP=3 FN=5 TN=8
+kNN k=7: n=18 accuracy=0.556 Brier=0.4444 cost(4FN+FP)/n=1.278 TP=2 FP=3 FN=5 TN=8
+Gaussian model: n=18 accuracy=0.667 Brier=0.2166 cost(4FN+FP)/n=0.667 TP=5 FP=4 FN=2 TN=7
+NB priors [0.5, 0.5]; first sensor class means [-0.269,0.652], variances [1.000,1.000]
+kNN scans 48 stored rows per query; NB scores two class summaries. Neither normalized output is guaranteed calibrated.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 14 --check
+GOAL_NOT_MET: Goal not met: three-neighbor vote must be 1/3 despite nearest positive; got 1
+EXIT=1
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 14 --solution
+Maintenance checkpoint: 48 training rows, 9 features, 18 future unseen-machine validation rows
+kNN k=1: n=18 accuracy=0.556 Brier=0.4444 cost(4FN+FP)/n=1.278 TP=2 FP=3 FN=5 TN=8
+kNN k=3: n=18 accuracy=0.667 Brier=0.2346 cost(4FN+FP)/n=1.000 TP=3 FP=2 FN=4 TN=9
+kNN k=7: n=18 accuracy=0.667 Brier=0.2166 cost(4FN+FP)/n=1.000 TP=3 FP=2 FN=4 TN=9
+Gaussian model: n=18 accuracy=0.667 Brier=0.2554 cost(4FN+FP)/n=0.833 TP=4 FP=3 FN=3 TN=8
+NB priors [0.7083333333333334, 0.2916666666666667]; first sensor class means [-0.269,0.652], variances [0.980,0.448]
+kNN scans 48 stored rows per query; NB scores two class summaries. Neither normalized output is guaranteed calibrated.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 14 --solution --check
+k-dependent voting, learned priors, unequal class spread, constant variance floor and new queries passed.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 15
+tree depth1 nodes3: n=18 accuracy=0.611 Brier=0.2426 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+ train Gini 0.4132; train accuracy 0.708
+tree depth3 nodes3: n=18 accuracy=0.611 Brier=0.2426 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+ train Gini 0.4132; train accuracy 0.708
+tree depth6 nodes3: n=18 accuracy=0.611 Brier=0.2426 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+ train Gini 0.4132; train accuracy 0.708
+bagging(all features): n=18 accuracy=0.611 Brier=0.2426 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+random forest: n=18 accuracy=0.611 Brier=0.2426 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+squared-error boosting rounds1; clipped0/1 regression: n=18 accuracy=0.611 Brier=0.2471 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+squared-error boosting rounds10; clipped0/1 regression: n=18 accuracy=0.611 Brier=0.2471 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+squared-error boosting rounds30; clipped0/1 regression: n=18 accuracy=0.611 Brier=0.2471 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 15 --check
+GOAL_NOT_MET: Goal not met: a depth2 tree must learn the two-feature interaction; search weighted impurity then recurse
+EXIT=1
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 15 --solution
+tree depth1 nodes3: n=18 accuracy=0.667 Brier=0.2309 cost(4FN+FP)/n=0.833 TP=4 FP=3 FN=3 TN=8
+ train Gini 0.4132; train accuracy 0.792
+tree depth3 nodes11: n=18 accuracy=0.611 Brier=0.2932 cost(4FN+FP)/n=1.056 TP=3 FP=3 FN=4 TN=8
+ train Gini 0.4132; train accuracy 0.875
+tree depth6 nodes25: n=18 accuracy=0.556 Brier=0.4444 cost(4FN+FP)/n=1.278 TP=2 FP=3 FN=5 TN=8
+ train Gini 0.4132; train accuracy 1.000
+bagging(all features): n=18 accuracy=0.444 Brier=0.2775 cost(4FN+FP)/n=1.722 TP=0 FP=3 FN=7 TN=8
+random forest: n=18 accuracy=0.611 Brier=0.2474 cost(4FN+FP)/n=1.222 TP=2 FP=2 FN=5 TN=9
+squared-error boosting rounds1; clipped0/1 regression: n=18 accuracy=0.611 Brier=0.2342 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+squared-error boosting rounds10; clipped0/1 regression: n=18 accuracy=0.611 Brier=0.2047 cost(4FN+FP)/n=1.389 TP=1 FP=1 FN=6 TN=10
+squared-error boosting rounds30; clipped0/1 regression: n=18 accuracy=0.556 Brier=0.2178 cost(4FN+FP)/n=1.444 TP=1 FP=2 FN=6 TN=9
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 15 --solution --check
+Recursive interaction, randomized structure and negative/positive residual-target checks passed; MSE=0.000000
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 16
+linear decision lambda0.01: n=18 accuracy=0.611 Brier=0.3889 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+ training hinge+penalty 0.9815; norm 0.0947
+linear decision lambda0.2: n=18 accuracy=0.611 Brier=0.3889 cost(4FN+FP)/n=1.556 TP=0 FP=0 FN=7 TN=11
+ training hinge+penalty 0.9824; norm 0.0947
+RBF decision gamma0.05: n=18 accuracy=0.722 Brier=0.2778 cost(4FN+FP)/n=0.444 TP=6 FP=4 FN=1 TN=7
+ nonzero support coefficients 2
+RBF decision gamma0.5: n=18 accuracy=0.722 Brier=0.2778 cost(4FN+FP)/n=0.444 TP=6 FP=4 FN=1 TN=7
+ nonzero support coefficients 2
+RBF decision gamma5: n=18 accuracy=0.722 Brier=0.2778 cost(4FN+FP)/n=0.444 TP=6 FP=4 FN=1 TN=7
+ nonzero support coefficients 2
+Brier above uses hard0/1 decisions, not calibrated SVM probabilities. Nonlinear training goal is a kernel perceptron, not a kernel SVM dual solver.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 16 --check
+GOAL_NOT_MET: Goal not met: positive-but-small margin still updates; expected w0=.49375,b=.5, got Linear { weights: [0.25, 0.0], bias: 0.25 }
+EXIT=1
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 16 --solution
+linear decision lambda0.01: n=18 accuracy=0.722 Brier=0.2778 cost(4FN+FP)/n=0.944 TP=3 FP=1 FN=4 TN=10
+ training hinge+penalty 0.4721; norm 1.6470
+linear decision lambda0.2: n=18 accuracy=0.667 Brier=0.3333 cost(4FN+FP)/n=1.333 TP=1 FP=0 FN=6 TN=11
+ training hinge+penalty 0.5592; norm 0.5136
+RBF decision gamma0.05: n=18 accuracy=0.389 Brier=0.6111 cost(4FN+FP)/n=0.778 TP=6 FP=10 FN=1 TN=1
+ nonzero support coefficients 28
+RBF decision gamma0.5: n=18 accuracy=0.611 Brier=0.3889 cost(4FN+FP)/n=1.389 TP=1 FP=1 FN=6 TN=10
+ nonzero support coefficients 28
+RBF decision gamma5: n=18 accuracy=0.556 Brier=0.4444 cost(4FN+FP)/n=1.278 TP=2 FP=3 FN=5 TN=8
+ nonzero support coefficients 21
+Brier above uses hard0/1 decisions, not calibrated SVM probabilities. Nonlinear training goal is a kernel perceptron, not a kernel SVM dual solver.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 16 --solution --check
+Active/inactive hinge updates, weight-only shrinkage, and perturbed nonlinear queries passed.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 17
+PCA reads the three training-standardized continuous sensors; excludes category/indicator columns and every label.
+k=1: eigenvalues=[1.0212765957446812], retained=0.3333, train squared reconstruction norm/row=2.0000, validation=2.1495
+k=2: eigenvalues=[1.0212765957446812, 1.0212765957446808], retained=0.6667, train squared reconstruction norm/row=1.0000, validation=1.0387
+k=3: eigenvalues=[1.0212765957446812, 1.0212765957446808, 1.0212765957446805], retained=1.0000, train squared reconstruction norm/row=0.0000, validation=0.0000
+covariance=[[1.0212765957446805, 0.0, 0.0], [0.0, 1.0212765957446812, 0.0], [0.0, 0.0, 1.0212765957446808]]; condition number=1.0000000000000007; projection first validation=[-0.4651304327538394, -1.1813459814049325, -1.5154707800923732]
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 17 --check
+GOAL_NOT_MET: Goal not met: full centered covariance [[2,1],[1,2]] has eigenvalues[3,1]; got [2.0000000000000004, 2.0000000000000004]
+EXIT=1
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 17 --solution
+PCA reads the three training-standardized continuous sensors; excludes category/indicator columns and every label.
+k=1: eigenvalues=[2.0355321206697496], retained=0.6644, train squared reconstruction norm/row=1.0069, validation=1.1624
+k=2: eigenvalues=[2.0355321206697496, 0.8764314291354532], retained=0.9504, train squared reconstruction norm/row=0.1487, validation=0.3088
+k=3: eigenvalues=[2.0355321206697496, 0.8764314291354532, 0.15186623742884012], retained=1.0000, train squared reconstruction norm/row=0.0000, validation=0.0000
+covariance=[[1.0212765957446805, 0.8153995249018847, 0.4566024590139542], [0.8153995249018847, 1.0212765957446812, 0.17152897962493358], [0.4566024590139542, 0.17152897962493358, 1.0212765957446808]]; condition number=13.403453954823487; projection first validation=[-1.7925879018218105, 0.6626760001716046, -0.5060291153755743]
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 17 --solution --check
+Covariance, eigenpair residuals, orthogonality, translation,3D rank deficiency and constant-data checks passed.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 18
+k-means k2 inertia(sum)=199.4454 centers=[[-0.40265890141439115, 1.2432958342337654], [0.8195064064546648, 1.9814405340372794]] counts=[38, 10]
+k-means k3 inertia(sum)=152.5349 centers=[[-0.40265890141439115, 1.2432958342337654], [1.3328846663140816, 1.14271104553954], [0.8195064064546648, 1.9814405340372794]] counts=[29, 18, 1]
+EM summed log likelihood, first=-209.4742 last=-209.4742; weights=[0.5, 0.5]
+highest development anomaly scores (validation index, score): [(13, 6.6114358973342355), (2, 6.007068090745601), (15, 5.568300981043151)]
+First validation responsibilities=[0.9587736449299864, 0.041226355070013675]. These operating-regime densities are not failure probabilities.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 18 --check
+GOAL_NOT_MET: Goal not met: centers1.5,8.5 yield summed inertia1; got2
+EXIT=1
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 18 --solution
+k-means k2 inertia(sum)=74.8438 centers=[[-0.9880990772378943, 0.1690852417352646], [1.2704130993058644, -0.21739531080248317]] counts=[27, 21]
+k-means k3 inertia(sum)=43.6011 centers=[[-1.8005678113303274, -0.5693115758581891], [1.2247947742984124, -0.5241209154290878], [-0.09789923386505353, 0.9876491943206435]] counts=[12, 19, 17]
+EM summed log likelihood, first=-150.3323 last=-142.5910; weights=[0.746699147400887, 0.25330085259911295]
+highest development anomaly scores (validation index, score): [(16, 4.002887027097079), (6, 3.728094805877957), (17, 3.6293843381377258)]
+First validation responsibilities=[0.9999998376591946, 1.6234080526141898e-7]. These operating-regime densities are not failure probabilities.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 18 --solution --check
+Center updates, final assignments, unequal-spread EM, likelihood, floors, and unfamiliar anomaly checks passed.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 19
+maintenance-v1 FNV1a64=6dccde7b74debd05; split=early train<=day3; validation days5..7 on held machines; final machines18..23 days9..11
+Frozen metric=(4FN+FP)/n, threshold=.5, lower is better; candidate order=[Knn(3), Knn(7), Bayes(0.02), Bayes(0.2), Tree(2), Tree(4)]; no test-dependent choices.
+fold0 train IDs=[0, 1, 2, 3, 12, 13, 14, 15, 24, 25, 26, 27, 36, 37, 38, 39, 48, 49, 50, 51, 60, 61, 62, 63, 72, 73, 74, 75, 84, 85, 86, 87, 96, 97, 98, 99, 108, 109, 110, 111, 120, 121, 122, 123, 132, 133, 134, 135]; valid IDs=[149, 150, 151, 161, 162, 163, 173, 174, 175, 185, 186, 187, 197, 198, 199, 209, 210, 211]
+candidate0 Knn(3): fold costs=[1.0]; pooled cost=1.0000; accuracy=0.6667; Brier=0.2346
+Frozen development choice: Knn(3)
+Final rows remain unopened. After recording the protocol and selection, rerun19 --final (or19 --solution --final). Inspecting final errors begins a new development cycle.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 19 --check
+GOAL_NOT_MET: Goal not met: build three rotated machine-group folds, each with earlier training and later held-machine validation
+EXIT=1
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 19 --solution
+maintenance-v1 FNV1a64=6dccde7b74debd05; split=early train<=day3; validation days5..7 on held machines; final machines18..23 days9..11
+Frozen metric=(4FN+FP)/n, threshold=.5, lower is better; candidate order=[Knn(3), Knn(7), Bayes(0.02), Bayes(0.2), Tree(2), Tree(4)]; no test-dependent choices.
+fold0 train IDs=[72, 73, 74, 75, 84, 85, 86, 87, 96, 97, 98, 99, 108, 109, 110, 111, 120, 121, 122, 123, 132, 133, 134, 135, 144, 145, 146, 147, 156, 157, 158, 159, 168, 169, 170, 171, 180, 181, 182, 183, 192, 193, 194, 195, 204, 205, 206, 207]; valid IDs=[5, 6, 7, 17, 18, 19, 29, 30, 31, 41, 42, 43, 53, 54, 55, 65, 66, 67]
+fold1 train IDs=[0, 1, 2, 3, 12, 13, 14, 15, 24, 25, 26, 27, 36, 37, 38, 39, 48, 49, 50, 51, 60, 61, 62, 63, 144, 145, 146, 147, 156, 157, 158, 159, 168, 169, 170, 171, 180, 181, 182, 183, 192, 193, 194, 195, 204, 205, 206, 207]; valid IDs=[77, 78, 79, 89, 90, 91, 101, 102, 103, 113, 114, 115, 125, 126, 127, 137, 138, 139]
+fold2 train IDs=[0, 1, 2, 3, 12, 13, 14, 15, 24, 25, 26, 27, 36, 37, 38, 39, 48, 49, 50, 51, 60, 61, 62, 63, 72, 73, 74, 75, 84, 85, 86, 87, 96, 97, 98, 99, 108, 109, 110, 111, 120, 121, 122, 123, 132, 133, 134, 135]; valid IDs=[149, 150, 151, 161, 162, 163, 173, 174, 175, 185, 186, 187, 197, 198, 199, 209, 210, 211]
+candidate0 Knn(3): fold costs=[1.0, 1.0, 1.0]; pooled cost=1.0000; accuracy=0.6667; Brier=0.2469
+candidate1 Knn(7): fold costs=[1.0, 1.1111111111111112, 1.0]; pooled cost=1.0370; accuracy=0.6852; Brier=0.2430
+candidate2 Bayes(0.02): fold costs=[1.0555555555555556, 0.9444444444444444, 0.8333333333333334]; pooled cost=0.9444; accuracy=0.6667; Brier=0.2540
+candidate3 Bayes(0.2): fold costs=[1.2222222222222223, 0.9444444444444444, 0.8333333333333334]; pooled cost=1.0000; accuracy=0.6667; Brier=0.2537
+candidate4 Tree(2): fold costs=[0.6111111111111112, 0.16666666666666666, 0.8888888888888888]; pooled cost=0.5556; accuracy=0.7222; Brier=0.2370
+candidate5 Tree(4): fold costs=[1.2222222222222223, 1.7777777777777777, 1.0555555555555556]; pooled cost=1.3519; accuracy=0.5926; Brier=0.3272
+Frozen development choice: Tree(2)
+Final rows remain unopened. After recording the protocol and selection, rerun19 --final (or19 --solution --final). Inspecting final errors begins a new development cycle.
+EXIT=0
+
+$ cargo run --quiet --manifest-path labs/s03-tabular/Cargo.toml -- 19 --solution --check
+Development protocol, six-candidate search and stable-order checks passed. Final outcomes remain unopened; use --final only after freezing selection.
+EXIT=0
+
+$ cargo fmt --manifest-path labs/s03-tabular/Cargo.toml --check
+
+$ cargo clippy --manifest-path labs/s03-tabular/Cargo.toml --all-targets -- -D warnings
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
+
+$ cargo test --manifest-path labs/s03-tabular/Cargo.toml
+
+running 9 tests
+test ch16::tests::baseline_and_solution ... ok
+test ch17::tests::baseline_and_solution ... ok
+test data::tests::fixture_and_boundaries ... ok
+test ch15::tests::baseline_and_solution ... ok
+test ch13::tests::baseline_and_solution ... ok
+test ch14::tests::baseline_and_solution ... ok
+test ch18::tests::baseline_and_solution ... ok
+test ch12::tests::baseline_and_solution ... ok
+test ch19::tests::baseline_and_solution ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.01s
+     Running unittests src/main.rs (labs/s03-tabular/target/debug/deps/s03_tabular-f25567fb68f68604)
+
+$ node labs/s03-tabular/verify-demos.cjs
+Three actual scoped demos: bootstrap/calibration, five split cases, five geometry modes and deterministic resets passed.

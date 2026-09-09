@@ -1,0 +1,290 @@
+{
+  "chapters": [
+    {
+      "chapter": 47,
+      "mode": "baseline",
+      "exit": 0,
+      "stdout": "chapter 47: working learner baseline; --check assesses the full goal\nscalar CPU, f64, 192x192, release=false\ndensity=1.000, nnz=36864, output RMSE=0.00000, dense-kernel median/range=396.267\u00b5s/394.617\u00b5s..416.526\u00b5s, CSR-kernel median/range=360.687\u00b5s/359.167\u00b5s..403.006\u00b5s\ndensity=1.000, nnz=36864, output RMSE=0.00000, dense-kernel median/range=396.306\u00b5s/394.597\u00b5s..436.086\u00b5s, CSR-kernel median/range=361.506\u00b5s/358.987\u00b5s..374.736\u00b5s\ndensity=1.000, nnz=36864, output RMSE=0.00000, dense-kernel median/range=396.027\u00b5s/394.216\u00b5s..422.557\u00b5s, CSR-kernel median/range=360.327\u00b5s/358.816\u00b5s..372.486\u00b5s\ndensity=1.000, nnz=36864, output RMSE=0.00000, dense-kernel median/range=395.926\u00b5s/394.186\u00b5s..439.616\u00b5s, CSR-kernel median/range=360.816\u00b5s/358.947\u00b5s..413.606\u00b5s\nThese timings describe this scalar fixture and machine only.\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 47,
+      "mode": "learner-check",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: magnitude budget: got [-1.0, 0.2, 3.0, -2.0]; expected [0,0,3,-2]\n"
+    },
+    {
+      "chapter": 47,
+      "mode": "solution-check",
+      "exit": 0,
+      "stdout": "chapter 47 learning-goal checks passed (solution)\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 48,
+      "mode": "baseline",
+      "exit": 0,
+      "stdout": "chapter 48: working learner baseline; --check assesses the full goal\nMoE uncapped task half-MSE: 1.36810 -> 0.00697\nroute counts=[0, 18, 36], final-epoch overflow=0\nrouter=[[0.0, 0.0], [0.01, -0.02], [-0.02, 0.01]]\nexperts=[[0.1, -0.1], [3.531520428728306, 0.4957932560173972], [3.362679314161417, 1.615600234674605]]\nThis tiny CPU layer verifies routing gradients and capacity, not large-model quality or speed.\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 48,
+      "mode": "learner-check",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: router task derivative: actual 0.00000000, central difference 0.02874757; frozen or normalized-to-one gates cannot learn\n"
+    },
+    {
+      "chapter": 48,
+      "mode": "solution-check",
+      "exit": 0,
+      "stdout": "chapter 48 learning-goal checks passed (solution)\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 49,
+      "mode": "baseline",
+      "exit": 0,
+      "stdout": "chapter 49: working learner baseline; --check assesses the full goal\nlearning goal: recurrent result differs from feature-kernel oracle\nlength=4096, release=false\nSSM recurrence=26.74\u00b5s, sequential scan schedule=28.58\u00b5s, final=0.583772\nlinear-attention recurrence=224.268\u00b5s, final=0.037303\ndirect scalar oracle for first 256 tokens=3.28463ms\nFixed selective coefficients are illustrative, not a trained Mamba layer.\nThe scan schedule exposes parallel structure but this scalar program executes it sequentially.\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 49,
+      "mode": "learner-check",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: feature-kernel summaries: actual [2.0, 0.5, 0.5], direct oracle [1.9999999999992806, 0.6069802731410308, 0.5370569280343139]; uniform averaging loses query/key weights\n"
+    },
+    {
+      "chapter": 49,
+      "mode": "solution-check",
+      "exit": 0,
+      "stdout": "chapter 49 learning-goal checks passed (solution)\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 50,
+      "mode": "baseline",
+      "exit": 0,
+      "stdout": "chapter 50: working learner baseline; --check assesses the full goal\ndata parallel: two workers sent private gradient sums\ntensor parallel prediction: -0.296641\ntensor-parallel update matches serial within 1e-12: true\npipeline stages communicated 6 activations; mean loss 3.712481\npipeline backward updated both stages and matches serial: false\nrecovery equivalence: true\nThis is measured local CPU thread communication, not multi-GPU execution.\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 50,
+      "mode": "learner-check",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: sum/count reduction got Gradient { weights: [6.0, 6.0, 6.0, 6.0], bias: 6.0, count: 2 }; expected sum 10 and count 4, giving mean 2.5\n"
+    },
+    {
+      "chapter": 50,
+      "mode": "solution-check",
+      "exit": 0,
+      "stdout": "chapter 50 learning-goal checks passed (solution)\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 51,
+      "mode": "baseline",
+      "exit": 0,
+      "stdout": "chapter 51: working learner baseline; --check assesses the full goal\nselected autoencoder objective: 0.4057 -> 0.0000; decoder means: 0.659, 0.209\nGAN generator: x=1.325z-0.000; discriminator loss 1.3863\ndiffusion noise MSE: 0.6567 -> 0.4190; reverse sample 0.539\ndata fixture: n=6, mean=0.000, variance=1.150, negative=3, |x|<0.5=0, quartiles=[-1.000, -0.700, 1.000]\nlatent decoder means: n=512, mean=0.059, variance=1.065, negative=241, |x|<0.5=191, quartiles=[-0.662, 0.088, 0.694]\nlatent decoder observations (unit decoder variance): n=512, mean=0.054, variance=2.120, negative=244, |x|<0.5=142, quartiles=[-0.931, 0.078, 0.914]\nGAN: n=512, mean=0.078, variance=1.868, negative=242, |x|<0.5=140, quartiles=[-0.877, 0.116, 0.919]\ndiffusion: n=512, mean=0.059, variance=1.065, negative=241, |x|<0.5=191, quartiles=[-0.662, 0.088, 0.694]\nAll three models were trained here; affine Gaussian sampling cannot represent these two modes.\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 51,
+      "mode": "learner-check",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: VAE objective 0.30653000 differs from reconstruction plus 0.1 KL 0.41913721\n"
+    },
+    {
+      "chapter": 51,
+      "mode": "solution-check",
+      "exit": 0,
+      "stdout": "chapter 51 learning-goal checks passed (solution)\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 52,
+      "mode": "baseline",
+      "exit": 0,
+      "stdout": "chapter 52: working learner baseline; --check assesses the full goal\nselected alignment objective: 1.0040 -> 0.0000\nlocal perturbed-image recall@1: 100%\nimage 0 retrieves \"two vertical pixels\"\nimage 1 retrieves \"two horizontal pixels\"\nimage 2 retrieves \"main diagonal\"\nThe three-pair fixture verifies alignment mechanics, not open-vocabulary understanding.\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 52,
+      "mode": "learner-check",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: symmetric objective: actual 1.00401947, expected 1.13219612; inspect the column axis and 2N denominator\n"
+    },
+    {
+      "chapter": 52,
+      "mode": "solution-check",
+      "exit": 0,
+      "stdout": "chapter 52 learning-goal checks passed (solution)\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 53,
+      "mode": "baseline",
+      "exit": 0,
+      "stdout": "chapter 53: working learner baseline; --check assesses the full goal\ncheckpoint: model v1, schema 1, data hash 08dd92a401a54599\ncanary rollback selected previous version: true\nlive input mean 12.25; drift alert: true\nvalidated prediction for x=12: 3.0000\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 53,
+      "mode": "learner-check",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: a numerically equivalent candidate should pass the canary, not be rejected unconditionally\n"
+    },
+    {
+      "chapter": 53,
+      "mode": "solution-check",
+      "exit": 0,
+      "stdout": "chapter 53 learning-goal checks passed (solution)\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 54,
+      "mode": "baseline",
+      "exit": 0,
+      "stdout": "chapter 54: working learner baseline; --check assesses the full goal\ngroup * n=12 accuracy=0.667 positive_rate=0.417 TPR=None FPR=None\ngroup * n=12 accuracy=0.667 positive_rate=0.417 TPR=None FPR=None\nlocal logit ablation contributions: feature0=0.800, feature1=0.400\nrobustness at radius 0.25: 4 boundary flips, max probability change 0.050\nloss-threshold membership attack: TPR=0.875 FPR=0.0 advantage=0.875\nsecurity boundary rejects NaN: true\noutcome-rate difference: crude=+0.300, equal-stratum standardized=-0.100\nThese diagnostics expose evidence gaps; they do not certify fairness, privacy, robustness, or causality.\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 54,
+      "mode": "learner-check",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: group denominators: A=GroupMetrics { group: '*', count: 12, accuracy: 0.6666666666666666, positive_rate: 0.4166666666666667, true_positive_rate: None, false_positive_rate: None }, B=GroupMetrics { group: '*', count: 12, accuracy: 0.6666666666666666, positive_rate: 0.4166666666666667, true_positive_rate: None, false_positive_rate: None }; pooled accuracy cannot substitute for group rates\n"
+    },
+    {
+      "chapter": 54,
+      "mode": "solution-check",
+      "exit": 0,
+      "stdout": "chapter 54 learning-goal checks passed (solution)\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 55,
+      "mode": "baseline",
+      "exit": 0,
+      "stdout": "chapter 55: working learner baseline; --check assesses the full goal\ninput [1.5, -2.0, 0.5]; [out,in] output [1.4500000000000002, 0.5499999999999998]; [in,out] runtime [-0.7999999999999998, -2.3000000000000003]\nforward/gradient/update parity: Err(\"GOAL_NOT_MET: aggregate outputs differ; implement per-coordinate diagnostics\")\nCustom fixed-shape format, not ONNX. --framework explicitly runs the separate pinned Burn 2x2 reference and may download packages.\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 55,
+      "mode": "learner-check",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: runtime forward coordinates differ from scratch\n"
+    },
+    {
+      "chapter": 55,
+      "mode": "solution-check",
+      "exit": 0,
+      "stdout": "chapter 55 learning-goal checks passed (solution)\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 56,
+      "mode": "baseline",
+      "exit": 0,
+      "stdout": "chapter 56: working learner baseline; --check assesses the full goal\nsame fixture: 160 SGD steps, 16 tokens/step, width 8, expert width 12; matched shared initialization\ndense parameters: total 2852, nonexpert+one-expert 2852\nconfigured three-expert parameters: total 3303, nonexpert+one-expert 2879\nuncapped task cross-entropy, mean over ALL corpus targets:\ndense train loss 4.8493 -> 1.5412; held-out 2.0097\nconfigured three-expert train loss 4.8493 -> 1.5412; held-out 2.0097\nconfigured training probe: routes [16, 0, 0]; accepted [16, 0, 0]; dropped 0; capacity 16; mean gate 1.000\nparameter change norm1: L2=0.021526\nparameter change norm2: L2=0.007260\nparameter change norm_final: L2=2.466723\nparameter change token_embedding: L2=1.573736\nparameter change position_embedding: L2=0.943058\nparameter change qkv_weight: L2=0.274508\nparameter change qkv_bias: L2=0.038703\nparameter change attention_output_weight: L2=0.263412\nparameter change attention_output_bias: L2=0.153045\nparameter change router_weight: L2=0.000000\nparameter change router_bias: L2=0.000000\nparameter change expert.0.ff1_weight: L2=0.142062\nparameter change expert.0.ff1_bias: L2=0.017356\nparameter change expert.0.ff2_weight: L2=0.163100\nparameter change expert.0.ff2_bias: L2=0.160971\nparameter change expert.1.ff1_weight: L2=0.000000\nparameter change expert.1.ff1_bias: L2=0.000000\nparameter change expert.1.ff2_weight: L2=0.000000\nparameter change expert.1.ff2_bias: L2=0.000000\nparameter change expert.2.ff1_weight: L2=0.000000\nparameter change expert.2.ff1_bias: L2=0.000000\nparameter change expert.2.ff2_weight: L2=0.000000\nparameter change expert.2.ff2_bias: L2=0.000000\nparameter change output_weight: L2=4.106951\nparameter change output_bias: L2=0.937358\nsample: \"rust\\0ttns. prktttte. torout. rttutet\"\nTiny overlapping-vocabulary fixture checks mechanics, not language quality, privacy, or scale.\n",
+      "stderr": ""
+    },
+    {
+      "chapter": 56,
+      "mode": "learner-check",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "GOAL_NOT_MET: learned routing must follow expert-one bias; got [0, 0, 0], indicating the fixed dense baseline\n"
+    },
+    {
+      "chapter": 56,
+      "mode": "solution-check",
+      "exit": 0,
+      "stdout": "actual sparse LM: train CE 4.848896 -> 1.368557; held-out CE 1.878740; 2560 token presentations\nchapter 56 learning-goal checks passed (solution)\n",
+      "stderr": ""
+    }
+  ],
+  "operations": [
+    {
+      "args": [
+        "56",
+        "--solution",
+        "train",
+        "/tmp/s09-evidence-yxzg2n6_/trained.bin",
+        "160"
+      ],
+      "stdout": "chapter 56: worked solution\nsaved step 160 checkpoint to /tmp/s09-evidence-yxzg2n6_/trained.bin; train task CE 1.3686; held-out task CE 1.8787\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "56",
+        "--solution",
+        "eval",
+        "/tmp/s09-evidence-yxzg2n6_/trained.bin"
+      ],
+      "stdout": "chapter 56: worked solution\ncheckpoint step 160; held-out task CE 1.878740; 44 targets\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "56",
+        "--solution",
+        "serve-check",
+        "/tmp/s09-evidence-yxzg2n6_/trained.bin"
+      ],
+      "stdout": "chapter 56: worked solution\nbounded loopback serving check passed: 200 OK, four requested new tokens, 109 response bytes\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "56",
+        "--solution",
+        "resume",
+        "/tmp/s09-evidence-yxzg2n6_/trained.bin",
+        "20"
+      ],
+      "stdout": "chapter 56: worked solution\nsaved step 180 checkpoint to /tmp/s09-evidence-yxzg2n6_/trained.bin; train task CE 1.2508; held-out task CE 1.9146\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "56",
+        "--solution",
+        "train",
+        "/tmp/s09-evidence-yxzg2n6_/full.bin",
+        "180"
+      ],
+      "stdout": "chapter 56: worked solution\nsaved step 180 checkpoint to /tmp/s09-evidence-yxzg2n6_/full.bin; train task CE 1.2508; held-out task CE 1.9146\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "55",
+        "--solution",
+        "export",
+        "/tmp/s09-evidence-yxzg2n6_/affine.bin"
+      ],
+      "stdout": "chapter 55: worked solution\nexported 72 bytes to /tmp/s09-evidence-yxzg2n6_/affine.bin\ninput [1.5, -2.0, 0.5]; [out,in] output [1.4500000000000002, 0.5499999999999998]; [in,out] runtime [1.4500000000000002, 0.5499999999999999]\nforward/gradient/update parity: Ok(())\nCustom fixed-shape format, not ONNX. --framework explicitly runs the separate pinned Burn 2x2 reference and may download packages.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "55",
+        "--solution",
+        "import",
+        "/tmp/s09-evidence-yxzg2n6_/affine.bin"
+      ],
+      "stdout": "chapter 55: worked solution\ninput [1.5, -2.0, 0.5]; [out,in] output [1.4500000000000002, 0.5499999999999998]; [in,out] runtime [1.4500000000000002, 0.5499999999999999]\nforward/gradient/update parity: Ok(())\nCustom fixed-shape format, not ONNX. --framework explicitly runs the separate pinned Burn 2x2 reference and may download packages.\n",
+      "stderr": ""
+    }
+  ],
+  "resume_bytes_equal": true
+}

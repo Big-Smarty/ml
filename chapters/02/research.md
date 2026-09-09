@@ -1,21 +1,26 @@
-# Chapter 2 research
+# Chapter 02 redesign provenance
 
-Model route: GPT-5.6 Sol High author with a bounded GPT-5.6 Luna High source-research subagent. The author verified the formulas against the executable Rust implementation and integrated only source claims relevant to this chapter.
+Author route: one GPT-6 Astra High owner for the complete First principles section, under the approved September2026 redesign. The owner read each original lesson, metadata, research note and preserved reference implementation before creating the new labs. Original reference projects remain untouched.
 
-- MIT OpenCourseWare's *Calculus* text supports the derivative as a limiting local rate of change and the gradient as the collection of partial derivatives: https://ocw.mit.edu/courses/res-18-001-calculus-fall-2023/mitres_18_001_f17_full_book.pdf
-- PyTorch's official gradcheck note documents comparison of analytical Jacobians with finite-difference estimates and the need for tolerances: https://docs.pytorch.org/docs/stable/notes/gradcheck.html
-- Rumelhart, Hinton, and Williams (1986) is the original paper used here for historical context on efficient gradient-based weight updates: https://doi.org/10.1038/323533a0
-- LeCun et al., *Efficient BackProp*, supports the practical discussion of scaling and learning-rate behavior: https://cseweb.ucsd.edu/~gary/258a/lecun98efficient.pdf
+## Source-grounded content
 
-The line data, arithmetic, prose, exercises, and Rust code are course-authored. No source code or figures were reused.
+- [MIT OpenCourseWare Calculus](https://ocw.mit.edu/courses/res-18-001-calculus-fall-2023/mitres_18_001_f17_full_book.pdf): Derivatives, partial derivatives, and gradients.
+- [PyTorch gradcheck mechanics](https://docs.pytorch.org/docs/stable/notes/gradcheck.html): Analytical versus finite-difference derivative checks.
+- [Learning representations by back-propagating errors](https://doi.org/10.1038/323533a0): Historical gradient-based learning context.
+- [Efficient BackProp](https://cseweb.ucsd.edu/~gary/258a/lecun98efficient.pdf): Practical gradient descent and scaling.
 
+The prior foundations source audit verified these primary-source roles. No course-popularity, ratings or enrollment claim is used as evidence of learning.
 
-## Astra High review — 2026-09-08
+## Original contribution and numerical evidence
 
-GPT-6 Astra High reviewed every owned lecture, metadata file, research note, reference, starter, and exercise/solution, with bounded GPT-5.6 Luna High primary-source verification (01–07). Verified the complete MSE derivative and finite-difference conventions. Strengthened starter and Rustlings checks with a nonzero model and unequal example contributions so constants and single-row derivatives do not pass.
+The sensor fixtures, worked arithmetic, lesson prose, experiment tasks, CLI, code and three browser illustrations are course-authored. New labs reuse narrow mathematical patterns from preserved references, not their old exercise workflow. The section report records executed checks and measured outputs. Baseline runs and ordinary tests pass; explicit learner-goal comparisons truthfully report remaining work. Checks call the learner implementations on inspectable data, including independent variations. They cannot establish that a particular derivation was authored or grade a free-text explanation.
 
-See [the per-chapter review and validation record](../../guidance/astra-review-01-14.md) for evidence, gate results, and limitations.
+## Learning-design basis and limits
 
-## Consistency revision — 2026-09-08
+Worked examples precede substantial algorithm changes; learners predict a result, compare a working baseline, implement, inspect discrepancies and transfer to changed inputs. This applies the verified research synthesis on worked examples, retrieval and guided active tasks. It is a design inference for everyday Rust programmers who are new to ML, not a controlled result for this complete curriculum. Short sessions are planning estimates; no navigation or mastery gate is inferred from clicks or baseline success.
 
-This local revision required no new research. It retains the verified MSE formulas, central-difference method, tolerance, fixture, and sources above while aligning the Chapter 2 terminology and Rust interface with Chapter 1. The analytical formula is still the only new gradient strategy; prediction, loss, data, update semantics, and training semantics are unchanged.
+## Chapter-specific limits
+
+- Operation counts exclude validation and reporting and are not benchmark timings.
+- Agreement is local evidence on small smooth inputs.
+- Honest instrumentation and analytical implementation also require reading the authored loop.

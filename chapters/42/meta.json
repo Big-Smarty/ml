@@ -7,12 +7,14 @@
     "Account for long-context arithmetic and intermediate storage"
   ],
   "lessons": [
-    "Keep a scalar causal-attention oracle",
-    "Update softmax state without all scores",
-    "Tile exact causal attention",
-    "Share keys and values across query heads",
-    "Run, diagnose, and transfer",
-    "Before you move on"
+    "Can a long attention row fit in a small workspace?",
+    "What output must every implementation preserve?",
+    "What must be rescaled when a new maximum arrives?",
+    "How can separate key tiles share one normalization?",
+    "Which query heads share keys and values?",
+    "Can the same recurrence handle uneven tiles and shared heads?",
+    "Can you account for both arithmetic and memory?",
+    "Sources and further reading"
   ],
   "terms": {
     "online-softmax": {
@@ -67,5 +69,82 @@
     "Random tensors do not measure trained-model quality",
     "No backward pass or block-sparse approximation is implemented",
     "Benchmark measures allocating end-to-end CPU functions, not allocation-free kernels"
-  ]
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "continuity",
+      "title": "Can a long attention row fit in a small workspace?",
+      "session": 1,
+      "minutes": 5
+    },
+    {
+      "id": "oracle",
+      "title": "What output must every implementation preserve?",
+      "session": 1,
+      "minutes": 8
+    },
+    {
+      "id": "online",
+      "title": "What must be rescaled when a new maximum arrives?",
+      "session": 1,
+      "minutes": 9
+    },
+    {
+      "id": "tiles",
+      "title": "How can separate key tiles share one normalization?",
+      "session": 1,
+      "minutes": 20
+    },
+    {
+      "id": "gqa",
+      "title": "Which query heads share keys and values?",
+      "session": 2,
+      "minutes": 10
+    },
+    {
+      "id": "experiment",
+      "title": "Can the same recurrence handle uneven tiles and shared heads?",
+      "session": 2,
+      "minutes": 26
+    },
+    {
+      "id": "review",
+      "title": "Can you account for both arithmetic and memory?",
+      "session": 2,
+      "minutes": 3
+    },
+    {
+      "id": "sources",
+      "title": "Sources and further reading",
+      "session": 2,
+      "minutes": 1
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Stream a normalization",
+      "goal": "Implement persistent online state and bounded tiles"
+    },
+    {
+      "id": 2,
+      "title": "Map complete attention",
+      "goal": "Implement causal GQA indexing and verify every output coordinate"
+    }
+  ],
+  "lab": {
+    "package": "s08-adaptation",
+    "chapter": "42",
+    "entry": "labs/s08-adaptation/src/ch42.rs",
+    "goal": "Implement persistent online state and bounded tiles; Implement causal GQA indexing and verify every output coordinate",
+    "check": "just lab-check 42"
+  },
+  "topic_coverage": {
+    "Online softmax": "online",
+    "tiled attention": "tiles",
+    "grouped-query attention": "gqa",
+    "context costs": "tiles"
+  },
+  "interactives": []
 }

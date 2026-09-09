@@ -5,7 +5,14 @@
     "Compare checked scalar f64 dense and CSR matrix-vector kernels within tolerance",
     "Measure kernel time and output error across several densities"
   ],
-  "lessons": ["Why zeros need a representation", "Magnitude pruning", "CSR arithmetic", "Correct benchmarking", "Rust experiment", "Practice and transfer"],
+  "lessons": [
+    "Why do nine stored values still cost nine values?",
+    "Which weights survive a fixed budget?",
+    "Can your mask handle a new sign and a tie?",
+    "How can an empty row exist without stored zeros?",
+    "When do fewer values save bytes or time?",
+    "Can the sparse representation preserve the function?"
+  ],
   "terms": {
     "sparsity": {
       "name": "Sparsity",
@@ -39,21 +46,105 @@
     }
   },
   "sources": [
-    {"title": "Learning both Weights and Connections for Efficient Neural Networks", "url": "https://proceedings.neurips.cc/paper/2015/hash/ae0eb3eed39d2bcef4622b2499a05fe6-Abstract.html", "note": "Magnitude pruning and retraining"},
-    {"title": "The State of Sparsity in Deep Neural Networks", "url": "https://arxiv.org/abs/1902.09574", "note": "Large-scale pruning comparisons and caveats"},
-    {"title": "Intel oneMKL sparse storage formats", "url": "https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-dpcpp/2025-2/sparse-storage-formats.html", "note": "Authoritative CSR layout"},
-    {"title": "Implementing Sparse Matrix-Vector Multiplication on Throughput-Oriented Processors", "url": "https://www.nvidia.com/docs/IO/77944/sc09-spmv-throughput.pdf", "note": "Sparse-kernel performance factors"},
-    {"title": "Rust std::hint::black_box", "url": "https://doc.rust-lang.org/std/hint/fn.black_box.html", "note": "Optimization-barrier semantics and limits"}
+    {
+      "title": "Learning both Weights and Connections for Efficient Neural Networks",
+      "url": "https://proceedings.neurips.cc/paper/2015/hash/ae0eb3eed39d2bcef4622b2499a05fe6-Abstract.html",
+      "note": "Magnitude pruning and retraining"
+    },
+    {
+      "title": "The State of Sparsity in Deep Neural Networks",
+      "url": "https://arxiv.org/abs/1902.09574",
+      "note": "Large-scale pruning comparisons and caveats"
+    },
+    {
+      "title": "Intel oneMKL sparse storage formats",
+      "url": "https://www.intel.com/content/www/us/en/docs/onemkl/developer-reference-dpcpp/2025-2/sparse-storage-formats.html",
+      "note": "Authoritative CSR layout"
+    },
+    {
+      "title": "Implementing Sparse Matrix-Vector Multiplication on Throughput-Oriented Processors",
+      "url": "https://www.nvidia.com/docs/IO/77944/sc09-spmv-throughput.pdf",
+      "note": "Sparse-kernel performance factors"
+    },
+    {
+      "title": "Rust std::hint::black_box",
+      "url": "https://doc.rust-lang.org/std/hint/fn.black_box.html",
+      "note": "Optimization-barrier semantics and limits"
+    }
   ],
   "checks": [
-    "CSR preserves row pointers [0,1,1,3], columns [1,0,2], and values [2,-3,4] for the worked fixture",
-    "CSR and dense outputs agree within 1e-10 absolute plus 1e-8 relative tolerance",
-    "Fifty-percent pruning keeps the two largest magnitudes and resolves exact ties by original index",
-    "Default run reports 31-sample kernel median and range plus output RMSE at four densities"
+    "Run the working learner baseline with just lab 47; implement the complete named algorithms and run just lab-check 47.",
+    "Run the separate solution goal checks and package tests; compare actual numerical intermediates described in each session.",
+    "Complete each session’s changed-input explanation; passing executable checks does not grade explanatory reasoning."
   ],
   "limitations": [
     "Scalar matrix-vector timing does not predict SIMD, batched, or GPU sparse performance",
     "The deterministic matrix is not a trained model and has no task-accuracy metric",
     "Global pruning is performed once without sparse retraining"
-  ]
+  ],
+  "redesign_version": 2,
+  "steps": [
+    {
+      "id": "zeros",
+      "title": "Why do nine stored values still cost nine values?",
+      "session": 1,
+      "minutes": 10
+    },
+    {
+      "id": "pruning",
+      "title": "Which weights survive a fixed budget?",
+      "session": 1,
+      "minutes": 12
+    },
+    {
+      "id": "mask-check",
+      "title": "Can your mask handle a new sign and a tie?",
+      "session": 1,
+      "minutes": 16
+    },
+    {
+      "id": "csr",
+      "title": "How can an empty row exist without stored zeros?",
+      "session": 2,
+      "minutes": 11
+    },
+    {
+      "id": "measurement",
+      "title": "When do fewer values save bytes or time?",
+      "session": 2,
+      "minutes": 11
+    },
+    {
+      "id": "practice",
+      "title": "Can the sparse representation preserve the function?",
+      "session": 2,
+      "minutes": 16
+    }
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "title": "Choose what to remove",
+      "goal": "Implement a deterministic pruning mask and explain its output error."
+    },
+    {
+      "id": 2,
+      "title": "Make zeros change execution",
+      "goal": "Build CSR and compare storage, arithmetic, and measured kernel time."
+    }
+  ],
+  "lab": {
+    "package": "s09-advanced",
+    "chapter": "47",
+    "entry": "labs/s09-advanced/src/ch47.rs",
+    "goal": "Prune deterministically, construct CSR, verify two-input parity, and distinguish byte and timing savings.",
+    "check": "just lab-check 47"
+  },
+  "topic_coverage": {
+    "Sparse representations": "csr",
+    "pruning": "pruning",
+    "sparse kernels": "practice",
+    "measured savings": "measurement"
+  },
+  "interactives": []
 }
