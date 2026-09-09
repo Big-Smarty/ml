@@ -37,8 +37,18 @@ impl Neuron {
 
     fn gradient(&self, data: &[(f64, f64)]) -> Result<Gradient, &'static str> {
         // TODO: average 2 * error * input and 2 * error over data.
-        let _ = data;
-        todo!("return the analytical weight and bias gradient")
+        let n = data.len() as f64;
+        let (weight, bias) = TRAIN
+            .iter()
+            .map(|&(input, target)| {
+                let error = self.predict(input) - target;
+                (2.0 * error * input, 2.0 * error)
+            })
+            .collect::<(Vec<f64>, Vec<f64>)>();
+        Ok(Gradient {
+            weight: weight.iter().sum::<f64>() / n,
+            bias: bias.iter().sum::<f64>() / n,
+        })
     }
 
     fn numerical_gradient(&self, data: &[(f64, f64)]) -> Result<Gradient, &'static str> {

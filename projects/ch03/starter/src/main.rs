@@ -39,8 +39,60 @@ impl LinearModel {
 
     fn loss_and_gradient(&self, data: &[Example]) -> Result<(f64, Gradient), &'static str> {
         // TODO: extend Chapter 2's scalar accumulation across all three features.
-        let _ = data;
-        todo!("return the mean squared error and its three weight derivatives plus bias derivative")
+        let n = data.len() as f64;
+        let loss = self.loss(data)?;
+        let weights_gradients = [
+            2.0 / n
+                * (0..data.len())
+                    .map(|i| {
+                        (self
+                            .weights
+                            .iter()
+                            .zip(data[i].0)
+                            .map(|(w, x)| w * x)
+                            .sum::<f64>()
+                            + self.bias
+                            - data[i].1)
+                            * data[i].0[0]
+                    })
+                    .sum::<f64>(),
+            2.0 / n
+                * (0..data.len())
+                    .map(|i| {
+                        (self
+                            .weights
+                            .iter()
+                            .zip(data[i].0)
+                            .map(|(w, x)| w * x)
+                            .sum::<f64>()
+                            + self.bias
+                            - data[i].1)
+                            * data[i].0[1]
+                    })
+                    .sum::<f64>(),
+            2.0 / n
+                * (0..data.len())
+                    .map(|i| {
+                        (self
+                            .weights
+                            .iter()
+                            .zip(data[i].0)
+                            .map(|(w, x)| w * x)
+                            .sum::<f64>()
+                            + self.bias
+                            - data[i].1)
+                            * data[i].0[2]
+                    })
+                    .sum::<f64>(),
+        ];
+        let bias_gradient = data.iter().map(|d| self.predict(d.0) - d.1).sum::<f64>();
+        Ok((
+            loss,
+            Gradient {
+                weights: weights_gradients,
+                bias: bias_gradient,
+            },
+        ))
     }
 
     fn gradient(&self, data: &[Example]) -> Result<Gradient, &'static str> {

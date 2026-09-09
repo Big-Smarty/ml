@@ -1,10 +1,19 @@
+use std::f64;
+
 fn sigmoid(logit: f64) -> f64 {
     // TODO: implement both stable branches.
     let _ = logit;
-    todo!("compute sigmoid with separate nonnegative and negative branches")
+    if logit.is_sign_positive() {
+        1.0 / (1.0 + f64::consts::E.powf(-logit))
+    } else {
+        let exp = logit.exp();
+        exp / (1.0 + exp)
+    }
 }
 fn main() {
     println!("{}", sigmoid(0.0));
+    println!("{}", sigmoid(2.0));
+    println!("{}", sigmoid(-2.0));
 }
 #[test]
 fn sigmoid_is_stable() {

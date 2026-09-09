@@ -16,7 +16,10 @@ fn sigmoid(logit: f64) -> f64 {
 fn binary_cross_entropy_from_logit(logit: f64, target: f64) -> Result<f64, &'static str> {
     // TODO: validate the inputs, then implement stable BCE from the logit.
     let _ = (logit, target);
-    todo!("use max(logit, 0) - logit * target + ln(1 + exp(-abs(logit)))")
+    if 0.0 > target || 1.0 < target {
+        return Err("");
+    }
+    Ok(logit.max(0.0) - logit * target + (1.0 + (-logit.abs()).exp()).ln())
 }
 
 impl LogisticModel {
