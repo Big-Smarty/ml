@@ -61,6 +61,6 @@ just verify                # Full delivery checks for all nine labs
 
 Open your editor from the course root, for example `helix labs/s01-foundations/src/ch01.rs`. The project-local `.helix/languages.toml` links the nine active labs and preserved reference packages for rust-analyzer; it excludes the old exercise runner and starters. The root toolchain requests Rust formatting, linting and language-server components. Reload an already-open editor after changing its project configuration. See [Helix's project language configuration](https://docs.helix-editor.com/languages.html).
 
-The old Rustlings files and starter projects remain in repository history and the original checkout, outside the active guide, commands, editor workflow and download. Existing work on `main` is preserved; this redesign is on `codex/ml-learning-redesign`.
+The redesigned course is on `main`. The previous `main` is preserved on the `legacy` branch, including the old Rustlings workflow and starter projects. Those files are outside the active guide, commands, editor workflow and download.
 
 For an offline copy, use the guide's **Download the course** link and unzip it. While online, install Python, just and the requested Rust toolchain, then fetch external dependencies for any sections you plan to use. The archive does not include compilers or Cargo's dependency cache. Once those are available locally, run `just serve` inside the extracted `first-principles` folder. The guide and bundled experiments work offline; external readings and optional dataset downloads need a network.

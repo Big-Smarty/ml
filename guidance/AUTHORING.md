@@ -1,6 +1,6 @@
 # Redesign authoring contract
 
-This is the active contract for `codex/ml-learning-redesign`. The approved September 2026 plan supersedes older Rustlings, per-chapter authorship, starter failure, consistency-revision and minimum-word-count requirements. Historical review files describe the earlier course, not this redesign.
+This is the active contract for the redesigned course on `main`. The approved September 2026 plan supersedes older Rustlings, per-chapter authorship, starter failure, consistency-revision and minimum-word-count requirements. Historical review files describe the earlier course, preserved on `legacy`, not this redesign.
 
 ## Audience and learning
 

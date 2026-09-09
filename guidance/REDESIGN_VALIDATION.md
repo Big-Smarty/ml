@@ -1,13 +1,13 @@
 # Redesign validation
 
-Validation date: 2026-09-09. The complete redesigned course is ready for private publication. The deployment is performed separately from this source validation record.
+Validation date: 2026-09-09. The redesigned implementation has been privately published. This record covers the initial source validation; [VISUAL_STYLE_VALIDATION.md](VISUAL_STYLE_VALIDATION.md) records the subsequent theme, MathML, command, and browser checks. Actual browser zoom and target assistive-technology checks remain pending; the available-browser evidence does not establish complete accessibility conformance.
 
 ## Delivered scope and preservation
 
 - All 56 chapters retain the original topics and nine section boundaries. Their metadata maps every topic to an authored learning step. The final course contains 426 steps and 152 approximate sessions.
 - Nine independent Rust lab packages provide 56 working learner baselines, separate completed algorithms, inspectable learning-goal checks, progressive hints, and controlled transfer experiments. The nine design reports in [redesign/](redesign/) form the chapter-by-chapter design matrix.
 - Exactly 18 focused browser tools match the approved catalog. The source download includes the new labs, complete reference projects, local site, tooling, source records and datasets; it excludes old starters, the retired exercise runner, build caches and temporary authoring files.
-- The branch is `codex/ml-learning-redesign`. `main` and the original `projects/` and `exercises/` files remain unchanged. The build writes only generated output and never rewrites learner sources, the chapter map or old exercise configuration.
+- The redesigned course is on `main`; the previous `main` at `05d2e3add1a4ff32e691e11b8e0c682e9f33fc4e` is preserved on `legacy`. The original `projects/` and `exercises/` files remain unchanged. The build writes only generated output and never rewrites learner sources, the chapter map or old exercise configuration.
 
 ## Rust and scientific checks
 

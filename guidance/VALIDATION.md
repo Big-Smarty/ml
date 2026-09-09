@@ -1,8 +1,8 @@
 # V2 validation requirements and status index
 
-**Status:** implementation and validation are in progress. This file defines the v2 evidence required for delivery; it does not claim the course is complete.
+**Status:** the redesigned implementation is integrated and privately published. The recorded course, Rust, and available-browser checks pass. The full accessibility validation target below is not yet complete: actual browser zoom and target assistive-technology checks remain pending, as detailed in [VISUAL_STYLE_VALIDATION.md](VISUAL_STYLE_VALIDATION.md).
 
-Current observed checks and outstanding delivery gates are recorded in [REDESIGN_VALIDATION.md](REDESIGN_VALIDATION.md). Section-scoped evidence belongs in the owner-authored `guidance/redesign/section-NN.md` matrices. The completed pre-v2 validation record from 2026-09-08 is preserved at [archive/2026-09-08-validation-record.md](archive/2026-09-08-validation-record.md) and does not satisfy v2 gates unless a current check is explicitly rerun and recorded.
+The initial redesign checks are recorded in [REDESIGN_VALIDATION.md](REDESIGN_VALIDATION.md); the subsequent theme, MathML, command, and browser checks and their limitations are recorded in [VISUAL_STYLE_VALIDATION.md](VISUAL_STYLE_VALIDATION.md). Section-scoped evidence belongs in the owner-authored `guidance/redesign/section-NN.md` matrices. The completed pre-v2 validation record from 2026-09-08 is preserved at [archive/2026-09-08-validation-record.md](archive/2026-09-08-validation-record.md) and does not satisfy v2 gates unless a current check is explicitly rerun and recorded.
 
 Review criteria are in [REVIEW.md](REVIEW.md). Authoring and status conventions are in [AUTHORING.md](AUTHORING.md) and [CONSISTENCY.md](CONSISTENCY.md).
 
@@ -76,4 +76,4 @@ A check inherited from the pre-v2 course remains historical until rerun. A conce
 
 ## Current record
 
-[REDESIGN_VALIDATION.md](REDESIGN_VALIDATION.md) is the sole active log of checks already observed and gates still pending. Update it with evidence as work completes; do not replace pending items with broad claims or copy pre-v2 results forward.
+[REDESIGN_VALIDATION.md](REDESIGN_VALIDATION.md) and [VISUAL_STYLE_VALIDATION.md](VISUAL_STYLE_VALIDATION.md) record checks already observed and checks still pending. Update the relevant record with evidence as work completes; do not replace pending items with broad claims or copy pre-v2 results forward. A 320-pixel reflow check does not establish that actual 400% browser zoom was tested.

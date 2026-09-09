@@ -36,4 +36,3 @@ Recipe execution in this revision passed: just recipes-test, just lab 01, just s
 ## Limits of this verification
 
 The executed browser checks use the available Chromium-based in-app browser. Screen-reader/browser combinations, actual browser zoom, forced colors, and operating-system text-spacing overrides were not tested here. The 320 px layout check is a narrow-layout test, not a substitute for all zoom or assistive-technology checks. The script-free copies test static reading without app/demo execution; they are not an audit of every browser's JavaScript-disable mode. Contrast ratios are calculated for the documented palette pairs, not a claim of complete WCAG conformance. Mathematical rendering and spoken output can vary with the browser, font, operating system, and assistive technology.
-
