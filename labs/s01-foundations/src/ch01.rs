@@ -1,5 +1,6 @@
 //! Learner: replace the whole candidate search with a numerical-gradient trainer.
 //! Keep predict/loss and the command plumbing. See the lesson for the four probes.
+
 use crate::scalar::{loss, predict, settings, Model, TRAIN};
 
 pub const CANDIDATES: [Model; 3] = [[1., 0.], [1., 1.], [1.5, 0.5]];
@@ -73,6 +74,18 @@ pub fn report(train: Trainer, args: &[String]) -> Result<(), String> {
     for x in [-1.5, 0.5, 1.5, 3.] {
         println!("unseen x={x}: prediction={:.6}", predict(model, x));
     }
+    println!(
+        "{:?}",
+        candidate_search(
+            &data,
+            [0., 1., 2.]
+                .iter()
+                .map(|w| [0., 1.].iter().map(|b| [*w, *b]))
+                .flatten()
+                .collect::<Vec<Model>>()
+                .as_slice(),
+        )
+    );
     println!("The supplied candidate baseline ignores step/rate values; your numerical trainer uses them. Baseline success is not the learning goal.");
     Ok(())
 }
