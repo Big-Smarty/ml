@@ -4,6 +4,8 @@
 use crate::scalar::{loss, predict, settings, Model, TRAIN};
 
 pub const CANDIDATES: [Model; 3] = [[1., 0.], [1., 1.], [1.5, 0.5]];
+const H: f64 = 0.00001;
+
 pub fn candidate_search(data: &[(f64, f64)], candidates: &[Model]) -> Result<Model, String> {
     let mut best = *candidates.first().ok_or("provide at least one candidate")?;
     loss(best, data)?;
@@ -16,9 +18,23 @@ pub fn candidate_search(data: &[(f64, f64)], candidates: &[Model]) -> Result<Mod
 }
 pub fn train(data: &[(f64, f64)], steps: usize, rate: f64) -> Result<Model, String> {
     settings(rate)?;
-    // This baseline searches fixed rules. Training step/rate controls affect your replacement.
-    let _ = steps;
-    candidate_search(data, &CANDIDATES)
+    let mut model: Model = [0., 0.];
+    println!("data: {data:?}");
+    println!("steps: {steps}");
+    for _ in 0..steps {
+        println!("model: {model:?}");
+        let gradients: Vec<f64> = vec![
+            (loss([model[0] + H, model[1]], data)? - loss([model[0] - H, model[1]], data)?) / 2.
+                * H,
+            (loss([model[0], model[1] + H], data)? - loss([model[0], model[1] - H], data)?) / 2.
+                * H,
+        ];
+        for (parameter, slope) in model.iter_mut().zip(gradients) {
+            println!("parameter: {parameter}, rate: {rate}, slope: {slope}");
+            *parameter -= rate * slope;
+        }
+    }
+    Ok(model)
 }
 pub fn data_for(variant: &str) -> Result<Vec<(f64, f64)>, String> {
     let mut data = TRAIN.to_vec();
