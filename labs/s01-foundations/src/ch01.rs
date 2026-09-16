@@ -19,18 +19,14 @@ pub fn candidate_search(data: &[(f64, f64)], candidates: &[Model]) -> Result<Mod
 pub fn train(data: &[(f64, f64)], steps: usize, rate: f64) -> Result<Model, String> {
     settings(rate)?;
     let mut model: Model = [0., 0.];
-    println!("data: {data:?}");
-    println!("steps: {steps}");
     for _ in 0..steps {
-        println!("model: {model:?}");
         let gradients: Vec<f64> = vec![
-            (loss([model[0] + H, model[1]], data)? - loss([model[0] - H, model[1]], data)?) / 2.
-                * H,
-            (loss([model[0], model[1] + H], data)? - loss([model[0], model[1] - H], data)?) / 2.
-                * H,
+            (loss([model[0] + H, model[1]], data)? - loss([model[0] - H, model[1]], data)?)
+                / (2. * H),
+            (loss([model[0], model[1] + H], data)? - loss([model[0], model[1] - H], data)?)
+                / (2. * H),
         ];
         for (parameter, slope) in model.iter_mut().zip(gradients) {
-            println!("parameter: {parameter}, rate: {rate}, slope: {slope}");
             *parameter -= rate * slope;
         }
     }
